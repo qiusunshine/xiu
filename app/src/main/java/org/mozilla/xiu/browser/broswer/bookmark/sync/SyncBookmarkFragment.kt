@@ -1,7 +1,6 @@
 package org.mozilla.xiu.browser.broswer.bookmark.sync
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,20 +9,15 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import kotlinx.coroutines.launch
+import mozilla.components.concept.storage.BookmarkNode
+import org.mozilla.geckoview.GeckoRuntime
+import org.mozilla.geckoview.GeckoSession
 import org.mozilla.xiu.browser.R
 import org.mozilla.xiu.browser.componets.HomeLivedata
 import org.mozilla.xiu.browser.databinding.FragmentSyncBookmarkBinding
 import org.mozilla.xiu.browser.session.GeckoViewModel
 import org.mozilla.xiu.browser.session.SeRuSettings
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import mozilla.components.browser.storage.sync.PlacesBookmarksStorage
-import mozilla.components.concept.storage.BookmarkNode
-import mozilla.components.service.fxa.SyncEngine
-import mozilla.components.service.fxa.sync.GlobalSyncableStoreProvider
-import org.mozilla.geckoview.GeckoRuntime
-import org.mozilla.geckoview.GeckoSession
 
 /**
  * A simple [Fragment] subclass.
@@ -47,10 +41,10 @@ class SyncBookmarkFragment : Fragment()  {
     ): View? {
         bookmarkNodes=ArrayList<BookmarkNode>()
 
-        val bookmarksStorage = lazy {
-            PlacesBookmarksStorage(this.requireContext())
-        }
-        GlobalSyncableStoreProvider.configureStore(SyncEngine.Bookmarks to bookmarksStorage)
+//        val bookmarksStorage = lazy {
+//            PlacesBookmarksStorage(this.requireContext())
+//        }
+//        GlobalSyncableStoreProvider.configureStore(SyncEngine.Bookmarks to bookmarksStorage)
         binding= FragmentSyncBookmarkBinding.inflate(LayoutInflater.from(context))
         var bookmarkAdapter= SyncBookmarkFolderAdapter()
         geckoViewModel = activity?.let { ViewModelProvider(it)[GeckoViewModel::class.java] }!!
@@ -70,26 +64,26 @@ class SyncBookmarkFragment : Fragment()  {
 
 
 
-            bookmarkAdapter.submitList(withContext(Dispatchers.IO) {
-                val bookmarksRoot =
-                    bookmarksStorage.value?.getTree("root________", recursive = true)
-                if (bookmarksRoot == null) {
-                    bookmarkNodes
-                } else {
-                    var bookmarksRootAndChildren = "BOOKMARKS\n"
-                    fun addTreeNode(node: BookmarkNode, depth: Int) {
-                        Log.d("BookmarkNode: ", node.type.name)
-                        if(node.type.name == "FOLDER")
-                            bookmarkNodes.add(node)
-                        node.children?.forEach {
-                            addTreeNode(it, depth + 1)
-                        }
-                    }
-                    addTreeNode(bookmarksRoot, 0)
-                    bookmarkNodes
-
-                }
-            }.toList())
+//            bookmarkAdapter.submitList(withContext(Dispatchers.IO) {
+//                val bookmarksRoot =
+//                    bookmarksStorage.value?.getTree("root________", recursive = true)
+//                if (bookmarksRoot == null) {
+//                    bookmarkNodes
+//                } else {
+//                    var bookmarksRootAndChildren = "BOOKMARKS\n"
+//                    fun addTreeNode(node: BookmarkNode, depth: Int) {
+//                        Log.d("BookmarkNode: ", node.type.name)
+//                        if(node.type.name == "FOLDER")
+//                            bookmarkNodes.add(node)
+//                        node.children?.forEach {
+//                            addTreeNode(it, depth + 1)
+//                        }
+//                    }
+//                    addTreeNode(bookmarksRoot, 0)
+//                    bookmarkNodes
+//
+//                }
+//            }.toList())
 
         }
 

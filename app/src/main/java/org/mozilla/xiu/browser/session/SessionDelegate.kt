@@ -264,17 +264,17 @@ class SessionDelegate() : BaseObservable() {
             }
 
             override fun onPageStart(session: GeckoSession, url: String) {
-                if (url.startsWith("$CONFIG_URL/oauth/success/3c49430b43dfba77")) {
-                    val uri = Uri.parse(url)
-                    val code = uri.getQueryParameter("code")
-                    val state = uri.getQueryParameter("state")
-                    val action = uri.getQueryParameter("action")
-                    if (code != null && state != null && action != null) {
-                        //listener?.onLoginComplete(code, state, mContext)
-                        //Toast.makeText(mContext,code+"**"+state,Toast.LENGTH_SHORT).show()
-                        login.onLogin(code, state, action)
-                    }
-                }
+//                if (url.startsWith("$CONFIG_URL/oauth/success/3c49430b43dfba77")) {
+//                    val uri = Uri.parse(url)
+//                    val code = uri.getQueryParameter("code")
+//                    val state = uri.getQueryParameter("state")
+//                    val action = uri.getQueryParameter("action")
+//                    if (code != null && state != null && action != null) {
+//                        //listener?.onLoginComplete(code, state, mContext)
+//                        //Toast.makeText(mContext,code+"**"+state,Toast.LENGTH_SHORT).show()
+//                        login.onLogin(code, state, action)
+//                    }
+//                }
                 notifyPropertyChanged(BR.y)
 
             }

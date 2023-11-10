@@ -6,18 +6,34 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.lifecycleScope
-import org.mozilla.xiu.browser.componets.popup.ReceivedTabPopupObervers
 import kotlinx.coroutines.launch
 import mozilla.components.browser.storage.sync.PlacesBookmarksStorage
-import mozilla.components.concept.sync.*
+import mozilla.components.concept.sync.AccountEvent
+import mozilla.components.concept.sync.AccountEventsObserver
+import mozilla.components.concept.sync.AccountObserver
+import mozilla.components.concept.sync.AuthFlowError
+import mozilla.components.concept.sync.AuthType
+import mozilla.components.concept.sync.ConstellationState
+import mozilla.components.concept.sync.DeviceCapability
+import mozilla.components.concept.sync.DeviceCommandIncoming
+import mozilla.components.concept.sync.DeviceConfig
+import mozilla.components.concept.sync.DeviceConstellationObserver
+import mozilla.components.concept.sync.DeviceType
+import mozilla.components.concept.sync.OAuthAccount
+import mozilla.components.concept.sync.Profile
 import mozilla.components.lib.fetch.httpurlconnection.HttpURLConnectionClient
-import mozilla.components.service.fxa.*
+import mozilla.components.service.fxa.PeriodicSyncConfig
+import mozilla.components.service.fxa.Server
+import mozilla.components.service.fxa.ServerConfig
+import mozilla.components.service.fxa.SyncConfig
+import mozilla.components.service.fxa.SyncEngine
 import mozilla.components.service.fxa.manager.FxaAccountManager
 import mozilla.components.service.fxa.sync.GlobalSyncableStoreProvider
 import mozilla.components.service.fxa.sync.SyncReason
 import mozilla.components.service.fxa.sync.SyncStatusObserver
 import mozilla.components.support.rusthttp.RustHttpConfig
 import mozilla.components.support.rustlog.RustLog
+import org.mozilla.xiu.browser.componets.popup.ReceivedTabPopupObervers
 
 
 class Fxa {

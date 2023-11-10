@@ -11,7 +11,6 @@ import org.mozilla.xiu.browser.database.bookmark.BookmarkViewModel
 import org.mozilla.xiu.browser.database.shortcut.Shortcut
 import org.mozilla.xiu.browser.database.shortcut.ShortcutViewModel
 import org.mozilla.xiu.browser.databinding.DiaBookmarkBinding
-import org.mozilla.xiu.browser.fxa.sync.BookmarkSync
 
 
 class BookmarkDialog(
@@ -45,7 +44,7 @@ class BookmarkDialog(
                 if (diaBookmarkBinding.radioButton.isChecked)
                     shortcutViewModel.insertShortcuts(shortcut)
                 bookmarkViewModel.insertBookmarks(bookmark)
-                BookmarkSync(context1).sync(diaBookmarkBinding.diaBookmarkUrl.getText().toString(),diaBookmarkBinding.diaBookmarkTitle.getText().toString())
+                //BookmarkSync(context1).sync(diaBookmarkBinding.diaBookmarkUrl.getText().toString(),diaBookmarkBinding.diaBookmarkTitle.getText().toString())
             })
         setButton(DialogInterface.BUTTON_NEGATIVE, context.getString(R.string.cancel),
             DialogInterface.OnClickListener { dialogInterface, i -> dialogInterface.dismiss() })
