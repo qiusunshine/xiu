@@ -20,7 +20,6 @@ import com.kongzue.dialogx.interfaces.OnBindView
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.mozilla.geckoview.*
-import org.mozilla.geckoview.GeckoSession.ContentDelegate
 import org.mozilla.geckoview.GeckoSession.NavigationDelegate
 import org.mozilla.geckoview.GeckoSession.ProgressDelegate
 import org.mozilla.geckoview.GeckoSession.PromptDelegate.*
@@ -202,9 +201,14 @@ class SessionDelegate() : BaseObservable() {
                 notifyPropertyChanged(BR.mTitle)
 
             }
+            override fun onFullScreen(session: GeckoSession, fullScreen: Boolean) {
+                super.onFullScreen(session, fullScreen)
+                isFull = fullScreen
+                fullscreenCall(fullScreen)
+                notifyPropertyChanged(BR.full)
+            }
         }
         session.mediaSessionDelegate = object : MediaSession.Delegate {
-            var orientation: Boolean? = null
             override fun onFullscreen(
                 session: GeckoSession,
                 mediaSession: MediaSession,
@@ -223,14 +227,6 @@ class SessionDelegate() : BaseObservable() {
                 } else {
                     mContext.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
                 }
-            }
-        }
-        session.contentDelegate = object : ContentDelegate {
-            override fun onFullScreen(session: GeckoSession, fullScreen: Boolean) {
-                super.onFullScreen(session, fullScreen)
-                isFull = fullScreen
-                fullscreenCall(fullScreen)
-                notifyPropertyChanged(BR.full)
             }
         }
 

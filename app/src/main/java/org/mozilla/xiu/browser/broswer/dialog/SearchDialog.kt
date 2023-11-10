@@ -102,7 +102,7 @@ class SearchDialog(context: Context) : MyDialog(context) {
         if (prefs != null) {
             when (prefs.getString(
                 "searchEngine",
-                getContext().getString(org.mozilla.xiu.browser.R.string.baidu)
+                getContext().getString(org.mozilla.xiu.browser.R.string.bing)
             )) {
                 getContext().getString(org.mozilla.xiu.browser.R.string.baidu) -> binding.radioButton1.isChecked =
                     true
