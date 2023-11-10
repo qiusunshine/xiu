@@ -155,12 +155,16 @@ class MainActivity : AppCompatActivity() {
 
                     getString(org.mozilla.xiu.browser.R.string.sogou) -> binding.materialButton13?.text =
                         getString(R.string.EngineTips, getString(R.string.Sougou))
+
                     getString(org.mozilla.xiu.browser.R.string.sk360) -> binding.materialButton13?.text =
                         getString(R.string.EngineTips, getString(R.string.s360))
+
                     getString(org.mozilla.xiu.browser.R.string.wuzhui) -> binding.materialButton13?.text =
                         getString(R.string.EngineTips, getString(R.string.Wuzhui))
+
                     getString(org.mozilla.xiu.browser.R.string.yandex) -> binding.materialButton13?.text =
                         getString(R.string.EngineTips, getString(R.string.Yandex))
+
                     getString(org.mozilla.xiu.browser.R.string.shenma) -> binding.materialButton13?.text =
                         getString(R.string.EngineTips, getString(R.string.Shenma))
                 }
@@ -187,12 +191,16 @@ class MainActivity : AppCompatActivity() {
 
                     getString(org.mozilla.xiu.browser.R.string.sogou) -> binding.materialButton13?.text =
                         getString(R.string.EngineTips, getString(R.string.Sougou))
+
                     getString(org.mozilla.xiu.browser.R.string.sk360) -> binding.materialButton13?.text =
                         getString(R.string.EngineTips, getString(R.string.s360))
+
                     getString(org.mozilla.xiu.browser.R.string.wuzhui) -> binding.materialButton13?.text =
                         getString(R.string.EngineTips, getString(R.string.Wuzhui))
+
                     getString(org.mozilla.xiu.browser.R.string.yandex) -> binding.materialButton13?.text =
                         getString(R.string.EngineTips, getString(R.string.Yandex))
+
                     getString(org.mozilla.xiu.browser.R.string.shenma) -> binding.materialButton13?.text =
                         getString(R.string.EngineTips, getString(R.string.Shenma))
                 }
@@ -388,7 +396,9 @@ class MainActivity : AppCompatActivity() {
 
     private val onBackPress = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
-            if (binding.user?.isFull == true) {
+            if (binding.content.viewPager.currentItem == 0 && sessionDelegates.isNotEmpty()) {
+                HomeLivedata.getInstance().Value(false)
+            } else if (binding.user?.isFull == true) {
                 binding.user?.session?.exitFullScreen()
             } else if (binding.user?.canBack == true) {
                 binding.user?.session?.goBack()
