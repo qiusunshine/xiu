@@ -1,0 +1,152 @@
+<resources>
+    <string name="app_name">Xiu</string>
+    <string name="action_settings">Settings</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="hint">搜索或输入地址</string>
+    <string name="add_tab">打开新标签页</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_holder">HolderActivity</string>
+    <string name="dia_bookmark_radio">添加到首页</string>
+    <string name="dia_bookmark_url">地址：</string>
+    <string name="dia_bookmark_title">名称：</string>
+    <string name="dia_add_bookmark_title">添加书签</string>
+    <string name="confirm">确定</string>
+    <string name="cancel">取消</string>
+    <string name="copy">复制到剪切板</string>
+    <string name="reload">刷新</string>
+    <string name="bookmark">书签</string>
+    <string name="history">历史</string>
+    <string name="desktop">桌面模式</string>
+    <string name="forward">前进</string>
+    <string name="Baidu">百度</string>
+    <string name="Google">谷歌</string>
+    <string name="Bing">必应</string>
+    <string name="Sougou">搜狗</string>
+    <string name="s360">360搜索</string>
+    <string name="Wuzhui">无追搜索</string>
+    <string name="Yandex">Yandex</string>
+    <string name="Shenma">神马</string>
+    <string name="EngineTips">在%s上搜索</string>
+    <string name="connection_secure">连接安全</string>
+    <string name="connection_not_secure">连接不安全</string>
+    <string name="clear_cookies_and_site_data">清除Cookie和网站数据</string>
+    <string name="privacy_and_service_agreement">隐私与用户协议</string>
+    <string name="agree">同意</string>
+    <string name="disagree">不同意</string>
+    <string name="delete">删除</string>
+    <string name="add_to_homepage">添加到主页</string>
+    <string name="other_opening_methods">其他打开方式</string>
+    <string name="donating">捐助</string>
+
+
+    <string name="result_qr">扫描结果</string>
+
+    <string name="dialog_shortcut_title">确定从主页上删除?</string>
+    <string name="dialog_bookmark_title">确定删除书签?</string>
+    <string name="dialog_history_title">确定删除历史?</string>
+
+    <!-- Preference Titles -->
+    <string name="messages_header">Messages</string>
+    <string name="sync_header">Sync</string>
+
+    <!-- Messages Preferences -->
+    <string name="signature_title">Your signature</string>
+    <string name="reply_title">Default reply action</string>
+
+    <!-- Sync Preferences -->
+    <string name="sync_title">Sync email periodically</string>
+    <string name="attachment_title">Download incoming attachments</string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails
+    </string>
+    <string name="attachment_summary_off">Only download attachments when manually requested</string>
+    <string name="searching">搜索</string>
+    <string name="common">常规</string>
+    <string name="extensions">扩展程序</string>
+    <string name="advanced">高级</string>
+    <string name="AutomaticFontSize">自适应字体大小</string>
+    <string name="ForceUserScalable">强制手势缩放</string>
+    <string name="private_safety">隐私&amp;安全</string>
+    <string name="https_only">Https-Only</string>
+    <string name="Cookie">减少Cookie横幅</string>
+    <string name="tracking_protecting">增强型跟踪保护</string>
+    <string name="web_permission">网站权限</string>
+    <string name="about">关于</string>
+    <string name="about_stage">关于Xiu</string>
+    <!-- webextension permission-->
+    <string name="per_tabs">tabs</string>
+    <string name="per_bookmarks">bookmarks</string>
+    <string name="per_browserSettings">browserSettings</string>
+    <string name="per_browsingData">browsingData</string>
+    <string name="per_downloads">downloads</string>
+    <string name="per_downloadsopen">downloads.open</string>
+    <string name="per_find">find</string>
+    <string name="per_geolocation">geolocation</string>
+    <string name="per_history">history</string>
+    <string name="per_management">management</string>
+    <string name="per_nativeMessaging">nativeMessaging</string>
+    <string name="per_notifications">notifications</string>
+    <string name="per_pkcs11">pkcs11</string>
+    <string name="per_privacy">privacy</string>
+    <string name="per_proxy">proxy</string>
+    <string name="per_sessions">sessions</string>
+    <string name="per_topSites">topSites</string>
+    <string name="per_webNavigation">webNavigation</string>
+    <string name="per_clipboardWrite">clipboardWrite</string>
+    <string name="per_clipboardRead">clipboardRead</string>
+    <string name="per_bookmarks_cn">读取或修改书签</string>
+    <string name="per_browserSettings_cn">读取或修改浏览器设置</string>
+    <string name="per_browsingData_cn">清除最近的浏览历史、cookie 和相关数据</string>
+    <string name="per_downloads_cn">下载文件和读取并修改浏览器的下载记录</string>
+    <string name="per_downloadsopen_cn">打开下载到本地的文件</string>
+    <string name="per_find_cn">读取所有打开标签的内容</string>
+    <string name="per_geolocation_cn">获取您的地理位置</string>
+    <string name="per_history_cn">获取浏览历史</string>
+    <string name="per_management_cn">监控扩展使用和管理主题</string>
+    <string name="per_nativeMessaging_cn">与 Firefox 以外的程序交换消息</string>
+    <string name="per_notifications_cn">显示通知</string>
+    <string name="per_pkcs11_cn">提供密码认证服务</string>
+    <string name="per_privacy_cn">读取和修改隐私设置</string>
+    <string name="per_proxy_cn">控制浏览器代理设置</string>
+    <string name="per_sessions_cn">访问最近关闭的标签</string>
+    <string name="per_tabs_cn">访问浏览器选项卡</string>
+    <string name="per_topSites_cn">访问浏览历史</string>
+    <string name="per_webNavigation_cn">在使用时访问浏览器活动</string>
+    <string name="per_clipboardWrite_cn">向剪贴板写入数据</string>
+    <string name="per_clipboardRead_cn">从剪贴板获取数据</string>
+    <string name="settins">设置</string>
+    <string name="download">下载</string>
+    <string name="addons">扩展程序</string>
+    <string name="baidu">https://www.baidu.com/s?wd=</string>
+    <string name="google">https://www.google.com/search?q=</string>
+    <string name="bing">https://cn.bing.com/search?q=</string>
+    <string name="sogou">https://www.sogou.com/web?query=</string>
+    <string name="sk360">https://www.so.com/s?ie=utf-8&amp;fr=none&amp;ssid=&amp;q=</string>
+    <string name="wuzhui">https://www.wuzhuiso.com/s?ie=utf-8&amp;fr=none&amp;q=</string>
+    <string name="yandex">https://yandex.com/search/?text=</string>
+    <string name="shenma">https://m.sm.cn/s?q=</string>
+    <string name="diySearching">自定义搜索引擎</string>
+    <string name="diyAddress">自定义搜索地址</string>
+    <string name="edit_diy_warnning">请务必输入正确</string>
+    <string name="addons_menu_add">添加扩展程序</string>
+    <string name="add_addons_from_firefox">从addons.mozilla.org获取</string>
+    <string name="add_addons_from_local">从本地安装</string>
+    <string name="add_addons_from_other">从第三方市场安装</string>
+    <string name="author">作者:</string>
+    <string name="version">版本:</string>
+    <string name="description">描述:</string>
+    <string name="pair_instructions_message">识别二维码</string>
+    <string name="intent_message">网页希望打开本地应用</string>
+    <string name="details">详情</string>
+    <string name="no_addons">还没有扩展程序，快去添加吧。</string>
+    <string name="private_mode">无痕模式</string>
+    <string name="local_files">已下载本地文件</string>
+    <string name="ExtensionProcess">扩展程序独立进程</string>
+
+</resources>

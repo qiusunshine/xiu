@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="BottomSheetDialog" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/bottomSheetStyleWrapper</item>
+        <item name="android:windowIsFloating">false</item> <!-- This is important -->
+        <item name="android:statusBarColor">@android:color/transparent</item> <!-- And then this will be needed -->
+        <item name="android:navigationBarColor">@color/white</item>
+        <item name="android:colorBackground">@color/white</item>
+    </style>
+    <style name="bottomSheetStyleWrapper" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+    <style name="My.SideSheet.Modal" parent="Widget.Material3.SideSheet.Modal">
+        <item name="backgroundTint">@color/surface</item>
+        <item name="android:elevation" >@dimen/m3_side_sheet_modal_elevation</item>
+        <item name="shapeAppearance">@style/Shape.Material3.Corner.None</item>
+
+    </style>
+
+    <style name="Shape.Material3.Corner.None" parent="ShapeAppearance.Material3.Corner.None">
+        <item name="cornerSizeTopLeft">24dp</item>
+        <item name="cornerSizeBottomLeft">24dp</item>
+
+    </style>
+
+    <!-- 全屏 theme. -->
+    <style name="FullScreenTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:actionBarStyle">@style/FullScreenActionBarStyle</item>
+        <item name="android:windowActionBarOverlay">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="actionOverflowMenuStyle">@style/OverflowMenu</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColorPrimary">@color/text_color_primary</item>
+        <item name="android:textColorSecondary">@color/text_color_grey_600</item>
+        <item name="android:textColorTertiary">@color/text_color_grey_600</item>
+    </style>
+
+    <style name="TranslucentFullScreenTheme" parent="FullScreenTheme">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowAnimationStyle">@style/HalfActivityAnimation2</item>
+        <item name="android:windowBackground">@color/half_transparent</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="android:statusBarColor">@color/half_transparent</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowTranslucentNavigation">false</item>
+    </style>
+
+    <style name="FullScreenActionBarStyle" parent="Widget.AppCompat.ActionBar">
+        <item name="android:background">@color/transparent</item>
+    </style>
+
+    <style name="ToolBarStyle" parent="Theme.AppCompat">
+        <item name="android:textColorPrimary">@color/blackText</item>
+        <item name="android:textColorSecondary">@color/blackText</item>
+        <item name="actionMenuTextColor">@color/blackText</item>
+    </style>
+    <style name="HalfActivityAnimation2" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/alpha_enter2</item>
+        <item name="android:activityOpenExitAnimation">@anim/alpha_no_trans</item>
+        <item name="android:activityCloseEnterAnimation">@anim/alpha_no_trans</item>
+        <item name="android:activityCloseExitAnimation">@anim/alpha_exit2</item>
+    </style>
+
+    <style name="OverflowMenu" parent="Widget.AppCompat.PopupMenu.Overflow">
+        <!--<item name="overlapAnchor">false</item>  &lt;!&ndash;设置不覆盖锚点&ndash;&gt;-->
+        <item name="android:dropDownVerticalOffset">4dp</item>
+        <item name="android:layout_marginRight">4dp</item>
+        <item name="android:popupBackground">@color/white</item> <!--更改背景颜色-->
+    </style>
+</resources>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="text">#7b7b7b</color>
+    <color name="theme">#FFBB86FC</color>
+    <color name="surface">@color/white</color>
+    <color name="onSurface">#f9f9f9</color>
+    <color name="onSecondaryContainer">#82B1FF</color>
+    <color name="textDayNight">@color/black</color>
+    <color name="components">@color/purple_500</color>
+    <color name="alpha">#00000000</color>
+    <color name="checked">#00000000</color>
+
+    <color name="whiteblack">#99999999</color>
+    <color name="black_third">#333333</color>
+    <color name="blackText">#FF222222</color>
+    <color name="blackText4">#FF444444</color>
+    <color name="half_transparent">#80000000</color>
+    <color name="gray_rice_deep">#FFF2F2F2</color>
+    <color name="text_color_default">#FF888888</color>
+    <color name="text_color_grey_600">#FF757575</color>
+    <color name="text_color_primary">#FF212121</color>
+    <color name="text_color_tertiary">#FF757575</color>
+    <color name="transparent">#00000000</color>
+    <color name="colorBackgroundDark">#5E72E4</color>
+    <color name="colorPrimaryDark">#FFFFFF</color>
+    <color name="colorPrimary">#fff</color>
+</resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="preloaded_fonts" translatable="false">
+        <item>@font/alatsi</item>
+        <item>@font/alfa_slab_one</item>
+        <item>@font/baloo_bhaina</item>
+        <item>@font/goblin_one</item>
+        <item>@font/roboto_bold</item>
+    </array>
+</resources>

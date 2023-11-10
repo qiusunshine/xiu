@@ -1,0 +1,34 @@
+<resources>
+    <!-- Reply Preference -->
+    <string-array name="reply_entries">
+        <item>Reply</item>
+        <item>Reply to all</item>
+    </string-array>
+
+    <string-array name="reply_values">
+        <item>reply</item>
+        <item>reply_all</item>
+    </string-array>
+    <string-array name="searchEngine_entries">
+        <item>@string/baidu</item>
+        <item>@string/google</item>
+        <item>@string/bing</item>
+        <item>@string/sogou</item>
+        <item>@string/sk360</item>
+        <item>@string/wuzhui</item>
+        <item>@string/yandex</item>
+        <item>@string/shenma</item>
+    </string-array>
+
+    <string-array name="searchEngine_values">
+        <item>@string/Baidu</item>
+        <item>@string/Google</item>
+        <item>@string/Bing</item>
+        <item>@string/Sougou</item>
+        <item>@string/s360</item>
+        <item>@string/Wuzhui</item>
+        <item>@string/Yandex</item>
+        <item>@string/Shenma</item>
+
+    </string-array>
+</resources>

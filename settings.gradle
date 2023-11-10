@@ -1,0 +1,24 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            url 'https://jitpack.io'
+        }// Warning: this repository is going to shut down soon
+        maven { url "https://maven.mozilla.org/maven2/" }
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+        maven { url 'https://dl.bintray.com/ycjiang/ycjiang' }
+        maven { url 'https://dl.bintray.com/hpdx/maven/' }
+        maven { url "https://maven.aliyun.com/repository/public" }
+    }
+}
+rootProject.name = "stage"
+include ':app'

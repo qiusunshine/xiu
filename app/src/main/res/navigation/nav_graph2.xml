@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph2"
+    app:startDestination="@id/downloadFragment">
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="org.mozilla.xiu.browser.settings.SettingsFragment"
+        android:label="@string/settins" >
+        <action
+            android:id="@+id/action_settingsFragment_to_aboutFragment"
+            app:destination="@id/aboutFragment"
+            app:enterAnim="@anim/translate_to"
+            app:exitAnim="@anim/translate_from" />
+        <action
+            android:id="@+id/action_settingsFragment_to_settingsSearching2"
+            app:destination="@id/settingsSearching2"
+            app:enterAnim="@anim/translate_to"
+            app:exitAnim="@anim/translate_from" />
+        <action
+            android:id="@+id/action_settingsFragment_to_addonsManagerFragment"
+            app:destination="@id/addonsManagerFragment"
+            app:enterAnim="@anim/translate_to"
+            app:exitAnim="@anim/translate_from" />
+        <action
+            android:id="@+id/action_settingsFragment_to_privacyAndServiceFragment"
+            app:destination="@id/privacyAndServiceFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/downloadFragment"
+        android:name="org.mozilla.xiu.browser.download.DownloadFragment"
+        android:label="@string/download" />
+    <fragment
+        android:id="@+id/addonsManagerFragment"
+        android:name="org.mozilla.xiu.browser.AddonsManagerFragment"
+        android:label="@string/addons"
+        tools:layout="@layout/fragment_addons_manager" />
+    <fragment
+        android:id="@+id/aboutFragment"
+        android:name="org.mozilla.xiu.browser.AboutFragment"
+        android:label=" "
+        tools:layout="@layout/fragment_about" />
+    <fragment
+        android:id="@+id/settingsSearching2"
+        android:name="org.mozilla.xiu.browser.settings.SettingsSearching"
+        android:label="@string/searching" />
+    <fragment
+        android:id="@+id/privacyAndServiceFragment"
+        android:name="org.mozilla.xiu.browser.PrivacyAndServiceFragment"
+        android:label="@string/privacy_and_service_agreement"
+        tools:layout="@layout/fragment_privacy_and_service" />
+    <fragment
+        android:id="@+id/qrScanningFragment"
+        android:name="org.mozilla.xiu.browser.broswer.qr.QrScanningFragment"
+        android:label="QrScanningFragment" />
+</navigation>

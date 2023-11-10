@@ -1,0 +1,51 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory
+        android:title="@string/common"
+        app:enableCopying="false"
+        app:iconSpaceReserved="false">
+
+        <Preference
+            app:key="searching"
+            app:title="@string/searching" />
+        <Preference
+            app:key="addons"
+            app:title="@string/extensions" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="@string/advanced"
+        app:iconSpaceReserved="false">
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="switch_userscalable"
+            android:title="@string/ForceUserScalable" />
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="switch_automatic_fontsize"
+            android:title="@string/AutomaticFontSize" />
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="switch_extension_process"
+            android:title="@string/ExtensionProcess" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="@string/private_safety"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="switch_https_only"
+            android:title="@string/https_only" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="@string/about"
+        app:iconSpaceReserved="false">
+        <Preference
+            app:key="settingAbout"
+            app:title="@string/about_stage" />
+        <Preference
+            app:key="privacyAndService"
+            app:title="@string/privacy_and_service_agreement" />
+    </PreferenceCategory>
+
+</PreferenceScreen>
