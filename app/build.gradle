@@ -12,7 +12,7 @@ plugins {
 }
 // Optionally, set any parameters to send to the plugin.
 
-def versionCodeNew = 60
+def versionCodeNew = 61
 def versionNameNew = "2.0"
 def appName = "Xiu"
 

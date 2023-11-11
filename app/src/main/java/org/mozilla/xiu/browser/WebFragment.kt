@@ -18,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import org.mozilla.geckoview.GeckoRuntime
 import org.mozilla.geckoview.GeckoSession
+import org.mozilla.geckoview.GeckoView
 import org.mozilla.geckoview.WebRequestError
 import org.mozilla.xiu.browser.componets.HomeLivedata
 import org.mozilla.xiu.browser.databinding.FragmentSecondBinding
@@ -149,6 +150,7 @@ class WebFragment(
             binding.geckoview.setSession(it.session)
             sessiondelegate = it
         }
+        binding.geckoview.activityContextDelegate = GeckoView.ActivityContextDelegate { activity }
     }
 
     fun openSession(session: GeckoSession) {

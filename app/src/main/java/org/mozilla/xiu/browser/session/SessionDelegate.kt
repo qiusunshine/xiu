@@ -96,6 +96,7 @@ class SessionDelegate() : BaseObservable() {
     var uri: Uri? = null
     private lateinit var filePicker: FilePicker
     lateinit var sessionState: GeckoSession.SessionState
+    private var sessionStateMap = HashMap<Int, GeckoSession.SessionState>()
     private lateinit var fullscreenCall: (full: Boolean) -> Unit
     //private lateinit var historySync: HistorySync
 
@@ -181,6 +182,24 @@ class SessionDelegate() : BaseObservable() {
                 notifyPropertyChanged(BR.bitmap)
             }
 
+            override fun onCrash(session: GeckoSession) {
+                super.onCrash(session)
+                Log.d("test", "onCrash")
+                if (!session.isOpen) {
+                    session.open(GeckoRuntime.getDefault(mContext))
+                }
+                session.restoreState(sessionStateMap[session.hashCode()] ?: sessionState)
+            }
+
+            override fun onKill(session: GeckoSession) {
+                super.onKill(session)
+                Log.d("test", "onCrash kill")
+                if (!session.isOpen) {
+                    session.open(GeckoRuntime.getDefault(mContext))
+                }
+                session.restoreState(sessionStateMap[session.hashCode()] ?: sessionState)
+            }
+
             override fun onFirstComposite(session: GeckoSession) {
                 setpic.onSetPic()
                 notifyPropertyChanged(BR.bitmap)
@@ -201,6 +220,7 @@ class SessionDelegate() : BaseObservable() {
                 notifyPropertyChanged(BR.mTitle)
 
             }
+
             override fun onFullScreen(session: GeckoSession, fullScreen: Boolean) {
                 super.onFullScreen(session, fullScreen)
                 isFull = fullScreen
@@ -249,6 +269,7 @@ class SessionDelegate() : BaseObservable() {
             ) {
                 super.onSessionStateChange(session, sessionState)
                 this@SessionDelegate.sessionState = sessionState
+                sessionStateMap[session.hashCode()] = sessionState
             }
 
             override fun onProgressChange(session: GeckoSession, progress: Int) {
@@ -554,6 +575,7 @@ class SessionDelegate() : BaseObservable() {
     }
 
     fun close() {
+        sessionStateMap.remove(session.hashCode())
         session.close()
         bitmap.recycle()
     }
@@ -567,7 +589,7 @@ class SessionDelegate() : BaseObservable() {
     fun resume() {
         if (!session.isOpen)
             session.open(GeckoRuntime.getDefault(mContext))
-        session.restoreState(sessionState!!)
+        session.restoreState(sessionStateMap[session.hashCode()] ?: sessionState)
     }
 
     interface Login {

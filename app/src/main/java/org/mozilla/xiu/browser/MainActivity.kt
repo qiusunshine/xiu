@@ -62,6 +62,7 @@ import org.mozilla.xiu.browser.utils.getSizeName
 import org.mozilla.xiu.browser.webextension.BrowseEvent
 import org.mozilla.xiu.browser.webextension.WebExtensionsAddEvent
 import org.mozilla.xiu.browser.webextension.WebextensionSession
+import timber.log.Timber
 import java.io.File
 
 
@@ -359,6 +360,11 @@ class MainActivity : AppCompatActivity() {
                 FileUtil.deleteDirs(fileDirPath)
             }
         }
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        Timber.d("onRestoreInstanceState")
     }
 
     override fun onDestroy() {
