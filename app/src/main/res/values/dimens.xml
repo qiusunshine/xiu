@@ -12,4 +12,5 @@
     <dimen name="dim4dp">4dp</dimen>
     <dimen name="dim9">48dp</dimen>
     <dimen name="dim10">32dp</dimen>
+    <dimen name="dim11">28dp</dimen>
 </resources>

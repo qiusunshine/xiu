@@ -6,6 +6,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.CircleCrop
+import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.mozilla.xiu.browser.R
 import org.mozilla.xiu.browser.database.shortcut.Shortcut
@@ -13,24 +15,53 @@ import org.mozilla.xiu.browser.databinding.ItemShortcutBinding
 import java.net.URI
 
 class ShortcutAdapter : ListAdapter<Shortcut, ShortcutAdapter.ItemTestViewHolder>(
-ShortcutListCallback
+    ShortcutListCallback
 ) {
     lateinit var select: Select
     lateinit var longClick: LongClick
 
-    inner class ItemTestViewHolder(private val binding: ItemShortcutBinding): RecyclerView.ViewHolder(binding.root){
-        fun bind(bean: Shortcut, mContext: Context){
+    inner class ItemTestViewHolder(private val binding: ItemShortcutBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(bean: Shortcut, mContext: Context) {
 
-            binding.textView21.text=bean.title
-            val uri = URI.create(bean.url)
-            val faviconUrl = uri.scheme + "://" + uri.host + "/favicon.ico"
-            Glide.with(mContext)
-                .load(faviconUrl)
-                .placeholder(R.drawable.globe)
-                .into(binding.imageView10)
-            binding.materialCardView8.setOnClickListener { bean.url?.let { it1 -> select.onSelect(it1) } }
+            binding.textView21.text = bean.title
+            when (bean.url) {
+                "hiker://bookmark" -> {
+                    Glide.with(mContext)
+                        .load(R.drawable.icon1)
+                        .apply(RequestOptions().transform(CircleCrop()))
+                        .into(binding.imageView10)
+                }
+                "hiker://download" -> {
+                    Glide.with(mContext)
+                        .load(R.drawable.home_download)
+                        .apply(RequestOptions().transform(CircleCrop()))
+                        .into(binding.imageView10)
+                }
+                "hiker://history" -> {
+                    Glide.with(mContext)
+                        .load(R.drawable.icon3)
+                        .apply(RequestOptions().transform(CircleCrop()))
+                        .into(binding.imageView10)
+                }
+                else -> {
+                    val uri = URI.create(bean.url)
+                    val faviconUrl = uri.scheme + "://" + uri.host + "/favicon.ico"
+                    Glide.with(mContext)
+                        .load(faviconUrl)
+                        .apply(RequestOptions().placeholder(R.drawable.globe).transform(CircleCrop()))
+                        .into(binding.imageView10)
+                }
+            }
+            binding.materialCardView8.setOnClickListener {
+                bean.url?.let { it1 ->
+                    select.onSelect(
+                        it1
+                    )
+                }
+            }
             binding.materialCardView8.setOnLongClickListener {
-                dialog(mContext,bean)
+                dialog(mContext, bean)
                 false
             }
 
@@ -40,20 +71,28 @@ ShortcutListCallback
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemTestViewHolder {
-        return ItemTestViewHolder(ItemShortcutBinding.inflate(LayoutInflater.from(parent.context),parent,false))
+        return ItemTestViewHolder(
+            ItemShortcutBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false
+            )
+        )
     }
 
     override fun onBindViewHolder(holder: ItemTestViewHolder, position: Int) {
-        holder.bind(getItem(holder.adapterPosition),holder.itemView.context)
+        holder.bind(getItem(holder.adapterPosition), holder.itemView.context)
     }
 
-    interface Select{
+    interface Select {
         fun onSelect(url: String)
     }
-    interface LongClick{
+
+    interface LongClick {
         fun onLongClick(bean: Shortcut)
     }
-    private fun dialog(context: Context,bean: Shortcut){
+
+    private fun dialog(context: Context, bean: Shortcut) {
         MaterialAlertDialogBuilder(context)
             .setTitle(context.getString(R.string.dialog_shortcut_title))
             .setNegativeButton(context.getString(R.string.cancel)) { _, _ -> }

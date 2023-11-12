@@ -14,11 +14,14 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import org.mozilla.xiu.browser.broswer.bookmark.shortcut.ShortcutAdapter
+import org.mozilla.xiu.browser.componets.popup.BookmarkPopup
+import org.mozilla.xiu.browser.componets.popup.HistoryPopup
 import org.mozilla.xiu.browser.database.shortcut.Shortcut
 import org.mozilla.xiu.browser.database.shortcut.ShortcutViewModel
 import org.mozilla.xiu.browser.databinding.FragmentFirstBinding
 import org.mozilla.xiu.browser.session.GeckoViewModel
 import org.mozilla.xiu.browser.session.createSession
+import org.mozilla.xiu.browser.utils.PreferenceMgr
 import org.mozilla.xiu.browser.utils.ToastMgr
 import java.util.Calendar
 
@@ -33,6 +36,7 @@ class HomeFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
     lateinit var geckoViewModel: GeckoViewModel
+
     //private lateinit var fxaViewModel :AccountProfileViewModel
     //private lateinit var accountManagerCollection :AccountManagerCollection
     //private var fxaAccountManager: FxaAccountManager? = null
@@ -51,7 +55,7 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         geckoViewModel = ViewModelProvider(requireActivity())[GeckoViewModel::class.java]
-        shortcutViewModel=ViewModelProvider(requireActivity())[ShortcutViewModel::class.java]
+        shortcutViewModel = ViewModelProvider(requireActivity())[ShortcutViewModel::class.java]
         //fxaViewModel = ViewModelProvider(requireActivity())[AccountProfileViewModel::class.java]
         //accountManagerCollection = ViewModelProvider(requireActivity())[AccountManagerCollection::class.java]
 //        try {
@@ -100,23 +104,22 @@ class HomeFragment : Fragment() {
         }
         binding.qrButton?.setOnClickListener {
             if (requireActivity().checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                var intent= Intent(requireContext(), HolderActivity::class.java)
-                intent.putExtra("Page","QRSCANNING")
+                var intent = Intent(requireContext(), HolderActivity::class.java)
+                intent.putExtra("Page", "QRSCANNING")
                 requireContext().startActivity(intent)
-            }
-            else requireActivity().requestPermissions(arrayOf(Manifest.permission.CAMERA), 1)
+            } else requireActivity().requestPermissions(arrayOf(Manifest.permission.CAMERA), 1)
 
         }
 
 
         binding.HomeSearchText?.setOnKeyListener(View.OnKeyListener { view, i, keyEvent ->
             if (KeyEvent.KEYCODE_ENTER == i && keyEvent.action == KeyEvent.ACTION_DOWN) {
-                var value= binding.HomeSearchText!!.text.toString()
+                var value = binding.HomeSearchText!!.text.toString()
                 if (Patterns.WEB_URL.matcher(value).matches() || URLUtil.isValidUrl(value)) {
-                        createSession(value, requireActivity())
+                    createSession(value, requireActivity())
 
                 } else {
-                    createSession("https://cn.bing.com/search?q=$value",requireActivity())
+                    createSession("https://cn.bing.com/search?q=$value", requireActivity())
                 }
 
             }
@@ -159,25 +162,78 @@ class HomeFragment : Fragment() {
         }
 
 
-        var shortcutAdapter= ShortcutAdapter()
-        binding.shortcutsRecyclerView?.adapter =shortcutAdapter
+        var shortcutAdapter = ShortcutAdapter()
+        binding.shortcutsRecyclerView?.adapter = shortcutAdapter
         binding.shortcutsRecyclerView?.layoutManager = GridLayoutManager(context, 4)
-        shortcutViewModel.allShortcutsLive?.observe(requireActivity()){
-            shortcutAdapter.submitList(it)
+        shortcutViewModel.allShortcutsLive?.observe(requireActivity()) {
+            shortcutAdapter.submitList(it?.reversed())
         }
 
-        shortcutAdapter.select= object : ShortcutAdapter.Select {
+        shortcutAdapter.select = object : ShortcutAdapter.Select {
             override fun onSelect(url: String) {
-                createSession(url,requireActivity())
+                when (url) {
+                    "hiker://bookmark" -> {
+                        try {
+                            BookmarkPopup(requireActivity() as MainActivity).show()
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+
+                    "hiker://download" -> {
+                        val intent = Intent(context, HolderActivity::class.java)
+                        intent.putExtra("Page", "DOWNLOAD")
+                        intent.putExtra("downloaded", true)
+                        context?.startActivity(intent)
+                    }
+
+                    "hiker://history" -> {
+                        try {
+                            HistoryPopup(requireActivity() as MainActivity).show()
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+
+                    else -> {
+                        createSession(url, requireActivity())
+                    }
+                }
             }
 
         }
-        shortcutAdapter.longClick= object : ShortcutAdapter.LongClick {
+        shortcutAdapter.longClick = object : ShortcutAdapter.LongClick {
             override fun onLongClick(bean: Shortcut) {
                 shortcutViewModel.deleteShortcuts(bean)
             }
 
 
+        }
+
+        val shortcutInitVersion = 2
+        if (PreferenceMgr.getInt(context, "shortcut", 0) < shortcutInitVersion) {
+            PreferenceMgr.put(context, "shortcut", shortcutInitVersion)
+            val shortcut1 = Shortcut(
+                "hiker://bookmark",
+                "书签",
+                0
+            )
+            val shortcut2 = Shortcut(
+                "hiker://download",
+                "下载",
+                0
+            )
+            val shortcut3 = Shortcut(
+                "hiker://history",
+                "历史",
+                0
+            )
+            val shortcut4 = Shortcut(
+                "https://haikuoshijie.cn",
+                "小棉袄",
+                0
+            )
+            shortcutViewModel.insertShortcuts(shortcut1, shortcut2, shortcut3, shortcut4)
         }
 
     }

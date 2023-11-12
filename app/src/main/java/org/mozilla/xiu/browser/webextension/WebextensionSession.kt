@@ -126,6 +126,7 @@ class WebextensionSession {
             installCrx(uri)
             return
         }
+        ToastMgr.shortBottomCenter(context, "稍等，解析文件中")
         webExtensionController.promptDelegate = object : WebExtensionController.PromptDelegate {
             override fun onInstallPrompt(extension: WebExtension): GeckoResult<AllowOrDeny>? {
                 val dlg = org.mozilla.xiu.browser.componets.PermissionDialog(context, extension)

@@ -49,6 +49,15 @@ class DownloadFragment : Fragment() {
             )
             startActivity(intent)
         }
+        if (activity?.intent?.getBooleanExtra("downloaded", false) == true) {
+            val intent = Intent(context, FileBrowserActivity::class.java)
+            val relativePath: String = Environment.DIRECTORY_DOWNLOADS
+            intent.putExtra(
+                "path",
+                "${Environment.getExternalStorageDirectory()}/$relativePath"
+            )
+            startActivity(intent)
+        }
         return binding.root
     }
 

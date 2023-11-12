@@ -52,8 +52,9 @@
 
                 <ImageView
                     android:id="@+id/imageView10"
-                    android:layout_width="@dimen/dim1"
-                    android:layout_height="@dimen/dim1"
+                    android:layout_width="@dimen/dim11"
+                    android:layout_height="@dimen/dim11"
+                    android:scaleType="centerCrop"
                     app:layout_constraintBottom_toTopOf="@+id/textView21"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
