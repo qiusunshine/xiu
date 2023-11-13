@@ -29,8 +29,11 @@ import org.mozilla.xiu.browser.session.SessionDelegate
 import org.mozilla.xiu.browser.tab.AddTabLiveData
 import org.mozilla.xiu.browser.tab.DelegateListLiveData
 import org.mozilla.xiu.browser.tab.RemoveTabLiveData
+import org.mozilla.xiu.browser.utils.ThreadTool
+import org.mozilla.xiu.browser.utils.ToastMgr
+import org.mozilla.xiu.browser.utils.UriUtilsPro
 import org.mozilla.xiu.browser.utils.filePicker.FilePicker
-import org.mozilla.xiu.browser.utils.filePicker.PickUtils.getPath
+import java.io.File
 
 
 /**
@@ -83,10 +86,31 @@ class WebFragment(
                             return
                         }
                         val uri = result.data
-                        //文件路径
-                        val mFilePath = getPath(context!!, uri!!)
-                        Log.d("ActivityResultLauncher", mFilePath)
-                        filePicker.putUri(Uri.parse("file://$mFilePath"))
+                        val path: String =
+                            UriUtilsPro.getRootDir(context) + File.separator + "_cache" + File.separator + UriUtilsPro.getFileName(
+                                uri
+                            )
+                        UriUtilsPro.getFilePathFromURI(
+                            context,
+                            uri,
+                            path,
+                            object : UriUtilsPro.LoadListener {
+                                override fun success(s: String) {
+                                    ThreadTool.runOnUI {
+                                        filePicker.putUri(Uri.parse("file://$s"))
+                                    }
+                                }
+
+                                override fun failed(msg: String) {
+                                    ThreadTool.runOnUI {
+                                        filePicker.putUri(uri)
+                                    }
+                                    ToastMgr.shortBottomCenter(
+                                        context,
+                                        "出错：$msg"
+                                    )
+                                }
+                            })
                     }
                 })
 

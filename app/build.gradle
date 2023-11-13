@@ -12,8 +12,8 @@ plugins {
 }
 // Optionally, set any parameters to send to the plugin.
 
-def versionCodeNew = 62
-def versionNameNew = "2.0"
+def versionCodeNew = 63
+def versionNameNew = "2.1"
 def appName = "Xiu"
 
 kapt {

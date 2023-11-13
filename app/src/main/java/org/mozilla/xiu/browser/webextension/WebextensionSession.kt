@@ -37,6 +37,32 @@ class WebextensionSession {
     constructor(context: Activity) {
         this.context = context
         webExtensionController = GeckoRuntime.getDefault(context).webExtensionController
+        webExtensionController.promptDelegate = object : WebExtensionController.PromptDelegate {
+            override fun onInstallPrompt(extension: WebExtension): GeckoResult<AllowOrDeny>? {
+                val dlg = org.mozilla.xiu.browser.componets.PermissionDialog(context, extension)
+                if (dlg.showDialog() === 1) {
+                    extensionDelegate(extension)
+                    return GeckoResult.allow()
+                } else return GeckoResult.deny()
+            }
+
+            override fun onUpdatePrompt(
+                currentlyInstalled: WebExtension,
+                updatedExtension: WebExtension,
+                newPermissions: Array<out String>,
+                newOrigins: Array<out String>
+            ): GeckoResult<AllowOrDeny>? {
+                return GeckoResult.allow()
+            }
+
+            override fun onOptionalPrompt(
+                extension: WebExtension,
+                permissions: Array<out String>,
+                origins: Array<out String>
+            ): GeckoResult<AllowOrDeny>? {
+                return GeckoResult.allow()
+            }
+        }
         webExtensionController.list().accept {
             if (it != null) {
                 for (i in it)
@@ -127,15 +153,6 @@ class WebextensionSession {
             return
         }
         ToastMgr.shortBottomCenter(context, "稍等，解析文件中")
-        webExtensionController.promptDelegate = object : WebExtensionController.PromptDelegate {
-            override fun onInstallPrompt(extension: WebExtension): GeckoResult<AllowOrDeny>? {
-                val dlg = org.mozilla.xiu.browser.componets.PermissionDialog(context, extension)
-                if (dlg.showDialog() === 1) {
-                    extensionDelegate(extension)
-                    return GeckoResult.allow()
-                } else return GeckoResult.deny()
-            }
-        }
         webExtensionController.install(uri).accept({ it ->
             if (it != null) {
                 Toast.makeText(context, it.metaData.name + "安装成功", Toast.LENGTH_LONG).show()
@@ -189,6 +206,20 @@ class WebextensionSession {
                 return GeckoResult.fromValue(session)
             }
         }
+        extension.setMessageDelegate(object : WebExtension.MessageDelegate {
+            override fun onConnect(port: WebExtension.Port) {
+                super.onConnect(port)
+            }
+
+            override fun onMessage(
+                nativeApp: String,
+                message: Any,
+                sender: WebExtension.MessageSender
+            ): GeckoResult<Any>? {
+                //todo
+                return super.onMessage(nativeApp, message, sender)
+            }
+        }, "browser")
     }
 
     fun newSession(session: GeckoSession, activity: Activity) {

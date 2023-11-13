@@ -16,9 +16,9 @@
         }
       ],
       "attributes": [],
-      "versionCode": 62,
-      "versionName": "2.0",
-      "outputFile": "Xiu_V2.0_C62-32位.apk"
+      "versionCode": 63,
+      "versionName": "2.1",
+      "outputFile": "Xiu_V2.1_C63-32位.apk"
     },
     {
       "type": "ONE_OF_MANY",
@@ -29,9 +29,9 @@
         }
       ],
       "attributes": [],
-      "versionCode": 62,
-      "versionName": "2.0",
-      "outputFile": "Xiu_V2.0_C62-64位.apk"
+      "versionCode": 63,
+      "versionName": "2.1",
+      "outputFile": "Xiu_V2.1_C63-64位.apk"
     }
   ],
   "elementType": "File"

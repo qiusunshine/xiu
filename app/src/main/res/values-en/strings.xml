@@ -145,5 +145,21 @@
     <string name="donating">Donate</string>
     <string name="local_files">Local Files</string>
     <string name="ExtensionProcess">Extensions Process</string>
+    <string name="before_unload_prompt_title">Leave Page?</string>
+    <string name="before_unload_prompt_message">This page is asking to confirm that you want to leave. Data you have entered may not be saved.</string>
+    <string name="request_storage">allow access storage ("%1$s")</string>
+    <string name="request_storage_access">允许第三方访问第一方存储吗？ "%1$s"?</string>
+    <string name="request_geolocation">allow "%1$s" get geolocation?</string>
+    <string name="request_notification">allow "%1$s" send notification?</string>
+    <string name="request_video">与"%1$s"分享视频</string>
+    <string name="request_audio">与"%1$s"分享音频</string>
+    <string name="request_media">与"%1$s"分享视频和音频</string>
+    <string name="request_xr">Share WebXR displays with "%1$s"?</string>
+    <string name="request_autoplay">allow at "%1$s" autoplay?</string>
+    <string name="request_media_key_system_access">allow at "%1$s" use system media key</string>
+    <string name="media_back_camera">back camera</string>
+    <string name="media_front_camera">front camera</string>
+    <string name="media_microphone">microphone</string>
+    <string name="media_other">other</string>
 
 </resources>

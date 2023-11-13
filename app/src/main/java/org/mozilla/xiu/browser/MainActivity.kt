@@ -493,4 +493,16 @@ class MainActivity : AppCompatActivity() {
                 createSession("${org.mozilla.xiu.browser.broswer.SearchEngine(this)}$value", this)
         }
     }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        if (requestCode == ExamplePermissionDelegate.REQUEST_PERMISSIONS) {
+            val permission = binding.user?.session?.permissionDelegate as ExamplePermissionDelegate?
+            permission?.onRequestPermissionsResult(permissions, grantResults)
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
 }

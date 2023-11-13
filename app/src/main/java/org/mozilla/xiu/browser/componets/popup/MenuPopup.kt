@@ -1,16 +1,8 @@
 package org.mozilla.xiu.browser.componets.popup
 
-import android.app.Dialog
 import android.content.Intent
-import android.graphics.drawable.Drawable
-import android.graphics.drawable.GradientDrawable
-import android.graphics.drawable.LayerDrawable
-import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.View
-import android.view.WindowManager
-import androidx.annotation.RequiresApi
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -26,12 +18,12 @@ import org.mozilla.xiu.browser.R
 import org.mozilla.xiu.browser.componets.BookmarkDialog
 import org.mozilla.xiu.browser.componets.HomeLivedata
 import org.mozilla.xiu.browser.componets.MenuAddonsAdapater
-import org.mozilla.xiu.browser.componets.TabBottomSheetDialog.Companion.TAG
 import org.mozilla.xiu.browser.database.bookmark.BookmarkViewModel
 import org.mozilla.xiu.browser.databinding.PopupMenuBinding
 import org.mozilla.xiu.browser.session.DelegateLivedata
 import org.mozilla.xiu.browser.session.PrivacyFlow
 import org.mozilla.xiu.browser.session.SessionDelegate
+import org.mozilla.xiu.browser.utils.ShareUtil
 
 
 class MenuPopup {
@@ -116,7 +108,9 @@ class MenuPopup {
         }
 
         binding.shareButton.setOnClickListener {
-            ComposeMenuPopup().show(context.supportFragmentManager, TAG)
+            if (sessionDelegate != null) {
+                ShareUtil.shareText(context, sessionDelegate!!.mTitle + "\n" + sessionDelegate!!.u)
+            }
             bottomSheetDialog.dismiss()
         }
 

@@ -8,6 +8,7 @@ import android.net.Uri
 import android.util.Log
 import android.view.View
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.databinding.BaseObservable
 import androidx.databinding.Bindable
@@ -15,6 +16,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.kongzue.dialogx.dialogs.PopTip
 import com.kongzue.dialogx.interfaces.OnBindView
 import kotlinx.coroutines.launch
@@ -139,6 +141,7 @@ class SessionDelegate() : BaseObservable() {
 
             override fun onExternalResponse(session: GeckoSession, response: WebResponse) {
                 var uri = response.uri
+                Log.d("test", "onExternalResponse: $uri")
                 val name = UriUtils.getFileName(response)
                 //没有下载，关闭response
                 try {
@@ -459,7 +462,7 @@ class SessionDelegate() : BaseObservable() {
                 session: GeckoSession,
                 prompt: SharePrompt
             ): GeckoResult<PromptResponse>? {
-                Log.d("BeforeUnload", "its me")
+                Log.d("onSharePrompt", "its me")
 
                 return null
             }
@@ -468,8 +471,18 @@ class SessionDelegate() : BaseObservable() {
                 session: GeckoSession,
                 prompt: BeforeUnloadPrompt
             ): GeckoResult<PromptResponse>? {
-                Log.d("BeforeUnload", "its me")
-                return null
+                val result = GeckoResult<PromptResponse>()
+                MaterialAlertDialogBuilder(mContext)
+                    .setTitle(ContextCompat.getString(mContext, R.string.before_unload_prompt_title))
+                    .setMessage(ContextCompat.getString(mContext, R.string.before_unload_prompt_message))
+                    .setPositiveButton("确定") { d, _ ->
+                        d.dismiss()
+                        result.complete(prompt.confirm(AllowOrDeny.ALLOW))
+                    }.setNegativeButton("取消") { d, _ ->
+                        d.dismiss()
+                        result.complete(prompt.confirm(AllowOrDeny.DENY))
+                    }.show()
+                return result
             }
 
             override fun onButtonPrompt(
@@ -512,7 +525,6 @@ class SessionDelegate() : BaseObservable() {
                     org.mozilla.xiu.browser.broswer.dialog.TextDialog(mContext, prompt)
                 alertDialog.showDialog()
                 Log.d("TextPrompt", "its me")
-
                 return GeckoResult.fromValue(alertDialog.dialogResult)
 
             }
@@ -571,7 +583,7 @@ class SessionDelegate() : BaseObservable() {
                 return GeckoResult.fromValue(alertDialog.dialogResult)
             }
         }
-
+        session.permissionDelegate = ExamplePermissionDelegate(mContext)
     }
 
     fun close() {

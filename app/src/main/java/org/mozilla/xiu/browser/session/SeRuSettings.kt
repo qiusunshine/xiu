@@ -40,11 +40,14 @@ class SeRuSettings {
         geckoRuntimeSettings.loginAutofillEnabled = true
         geckoRuntimeSettings.doubleTapZoomingEnabled = true
         geckoRuntimeSettings.allowInsecureConnections = ALLOW_ALL
+//        geckoRuntimeSettings.setExtensionsProcessEnabled(
+//            sharedPreferences.getBoolean(
+//                "switch_extension_process",
+//                false
+//            )
+//        )
         geckoRuntimeSettings.setExtensionsProcessEnabled(
-            sharedPreferences.getBoolean(
-                "switch_extension_process",
-                false
-            )
+            false
         )
         sharedPreferences.registerOnSharedPreferenceChangeListener { sharedPreferences, key ->
             when (key) {
