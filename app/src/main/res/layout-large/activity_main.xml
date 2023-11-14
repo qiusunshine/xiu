@@ -3,171 +3,221 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <data
-        android:layout_width="199dp"
-        android:layout_height="187dp">
+    <data>
 
         <variable
             name="user"
             type="org.mozilla.xiu.browser.session.SessionDelegate" />
+
+        <import type="android.view.View" />
+
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
+        android:layout_height="match_parent"
+        tools:context=".MainActivity"
+        android:id="@+id/containerView">
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/motionLayout"
-            android:layout_width="215dp"
-            android:layout_height="0dp"
-            android:background="@color/surface"
-            android:visibility="@{user.isFull?View.GONE:View.VISIBLE}"
-            app:layoutDescription="@xml/activity_main_xml_constraintlayout2_scene"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/surface">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/addonsButton"
-                style="@style/Widget.Material3.Button.IconButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:icon="@drawable/star"
-                app:iconTint="@color/text"
-                app:layout_constraintBottom_toTopOf="@+id/constraintLayout4"
-                app:layout_constraintEnd_toStartOf="@+id/menuButton"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/menuButton"
-                style="@style/Widget.Material3.Button.IconButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:icon="@drawable/ellipsis_vertical_outline"
-                app:iconTint="@color/text"
-                app:layout_constraintBottom_toTopOf="@+id/constraintLayout4"
+            <include
+                android:id="@+id/content"
+                layout="@layout/content_main"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toTopOf="@id/bottomMotionLayout"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/constraintLayout4"
-                android:layout_width="0dp"
-                android:layout_height="@dimen/dim3"
+                android:id="@+id/constraintLayout10"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:background="@color/surface"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="@+id/content"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/forwardButtonL">
+                app:layout_constraintTop_toTopOf="parent">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/reloadButtonL"
+                <com.google.android.material.divider.MaterialDivider
+                    android:id="@+id/materialDivider"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintEnd_toEndOf="@+id/textView29"
+                    app:layout_constraintStart_toStartOf="@+id/textView29"
+                    app:layout_constraintTop_toBottomOf="@+id/textView29" />
 
-                    style="@style/Widget.Material3.Button.IconButton"
+                <TextView
+                    android:id="@+id/textView29"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:icon="@drawable/reload"
-                    app:iconTint="@color/text"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <EditText
-                    android:id="@+id/urlText"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
                     android:layout_marginStart="8dp"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:layout_marginBottom="8dp"
-                    android:background="@drawable/bg_edittext2"
-                    android:ems="10"
-                    android:hint="@string/hint"
-                    android:inputType="textPersonName"
-                    android:text="@{user.u}"
-                    android:textColor="@color/textDayNight"
-                    android:textColorHint="@color/text"
-                    android:textSize="14sp"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/reloadButtonL"
+                    android:layout_marginTop="16dp"
+                    android:text="历史•建议"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerView4"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_marginTop="16dp"
+                    app:layout_constraintBottom_toTopOf="@+id/constraintLayout9"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/textView29">
+
+                </androidx.recyclerview.widget.RecyclerView>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/constraintLayout9"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="1dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/materialButton13"
+                        style="@style/Widget.Material3.Button.IconButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="在百度上搜索"
+                        app:icon="@drawable/arrow_down"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/materialButtonEdit"
+                        style="@style/Widget.Material3.Button.IconButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:icon="@drawable/pencil_square"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <com.google.android.material.divider.MaterialDivider
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="8dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/backButtonL"
-                style="@style/Widget.Material3.Button.IconButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:icon="@drawable/chevron_back"
-                app:iconTint="@color/text"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <com.google.android.material.button.MaterialButton
-                style="@style/Widget.Material3.Button.IconButton"
-
-                android:id="@+id/forwardButtonL"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:icon="@drawable/chevron_forward"
-                app:iconTint="@color/text"
-                app:layout_constraintBottom_toBottomOf="@+id/backButtonL"
-                app:layout_constraintStart_toEndOf="@+id/backButtonL"
-                app:layout_constraintTop_toTopOf="@+id/backButtonL" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/addButton"
-                style="@style/Widget.Material3.Button.IconButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-                app:backgroundTint="@color/onSurface"
-                app:icon="@drawable/add"
-                app:iconTint="@color/text"
-                app:layout_constraintBottom_toTopOf="@+id/recyclerView2"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/constraintLayout4" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerView2"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
+            <androidx.constraintlayout.motion.widget.MotionLayout
+                android:id="@+id/bottomMotionLayout"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/dim4"
+                android:background="@color/surface"
+                android:visibility="@{user.isFull?View.GONE:View.VISIBLE}"
+                app:layoutDescription="@xml/activity_main_xml_constraintlayout5_scene"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/addButton" />
+                app:layout_constraintStart_toStartOf="parent">
 
-            <View
-                android:id="@+id/divider3"
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
-                android:background="?android:attr/listDivider"
-                app:layout_constraintBottom_toTopOf="@+id/recyclerView2"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
+                <org.mozilla.xiu.browser.view.MyWebProgress
+                    android:id="@+id/progress"
+                    android:layout_width="match_parent"
+                    android:layout_height="3dp"
+                    android:visibility="gone"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-            <View
-                android:id="@+id/divider5"
-                android:layout_width="1dp"
-                android:layout_height="0dp"
-                android:background="?android:attr/listDivider"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/materialButtonHome"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    app:icon="@drawable/house_door_fill"
+                    app:layout_constraintBottom_toBottomOf="@+id/SearchText"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/SearchText"
+                    tools:visibility="gone" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/materialButtonTab"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:icon="@drawable/square"
+                    app:layout_constraintBottom_toBottomOf="@+id/SearchText"
+                    app:layout_constraintEnd_toStartOf="@+id/materialButtonMenu"
+                    app:layout_constraintTop_toTopOf="@+id/SearchText"
+                    tools:visibility="gone" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/materialButtonClear"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:icon="@drawable/delete_circle_fill"
+                    app:layout_constraintBottom_toBottomOf="@+id/SearchText"
+                    app:layout_constraintEnd_toStartOf="@+id/materialButtonTab"
+                    app:layout_constraintTop_toTopOf="@+id/SearchText"
+                    tools:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/SizeText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/roboto_bold"
+                    android:text="0"
+                    android:textColor="@color/surface"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="@+id/materialButtonTab"
+                    app:layout_constraintEnd_toEndOf="@+id/materialButtonTab"
+                    app:layout_constraintStart_toStartOf="@+id/materialButtonTab"
+                    app:layout_constraintTop_toTopOf="@+id/materialButtonTab" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/materialButtonMenu"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    app:icon="@drawable/ellipsis_vertical_outline"
+                    app:layout_constraintBottom_toBottomOf="@+id/SearchText"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/SearchText" />
+
+                <EditText
+                    android:id="@+id/SearchText"
+                    android:layout_width="0dp"
+                    android:layout_height="42dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/bg_edittext"
+                    android:ellipsize="end"
+                    android:ems="10"
+                    android:fadingEdge="horizontal"
+                    android:fadingEdgeLength="32dp"
+                    android:hint="@string/hint"
+                    android:inputType="textPersonName"
+                    android:requiresFadingEdge="horizontal"
+                    android:selectAllOnFocus="true"
+                    android:text="@{user.u}"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/materialButtonClear"
+                    app:layout_constraintStart_toEndOf="@+id/materialButtonHome"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.motion.widget.MotionLayout>
+
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <include
-            android:id="@+id/content"
-            layout="@layout/content_main"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/motionLayout"
-            app:layout_constraintTop_toTopOf="parent" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>

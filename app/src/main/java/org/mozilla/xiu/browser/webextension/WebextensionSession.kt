@@ -41,7 +41,7 @@ class WebextensionSession {
             override fun onInstallPrompt(extension: WebExtension): GeckoResult<AllowOrDeny>? {
                 val dlg = org.mozilla.xiu.browser.componets.PermissionDialog(context, extension)
                 if (dlg.showDialog() === 1) {
-                    extensionDelegate(extension)
+                    extension.addDelegate(context)
                     return GeckoResult.allow()
                 } else return GeckoResult.deny()
             }
@@ -66,7 +66,7 @@ class WebextensionSession {
         webExtensionController.list().accept {
             if (it != null) {
                 for (i in it)
-                    extensionDelegate(i)
+                    i.addDelegate(context)
             }
         }
     }
@@ -193,39 +193,44 @@ class WebextensionSession {
             Toast.makeText(context, "安装失败: $exception", Toast.LENGTH_LONG).show()
         })
     }
+}
 
-    fun extensionDelegate(extension: WebExtension) {
-        extension.tabDelegate = object : WebExtension.TabDelegate {
-            override fun onNewTab(
-                source: WebExtension,
-                createDetails: WebExtension.CreateTabDetails
-            ): GeckoResult<GeckoSession>? {
-                val session = GeckoSession()
-                //Log.d("onNewTab",session.)
-                newSession(session, context)
-                return GeckoResult.fromValue(session)
-            }
+fun WebExtension.addDelegate(context: Activity) {
+    this.tabDelegate = object : WebExtension.TabDelegate {
+        override fun onNewTab(
+            source: WebExtension,
+            createDetails: WebExtension.CreateTabDetails
+        ): GeckoResult<GeckoSession>? {
+            val session = GeckoSession()
+            //Log.d("onNewTab",session.)
+            newSession(session, context)
+            return GeckoResult.fromValue(session)
         }
-        extension.setMessageDelegate(object : WebExtension.MessageDelegate {
-            override fun onConnect(port: WebExtension.Port) {
-                super.onConnect(port)
-            }
-
-            override fun onMessage(
-                nativeApp: String,
-                message: Any,
-                sender: WebExtension.MessageSender
-            ): GeckoResult<Any>? {
-                //todo
-                return super.onMessage(nativeApp, message, sender)
-            }
-        }, "browser")
     }
+    this.setMessageDelegate(object : WebExtension.MessageDelegate {
+        override fun onConnect(port: WebExtension.Port) {
+            super.onConnect(port)
+        }
 
-    fun newSession(session: GeckoSession, activity: Activity) {
-        val geckoViewModel =
-            activity?.let { ViewModelProvider(it as ViewModelStoreOwner)[GeckoViewModel::class.java] }!!
-        geckoViewModel.changeSearch(session)
-        HomeLivedata.getInstance().Value(false)
-    }
+        override fun onMessage(
+            nativeApp: String,
+            message: Any,
+            sender: WebExtension.MessageSender
+        ): GeckoResult<Any>? {
+            //todo
+            return super.onMessage(nativeApp, message, sender)
+        }
+    }, "browser")
+}
+
+fun WebExtension.removeDelegate() {
+    this.tabDelegate = null
+    this.setMessageDelegate(null, "browser")
+}
+
+fun newSession(session: GeckoSession, activity: Activity) {
+    val geckoViewModel =
+        activity?.let { ViewModelProvider(it as ViewModelStoreOwner)[GeckoViewModel::class.java] }!!
+    geckoViewModel.changeSearch(session)
+    HomeLivedata.getInstance().Value(false)
 }

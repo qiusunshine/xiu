@@ -31,7 +31,7 @@ class HolderActivity : AppCompatActivity() {
 
         binding = ActivityHolderBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        StatusUtils.init(this)
+        StatusUtils.init(this, binding.root)
 
         setSupportActionBar(binding.toolbar)
 

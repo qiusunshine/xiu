@@ -4,67 +4,73 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/surface">
+    tools:context=".HomeFragment">
 
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline3"
+    <TextView
+        android:id="@+id/tips"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.25" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline8"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.75" />
-
-    <EditText
-        android:id="@+id/HomeSearchText"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/dim3"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginBottom="32dp"
-        android:background="@drawable/bg_edittext3"
-        android:ems="10"
-        android:hint="@string/hint"
-        android:inputType="textPersonName"
-        app:layout_constraintBottom_toTopOf="@+id/guideline"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <ImageView
-        android:id="@+id/imageView12"
-        android:layout_width="@dimen/dim5"
-        android:layout_height="@dimen/dim5"
+        android:layout_marginStart="24dp"
         android:layout_marginTop="24dp"
-        app:layout_constraintBottom_toTopOf="@+id/HomeSearchText"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:text="Good\nMorning"
+        android:textSize="24sp"
+        android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/logo_round" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.5" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/shortcutsRecyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-
-        android:layout_marginStart="-32dp"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="24dp"
-        android:layout_marginEnd="-32dp"
-        android:layout_marginBottom="24dp"
+        android:layout_marginEnd="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/guideline8"
-        app:layout_constraintStart_toStartOf="@+id/guideline3"
-        app:layout_constraintTop_toBottomOf="@+id/HomeSearchText" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/constraintLayout3" />
+
+    <androidx.constraintlayout.motion.widget.MotionLayout
+        android:id="@+id/constraintLayout3"
+        android:layout_width="0dp"
+        android:layout_height="64dp"
+        android:layout_marginTop="24dp"
+        android:background="@drawable/bg_hometool"
+        app:layoutDescription="@xml/fragment_first_xml_constraintlayout3_scene"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/materialButton3"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:icon="@drawable/chevron_back"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/qrButton"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:icon="@drawable/qr_code"
+            app:layout_constraintBottom_toBottomOf="@+id/materialButton3"
+            app:layout_constraintEnd_toStartOf="@+id/signinButton"
+            app:layout_constraintStart_toEndOf="@+id/materialButton3"
+            app:layout_constraintTop_toTopOf="@+id/materialButton3"
+            tools:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/signinButton"
+            android:layout_width="@dimen/dim1"
+            android:layout_height="@dimen/dim1"
+            app:layout_constraintBottom_toBottomOf="@+id/qrButton"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/qrButton"
+            app:srcCompat="@drawable/person_circle"
+            tools:visibility="gone" />
+
+    </androidx.constraintlayout.motion.widget.MotionLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -53,15 +53,16 @@ import org.mozilla.xiu.browser.tab.DelegateListLiveData
 import org.mozilla.xiu.browser.tab.RemoveTabLiveData
 import org.mozilla.xiu.browser.tab.TabListAdapter
 import org.mozilla.xiu.browser.utils.FileUtil
-import org.mozilla.xiu.browser.utils.FullScreen
 import org.mozilla.xiu.browser.utils.SoftKeyBoardListener.OnSoftKeyBoardChangeListener
 import org.mozilla.xiu.browser.utils.StatusUtils
 import org.mozilla.xiu.browser.utils.ThreadTool
 import org.mozilla.xiu.browser.utils.UriUtilsPro
-import org.mozilla.xiu.browser.utils.getSizeName
 import org.mozilla.xiu.browser.webextension.BrowseEvent
 import org.mozilla.xiu.browser.webextension.WebExtensionsAddEvent
+import org.mozilla.xiu.browser.webextension.WebExtensionsEnableEvent
 import org.mozilla.xiu.browser.webextension.WebextensionSession
+import org.mozilla.xiu.browser.webextension.addDelegate
+import org.mozilla.xiu.browser.webextension.removeDelegate
 import timber.log.Timber
 import java.io.File
 
@@ -121,7 +122,7 @@ class MainActivity : AppCompatActivity() {
             setContentView(privacyAgreementLayoutBinding.root)
         privacyAgreementLayoutBinding.webView.loadUrl("file:///android_asset/privacy.txt")
 
-        StatusUtils.init(this)
+        StatusUtils.init(this, binding.root)
         WebextensionSession(this)
 
         onBackPressedDispatcher.addCallback(this, onBackPress)
@@ -330,6 +331,9 @@ class MainActivity : AppCompatActivity() {
             binding.SizeText?.setText(it.size.toString())
             adapter.submitList(it.toList())
             sessionDelegates = it
+            if (it.isEmpty()) {
+                onProgressUpdate(ProgressEvent(100))
+            }
         }
         HomeLivedata.getInstance().observe(this) {
             isHome = it
@@ -346,8 +350,8 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-        if (getSizeName(this) == "large")
-            FullScreen(this)
+//        if (getSizeName(this) == "large")
+//            FullScreen(this)
 
         val uri: Uri? = intent?.data
         if (uri != null) {
@@ -381,13 +385,24 @@ class MainActivity : AppCompatActivity() {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
+    fun updateWebExtension(event: WebExtensionsEnableEvent) {
+        if (event.isEnabled) {
+            event.webExtension.addDelegate(this)
+        } else {
+            event.webExtension.removeDelegate()
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
     fun browse(event: BrowseEvent) {
         searching(event.url)
     }
 
     @Subscribe
     fun onProgressUpdate(event: ProgressEvent) {
-        binding.progress?.setWebProgress(event.progress)
+        ThreadTool.runOnUI {
+            binding.progress?.setWebProgress(event.progress)
+        }
     }
 
     private fun getContext(): Context {

@@ -473,8 +473,18 @@ class SessionDelegate() : BaseObservable() {
             ): GeckoResult<PromptResponse>? {
                 val result = GeckoResult<PromptResponse>()
                 MaterialAlertDialogBuilder(mContext)
-                    .setTitle(ContextCompat.getString(mContext, R.string.before_unload_prompt_title))
-                    .setMessage(ContextCompat.getString(mContext, R.string.before_unload_prompt_message))
+                    .setTitle(
+                        ContextCompat.getString(
+                            mContext,
+                            R.string.before_unload_prompt_title
+                        )
+                    )
+                    .setMessage(
+                        ContextCompat.getString(
+                            mContext,
+                            R.string.before_unload_prompt_message
+                        )
+                    )
                     .setPositiveButton("确定") { d, _ ->
                         d.dismiss()
                         result.complete(prompt.confirm(AllowOrDeny.ALLOW))
@@ -590,6 +600,10 @@ class SessionDelegate() : BaseObservable() {
         sessionStateMap.remove(session.hashCode())
         session.close()
         bitmap.recycle()
+        if (mProgress in 1..99) {
+            Log.d("test", "onProgressChange: 101")
+            EventBus.getDefault().post(ProgressEvent(100))
+        }
     }
 
     fun open() {

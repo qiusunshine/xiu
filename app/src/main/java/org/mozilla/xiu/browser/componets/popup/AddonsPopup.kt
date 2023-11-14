@@ -1,8 +1,8 @@
 package org.mozilla.xiu.browser.componets.popup
 
 import android.content.Context
-import android.graphics.Color
 import android.view.LayoutInflater
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -63,7 +63,7 @@ class AddonsPopup {
 
             binding.textView.text=extension.metaData.name
         }
-        binding.addonsView.coverUntilFirstPaint(Color.WHITE)
+        binding.addonsView.coverUntilFirstPaint(ContextCompat.getColor(context, R.color.surface))
         binding.addonsView.setSession(session)
         bottomSheetDialog.show()
     }

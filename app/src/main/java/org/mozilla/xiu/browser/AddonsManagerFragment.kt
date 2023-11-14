@@ -27,6 +27,7 @@ import org.mozilla.xiu.browser.databinding.FragmentAddonsManagerBinding
 import org.mozilla.xiu.browser.utils.ThreadTool
 import org.mozilla.xiu.browser.utils.ToastMgr
 import org.mozilla.xiu.browser.utils.UriUtilsPro
+import org.mozilla.xiu.browser.webextension.WebExtensionWrapper
 import org.mozilla.xiu.browser.webextension.WebExtensionsRefreshEvent
 import org.mozilla.xiu.browser.webextension.WebextensionSession
 import java.io.File
@@ -48,8 +49,14 @@ class AddonsManagerFragment : Fragment() {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onWebExtensionsRefresh(event: WebExtensionsRefreshEvent) {
-        webExtensionController.list().accept {
-            adapter.submitList(it)
+        webExtensionController.list().accept { list ->
+            adapter.submitList(list?.map {
+                WebExtensionWrapper(
+                    it.metaData.name,
+                    it.metaData.enabled,
+                    it
+                )
+            })
         }
     }
 
@@ -62,8 +69,14 @@ class AddonsManagerFragment : Fragment() {
         binding.AddonsManagerRecycler.layoutManager =
             LinearLayoutManager(context, RecyclerView.VERTICAL, false);
         binding.AddonsManagerRecycler.adapter = adapter
-        webExtensionController.list().accept {
-            adapter.submitList(it)
+        webExtensionController.list().accept { list ->
+            adapter.submitList(list?.map {
+                WebExtensionWrapper(
+                    it.metaData.name,
+                    it.metaData.enabled,
+                    it
+                )
+            })
         }
         if (binding.managerDrawer != null) {
             SheetBehavior = BottomSheetBehavior.from(binding.managerDrawer as ConstraintLayout)
@@ -153,8 +166,14 @@ class AddonsManagerFragment : Fragment() {
         }
         binding.button2.setOnClickListener {
             webExtensionController.uninstall(extension).accept {
-                webExtensionController.list().accept {
-                    adapter.submitList(it)
+                webExtensionController.list().accept { list ->
+                    adapter.submitList(list?.map {
+                        WebExtensionWrapper(
+                            it.metaData.name,
+                            it.metaData.enabled,
+                            it
+                        )
+                    })
                 }
             }
             SheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED

@@ -2,7 +2,6 @@ package org.mozilla.xiu.browser
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -11,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.ActivityResultLauncher
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -188,15 +188,19 @@ class WebFragment(
         if (sessionDelegate != null) {
             sessionDelegate.setpic = object : SessionDelegate.Setpic {
                 override fun onSetPic() {
-                    binding.geckoview.capturePixels().accept {
-                        if (it != null) {
-                            if (sessionDelegate.privacy)
-                                sessionDelegate.bitmap =
-                                    requireActivity().getDrawable(R.drawable.close_outline)
-                                        ?.toBitmap()!!
-                            else
-                                sessionDelegate.bitmap = it
+                    try {
+                        binding.geckoview.capturePixels().accept {
+                            if (it != null) {
+                                if (sessionDelegate.privacy)
+                                    sessionDelegate.bitmap =
+                                        requireActivity().getDrawable(R.drawable.close_outline)
+                                            ?.toBitmap()!!
+                                else
+                                    sessionDelegate.bitmap = it
+                            }
                         }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
                 }
 
@@ -224,7 +228,7 @@ class WebFragment(
             sessionDelegate?.let { delegate.add(active + 1, it) }
         sessionDelegate?.let { DelegateLivedata.getInstance().Value(it) }
         DelegateListLiveData.getInstance().Value(delegate)
-        binding.geckoview.coverUntilFirstPaint(Color.WHITE)
+        binding.geckoview.coverUntilFirstPaint(ContextCompat.getColor(requireContext(), R.color.surface))
         binding.geckoview.setSession(session)
     }
 
