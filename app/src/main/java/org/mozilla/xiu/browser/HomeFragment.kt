@@ -13,6 +13,7 @@ import android.webkit.URLUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
+import org.greenrobot.eventbus.EventBus
 import org.mozilla.xiu.browser.broswer.bookmark.shortcut.ShortcutAdapter
 import org.mozilla.xiu.browser.componets.popup.BookmarkPopup
 import org.mozilla.xiu.browser.componets.popup.HistoryPopup
@@ -107,8 +108,14 @@ class HomeFragment : Fragment() {
                 var intent = Intent(requireContext(), HolderActivity::class.java)
                 intent.putExtra("Page", "QRSCANNING")
                 requireContext().startActivity(intent)
-            } else requireActivity().requestPermissions(arrayOf(Manifest.permission.CAMERA), 1)
-
+            } else requireActivity().requestPermissions(arrayOf(Manifest.permission.CAMERA), 199)
+        }
+        binding.qrScanButton?.setOnClickListener {
+            if (requireActivity().checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                var intent = Intent(requireContext(), HolderActivity::class.java)
+                intent.putExtra("Page", "QRSCANNING")
+                requireContext().startActivity(intent)
+            } else requireActivity().requestPermissions(arrayOf(Manifest.permission.CAMERA), 199)
         }
 
 
@@ -161,13 +168,16 @@ class HomeFragment : Fragment() {
             binding.tips?.text = "Good\nDream"
         }
 
-
-        var shortcutAdapter = ShortcutAdapter()
+        binding.searchViewText?.setOnClickListener {
+            EventBus.getDefault().post(ShowSearchEvent())
+        }
+        var shortcutAdapter = ShortcutAdapter(context)
         binding.shortcutsRecyclerView?.adapter = shortcutAdapter
         binding.shortcutsRecyclerView?.layoutManager = GridLayoutManager(context, 4)
         shortcutViewModel.allShortcutsLive?.observe(requireActivity()) {
             shortcutAdapter.submitList(it?.reversed())
         }
+        binding.shortcutsRecyclerView?.addItemDecoration(shortcutAdapter.dividerItem)
 
         shortcutAdapter.select = object : ShortcutAdapter.Select {
             override fun onSelect(url: String) {
@@ -276,3 +286,5 @@ class HomeFragment : Fragment() {
 //    }
 
 }
+
+class ShowSearchEvent()

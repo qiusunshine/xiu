@@ -12,6 +12,8 @@ import android.view.WindowManager;
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 
+import com.githang.statusbar.StatusBarCompat;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
@@ -46,14 +48,7 @@ public class MyStatusBarUtil {
     }
 
     public static boolean isDark(int color) {
-        int red = (color & 0xff0000) >> 16;
-        int green = (color & 0x00ff00) >> 8;
-        int blue = (color & 0x0000ff);
-        return isDark((double) red, (double) green, (double) blue);
-    }
-
-    public static boolean isDark(Double r, Double g, Double b) {
-        return !(r * 0.299 + g * 0.578 + b * 0.114 >= 192);
+        return StatusBarCompat.toGrey(color) <= 225;
     }
 
     public static int getStatusBarHeight(Context context) {

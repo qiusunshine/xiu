@@ -8,6 +8,7 @@ import android.view.WindowManager
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import com.githang.statusbar.StatusBarCompat
 import org.mozilla.xiu.browser.R
 
 
@@ -15,14 +16,25 @@ object StatusUtils {
     fun init(context: Activity, rootView: View) {
         MyStatusBarUtil.setColorNoTranslucent(context, context.resources.getColor(R.color.surface))
         try {
-            val isDark = MyStatusBarUtil.isDark(context.resources.getColor(R.color.surface))
+            val isLightColor = StatusBarCompat.toGrey(ContextCompat.getColor(context, R.color.surface)) > 225
             val controllerCompat = WindowCompat.getInsetsController(context.window, rootView)
-            controllerCompat.isAppearanceLightNavigationBars = !isDark
-            controllerCompat.isAppearanceLightStatusBars = !isDark
+            controllerCompat.isAppearanceLightNavigationBars = isLightColor
+            controllerCompat.isAppearanceLightStatusBars = isLightColor
         } catch (e: Exception) {
             e.printStackTrace()
         }
         context.window.navigationBarColor = ContextCompat.getColor(context, R.color.surface)
+    }
+
+    fun setStatusBarColor(context: Activity, statusBarColor: Int, rootView: View) {
+        MyStatusBarUtil.setColorNoTranslucent(context, statusBarColor)
+        try {
+            val isLightColor = StatusBarCompat.toGrey(statusBarColor) > 225
+            val controllerCompat = WindowCompat.getInsetsController(context.window, rootView)
+            controllerCompat.isAppearanceLightStatusBars = isLightColor
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     fun hideStatusBar(context: Activity) {

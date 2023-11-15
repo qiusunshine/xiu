@@ -21,6 +21,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
@@ -65,6 +66,7 @@ import org.mozilla.xiu.browser.webextension.addDelegate
 import org.mozilla.xiu.browser.webextension.removeDelegate
 import timber.log.Timber
 import java.io.File
+import java.util.Objects
 
 
 /**
@@ -315,10 +317,22 @@ class MainActivity : AppCompatActivity() {
             ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-                if (position == 0)
+                val c = ContextCompat.getColor(getContext(), R.color.surface)
+                if (position == 0) {
                     binding.SearchText?.setText("")
+                    StatusUtils.setStatusBarColor(
+                        this@MainActivity,
+                        c,
+                        binding.root
+                    )
+                } else {
+                    StatusUtils.setStatusBarColor(
+                        this@MainActivity,
+                        binding.user?.statusBarColor ?: c,
+                        binding.root
+                    )
+                }
             }
-
         })
 
 
@@ -402,6 +416,20 @@ class MainActivity : AppCompatActivity() {
     fun onProgressUpdate(event: ProgressEvent) {
         ThreadTool.runOnUI {
             binding.progress?.setWebProgress(event.progress)
+        }
+    }
+
+    @Subscribe
+    fun showSearch(event: ShowSearchEvent) {
+        binding.SearchText?.requestFocus()
+        try {
+            (Objects.requireNonNull(getSystemService(INPUT_METHOD_SERVICE)) as InputMethodManager)
+                .showSoftInput(
+                    binding.SearchText!!,
+                    InputMethodManager.SHOW_FORCED
+                )
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 

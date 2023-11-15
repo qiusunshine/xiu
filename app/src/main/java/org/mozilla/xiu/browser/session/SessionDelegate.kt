@@ -1,9 +1,11 @@
 package org.mozilla.xiu.browser.session
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.net.Uri
 import android.util.Log
 import android.view.View
@@ -25,6 +27,7 @@ import org.mozilla.geckoview.*
 import org.mozilla.geckoview.GeckoSession.NavigationDelegate
 import org.mozilla.geckoview.GeckoSession.ProgressDelegate
 import org.mozilla.geckoview.GeckoSession.PromptDelegate.*
+import org.mozilla.xiu.browser.App
 import org.mozilla.xiu.browser.BR
 import org.mozilla.xiu.browser.R
 import org.mozilla.xiu.browser.componets.ContextMenuDialog
@@ -33,6 +36,9 @@ import org.mozilla.xiu.browser.database.history.History
 import org.mozilla.xiu.browser.database.history.HistoryViewModel
 import org.mozilla.xiu.browser.download.DownloadTask
 import org.mozilla.xiu.browser.download.DownloadTaskLiveData
+import org.mozilla.xiu.browser.utils.PreferenceMgr
+import org.mozilla.xiu.browser.utils.StringUtil
+import org.mozilla.xiu.browser.utils.ThreadTool
 import org.mozilla.xiu.browser.utils.UriUtils
 import org.mozilla.xiu.browser.utils.filePicker.FilePicker
 import org.mozilla.xiu.browser.webextension.WebextensionSession
@@ -102,18 +108,26 @@ class SessionDelegate() : BaseObservable() {
     private lateinit var fullscreenCall: (full: Boolean) -> Unit
     //private lateinit var historySync: HistorySync
 
+    var statusBarColor: Int = 0xffffff
+    var navigationBarColor: Int = 0xffffff
+    private lateinit var onPageStopCall: (session: GeckoSession, sessionDelegate: SessionDelegate) -> Unit
+
     constructor(
         mContext: FragmentActivity,
         session: GeckoSession,
         filePicker: FilePicker,
         privacy: Boolean,
-        fullscreenCall: (full: Boolean) -> Unit
+        fullscreenCall: (full: Boolean) -> Unit,
+        onPageStopCall1: (session: GeckoSession, sessionDelegate: SessionDelegate) -> Unit = { se, de -> }
     ) : this() {
         this.mContext = mContext
+        statusBarColor = getDefaultThemeColor(mContext)
+        navigationBarColor = getDefaultThemeColor(mContext)
         this.session = session
         this.filePicker = filePicker
         this.privacy = privacy
         this.fullscreenCall = fullscreenCall
+        this.onPageStopCall = onPageStopCall1
         notifyPropertyChanged(BR.privacy)
 
 
@@ -192,6 +206,9 @@ class SessionDelegate() : BaseObservable() {
                     session.open(GeckoRuntime.getDefault(mContext))
                 }
                 session.restoreState(sessionStateMap[session.hashCode()] ?: sessionState)
+                ThreadTool.postUIDelayed(100) {
+                    pageFinish(session)
+                }
             }
 
             override fun onKill(session: GeckoSession) {
@@ -201,6 +218,9 @@ class SessionDelegate() : BaseObservable() {
                     session.open(GeckoRuntime.getDefault(mContext))
                 }
                 session.restoreState(sessionStateMap[session.hashCode()] ?: sessionState)
+                ThreadTool.postUIDelayed(100) {
+                    pageFinish(session)
+                }
             }
 
             override fun onFirstComposite(session: GeckoSession) {
@@ -304,6 +324,7 @@ class SessionDelegate() : BaseObservable() {
             }
 
             override fun onPageStop(session: GeckoSession, success: Boolean) {
+                pageFinish(session)
             }
         }
 
@@ -596,6 +617,15 @@ class SessionDelegate() : BaseObservable() {
         session.permissionDelegate = ExamplePermissionDelegate(mContext)
     }
 
+    fun getDefaultThemeColor(context: Context?): Int {
+        val eye: String? = PreferenceMgr.getString(context ?: App.application, "eye", null)
+        return if (StringUtil.isNotEmpty(eye)) {
+            Color.parseColor(eye)
+        } else {
+            ContextCompat.getColor(context ?: App.application!!, R.color.surface)
+        }
+    }
+
     fun close() {
         sessionStateMap.remove(session.hashCode())
         session.close()
@@ -616,6 +646,14 @@ class SessionDelegate() : BaseObservable() {
         if (!session.isOpen)
             session.open(GeckoRuntime.getDefault(mContext))
         session.restoreState(sessionStateMap[session.hashCode()] ?: sessionState)
+    }
+
+    private fun pageFinish(session: GeckoSession) {
+        session.loadAppBarColors(mContext, false, getDefaultThemeColor(mContext)) { arr ->
+            statusBarColor = arr[0]
+            navigationBarColor = arr[1]
+            onPageStopCall(session, this@SessionDelegate)
+        }
     }
 
     interface Login {

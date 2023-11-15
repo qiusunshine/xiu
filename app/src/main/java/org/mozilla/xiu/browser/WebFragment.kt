@@ -29,6 +29,7 @@ import org.mozilla.xiu.browser.session.SessionDelegate
 import org.mozilla.xiu.browser.tab.AddTabLiveData
 import org.mozilla.xiu.browser.tab.DelegateListLiveData
 import org.mozilla.xiu.browser.tab.RemoveTabLiveData
+import org.mozilla.xiu.browser.utils.StatusUtils
 import org.mozilla.xiu.browser.utils.ThreadTool
 import org.mozilla.xiu.browser.utils.ToastMgr
 import org.mozilla.xiu.browser.utils.UriUtilsPro
@@ -172,6 +173,11 @@ class WebFragment(
                 true
             )
             binding.geckoview.setSession(it.session)
+            StatusUtils.setStatusBarColor(
+                requireActivity(),
+                it.statusBarColor,
+                binding.root
+            )
             sessiondelegate = it
         }
         binding.geckoview.activityContextDelegate = GeckoView.ActivityContextDelegate { activity }
@@ -181,9 +187,17 @@ class WebFragment(
         binding.geckoview.releaseSession()
         val sessionDelegate: SessionDelegate? =
             activity?.let {
-                SessionDelegate(it, session, filePicker, isPrivacy) { full ->
+                SessionDelegate(it, session, filePicker, isPrivacy, { full ->
                     fullscreenCall(full)
-                }
+                }, { se, de ->
+                    if (binding.geckoview.session == se) {
+                        StatusUtils.setStatusBarColor(
+                            requireActivity(),
+                            de.statusBarColor,
+                            binding.root
+                        )
+                    }
+                })
             }
         if (sessionDelegate != null) {
             sessionDelegate.setpic = object : SessionDelegate.Setpic {
@@ -228,7 +242,12 @@ class WebFragment(
             sessionDelegate?.let { delegate.add(active + 1, it) }
         sessionDelegate?.let { DelegateLivedata.getInstance().Value(it) }
         DelegateListLiveData.getInstance().Value(delegate)
-        binding.geckoview.coverUntilFirstPaint(ContextCompat.getColor(requireContext(), R.color.surface))
+        binding.geckoview.coverUntilFirstPaint(
+            ContextCompat.getColor(
+                requireContext(),
+                R.color.surface
+            )
+        )
         binding.geckoview.setSession(session)
     }
 
