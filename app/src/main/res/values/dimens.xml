@@ -13,4 +13,8 @@
     <dimen name="dim9">48dp</dimen>
     <dimen name="dim10">32dp</dimen>
     <dimen name="dim11">28dp</dimen>
+    <dimen name="toolbar_height">44dp</dimen>
+    <dimen name="alert_width">200dp</dimen>
+    <dimen name="video_op_top">3dp</dimen>
+    <dimen name="video_op_bottom">8dp</dimen>
 </resources>

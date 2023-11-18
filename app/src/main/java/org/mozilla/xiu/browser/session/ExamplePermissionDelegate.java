@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.TypedArray;
 import android.net.Uri;
@@ -18,6 +19,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
+import androidx.preference.PreferenceManager;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -25,8 +27,11 @@ import org.mozilla.geckoview.GeckoResult;
 import org.mozilla.geckoview.GeckoSession;
 import org.mozilla.geckoview.GeckoSession.PermissionDelegate;
 import org.mozilla.xiu.browser.R;
+import org.mozilla.xiu.browser.base.VarHolder;
 
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * 作者：By 15968
@@ -37,6 +42,7 @@ import java.util.Locale;
 public class ExamplePermissionDelegate implements PermissionDelegate {
     public static final int REQUEST_PERMISSIONS = 2;
     private Activity activity;
+    private static Map<String, Map<Integer, Boolean>> permissionsResolvedMap = new HashMap<>();
 
     public ExamplePermissionDelegate(Activity activity) {
         this.activity = activity;
@@ -122,6 +128,14 @@ public class ExamplePermissionDelegate implements PermissionDelegate {
         switch (perm.permission) {
             case PERMISSION_GEOLOCATION:
                 resId = R.string.request_geolocation;
+                SharedPreferences sharedPreferences =
+                        PreferenceManager.getDefaultSharedPreferences(activity);
+                String locationPermission = sharedPreferences.getString("locationPermission", "prompt");
+                if ("allow_all".equals(locationPermission)) {
+                    return GeckoResult.fromValue(ContentPermission.VALUE_ALLOW);
+                } else if ("deny_all".equals(locationPermission)) {
+                    return GeckoResult.fromValue(ContentPermission.VALUE_DENY);
+                }
                 break;
             case PERMISSION_DESKTOP_NOTIFICATION:
                 resId = R.string.request_notification;
@@ -146,17 +160,44 @@ public class ExamplePermissionDelegate implements PermissionDelegate {
                 resId = R.string.request_storage_access;
                 break;
             default:
-                return GeckoResult.fromValue(ContentPermission.VALUE_DENY);
+                return GeckoResult.fromValue(ContentPermission.VALUE_PROMPT);
+        }
+        String dom = Uri.parse(perm.uri).getAuthority();
+        if (permissionsResolvedMap.containsKey(dom)) {
+            Map<Integer, Boolean> map = permissionsResolvedMap.get(dom);
+            if (map != null && map.containsKey(perm.permission)) {
+                Boolean resolve = map.get(perm.permission);
+                if (resolve != null) {
+                    return GeckoResult.fromValue(resolve ? ContentPermission.VALUE_ALLOW : ContentPermission.VALUE_DENY);
+                }
+            }
         }
         final GeckoResult<Integer> res = new GeckoResult<>();
-        final String title = activity.getString(resId, Uri.parse(perm.uri).getAuthority());
+        final String title = activity.getString(resId, dom);
+        VarHolder<Boolean> holder = new VarHolder<>(false);
         new MaterialAlertDialogBuilder(activity)
-                .setTitle("授权")
+                .setTitle(activity.getString(R.string.permission_request))
                 .setMessage(title)
-                .setPositiveButton("确定", (dialogInterface, i) -> {
-                    res.complete(ContentPermission.VALUE_ALLOW);
-                }).setNegativeButton("取消", (dialogInterface, i) -> {
-                    res.complete(ContentPermission.VALUE_DENY);
+                .setPositiveButton(activity.getString(R.string.confirm), (dialogInterface, i) -> {
+                    holder.data = true;
+                }).setNegativeButton(activity.getString(R.string.cancel), (dialogInterface, i) -> {
+                    holder.data = false;
+                }).setOnDismissListener(dialog -> {
+                    if (permissionsResolvedMap.containsKey(dom)) {
+                        Map<Integer, Boolean> map = permissionsResolvedMap.get(dom);
+                        if (map != null) {
+                            map.put(perm.permission, holder.data);
+                        } else {
+                            map = new HashMap<>();
+                            map.put(perm.permission, holder.data);
+                            permissionsResolvedMap.put(dom, map);
+                        }
+                    } else {
+                        Map<Integer, Boolean> map = new HashMap<>();
+                        map.put(perm.permission, holder.data);
+                        permissionsResolvedMap.put(dom, map);
+                    }
+                    res.complete(holder.data ? ContentPermission.VALUE_ALLOW : ContentPermission.VALUE_DENY);
                 }).show();
         return res;
     }
@@ -321,15 +362,17 @@ public class ExamplePermissionDelegate implements PermissionDelegate {
             final GeckoSession.PermissionDelegate.MediaCallback callback) {
         onMediaPrompt(session, title, video, audio, null, null, callback);
     }
+
     private int getViewPadding(final MaterialAlertDialogBuilder builder) {
         final TypedArray attr =
                 builder
                         .getContext()
-                        .obtainStyledAttributes(new int[] {android.R.attr.listPreferredItemPaddingLeft});
+                        .obtainStyledAttributes(new int[]{android.R.attr.listPreferredItemPaddingLeft});
         final int padding = attr.getDimensionPixelSize(0, 1);
         attr.recycle();
         return padding;
     }
+
     private LinearLayout addStandardLayout(
             final MaterialAlertDialogBuilder builder, final String title, final String msg) {
         final ScrollView scrollView = new ScrollView(builder.getContext());

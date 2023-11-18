@@ -160,7 +160,6 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:paddingBottom="8dp"
-                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/materialCardView12_ext">
@@ -171,14 +170,13 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     app:layout_constraintBottom_toTopOf="@+id/guideline4"
-                    app:layout_constraintGuide_begin="103dp"
+                    app:layout_constraintGuide_percent="0.25"
                     app:layout_constraintTop_toBottomOf="@+id/guideline5" />
 
                 <androidx.constraintlayout.widget.Guideline
                     android:id="@+id/guideline4"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="232dp"
                     android:orientation="vertical"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintGuide_percent="0.5"
@@ -253,15 +251,15 @@
                     app:layout_constraintTop_toTopOf="@+id/historyButton" />
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/privacyButton"
+                    android:id="@+id/toolsButton"
                     style="@style/Widget.Material3.Button.IconButton"
 
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="24dp"
                     android:layout_marginBottom="24dp"
-                    android:text="@string/private_mode"
-                    app:icon="@drawable/icon_privacy"
+                    android:text="@string/tools"
+                    app:icon="@drawable/icon_tools"
                     app:iconGravity="textTop"
                     app:iconPadding="@dimen/dim4dp"
                     app:iconSize="@dimen/dim2"
@@ -283,7 +281,7 @@
                     app:iconSize="@dimen/dim2"
                     app:layout_constraintEnd_toStartOf="@+id/guideline4"
                     app:layout_constraintStart_toStartOf="@+id/guideline2"
-                    app:layout_constraintTop_toTopOf="@+id/privacyButton" />
+                    app:layout_constraintTop_toTopOf="@+id/toolsButton" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/settingButton"
@@ -298,7 +296,7 @@
                     app:iconSize="@dimen/dim2"
                     app:layout_constraintEnd_toStartOf="@+id/guideline5"
                     app:layout_constraintStart_toStartOf="@+id/guideline4"
-                    app:layout_constraintTop_toTopOf="@+id/privacyButton" />
+                    app:layout_constraintTop_toTopOf="@+id/toolsButton" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/forwardButton"
@@ -313,6 +311,106 @@
                     app:iconSize="@dimen/dim2"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="@+id/guideline5"
+                    app:layout_constraintTop_toTopOf="@+id/toolsButton" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/constraintLayout11Menu2"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/constraintLayout11Menu">
+
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/guideline22"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:layout_constraintBottom_toTopOf="@+id/guideline42"
+                    app:layout_constraintGuide_percent="0.25"
+                    app:layout_constraintTop_toBottomOf="@+id/guideline52" />
+
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/guideline42"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintGuide_percent="0.5"
+                    app:layout_constraintTop_toBottomOf="@+id/guideline22" />
+
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/guideline52"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:layout_constraintBottom_toTopOf="@+id/guideline22"
+                    app:layout_constraintGuide_percent="0.75"
+                    app:layout_constraintTop_toBottomOf="@+id/constraintLayout11Menu2" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/privacyButton"
+                    style="@style/Widget.Material3.Button.IconButton"
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    android:text="@string/private_mode"
+                    app:icon="@drawable/icon_privacy"
+                    app:iconGravity="textTop"
+                    app:iconPadding="@dimen/dim4dp"
+                    app:iconSize="@dimen/dim2"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/guideline22"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/devButton"
+                    style="@style/Widget.Material3.Button.IconButton"
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/dev_mode"
+                    app:icon="@drawable/icon_dev"
+                    app:iconGravity="textTop"
+                    app:iconPadding="@dimen/dim4dp"
+                    app:iconSize="@dimen/dim2"
+                    app:layout_constraintEnd_toStartOf="@+id/guideline42"
+                    app:layout_constraintStart_toStartOf="@+id/guideline22"
+                    app:layout_constraintTop_toTopOf="@+id/privacyButton" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/floatButton"
+                    style="@style/Widget.Material3.Button.IconButton"
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/float_video"
+                    app:icon="@drawable/icon_video"
+                    app:iconGravity="textTop"
+                    app:iconPadding="@dimen/dim4dp"
+                    app:iconSize="@dimen/dim2"
+                    app:layout_constraintEnd_toStartOf="@+id/guideline52"
+                    app:layout_constraintStart_toStartOf="@+id/guideline42"
+                    app:layout_constraintTop_toTopOf="@+id/privacyButton" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/domainButton"
+                    style="@style/Widget.Material3.Button.IconButton"
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/domain_config"
+                    app:icon="@drawable/icon_domain"
+                    app:iconGravity="textTop"
+                    app:iconPadding="@dimen/dim4dp"
+                    app:iconSize="@dimen/dim2"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="@+id/guideline52"
                     app:layout_constraintTop_toTopOf="@+id/privacyButton" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
@@ -328,7 +426,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/constraintLayout11Menu"
+                app:layout_constraintTop_toBottomOf="@+id/materialCardView9Topbar"
                 tools:showIn="@layout/popup_menu">
 
                 <androidx.constraintlayout.widget.ConstraintLayout

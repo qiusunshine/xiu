@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/black">
+
+    <chuangyuan.ycj.videolibrary.widget.VideoPlayerView
+        android:id="@+id/float_video_player"
+        android:layout_width="match_parent"
+        android:layout_height="240dp"
+        app:controller_layout_id="@layout/view_float_video_playback"
+        app:player_load_layout_id="@layout/custom_exo_play_load"
+        app:surface_type="surface_view"
+        app:use_controller="true"
+        app:player_back_image="@drawable/close_white"/>
+</FrameLayout>

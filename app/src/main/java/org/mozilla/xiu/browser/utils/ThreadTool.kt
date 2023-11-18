@@ -114,6 +114,10 @@ object ThreadTool {
         }
     }
 
+    fun runOnUI(block: suspend CoroutineScope.() -> Unit) {
+        GlobalScope.launch(Dispatchers.Main, block = block)
+    }
+
     fun runOnUI(scope: CoroutineScope, task: Runnable) {
         try {
             scope.launch(Dispatchers.Main) {

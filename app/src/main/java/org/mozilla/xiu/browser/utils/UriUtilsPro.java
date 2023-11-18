@@ -211,7 +211,7 @@ public class UriUtilsPro {
 
     public static String getFileName(Uri uri) {
         if (uri == null) return null;
-        return UriTool.INSTANCE.uriToFileName(uri, App.application);
+        return UriTool.INSTANCE.uriToFileName(uri, App.Companion.getApplication());
     }
 
     private static void copyFile(Context context, Uri srcUri, File dstFile) throws Exception {

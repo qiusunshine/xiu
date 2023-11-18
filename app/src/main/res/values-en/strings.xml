@@ -19,6 +19,10 @@
     <string name="dia_bookmark_title">Name:</string>
     <string name="dia_add_bookmark_title">Add Bookmark</string>
     <string name="confirm">Confirm</string>
+    <string name="open">Open</string>
+    <string name="close">Close</string>
+    <string name="ignore">Ignore</string>
+    <string name="refuse">Refuse</string>
     <string name="cancel">Cancel</string>
     <string name="copy">Copy</string>
     <string name="reload">Reload</string>
@@ -161,5 +165,21 @@
     <string name="media_front_camera">front camera</string>
     <string name="media_microphone">microphone</string>
     <string name="media_other">other</string>
+    <string name="crashed_title">APP Crashed</string>
+    <string name="crashed_text">Tap to report to Mozilla.</string>
+    <string name="crashed_ignore">ignore</string>
+    <string name="crashed_report">Report</string>
+    <string name="dev_mode">DevMode</string>
+    <string name="tools">Tools</string>
+    <string name="float_video">Float Video</string>
+    <string name="float_video_message">Float Video %1$s</string>
+    <string name="float_video_opened">Opened</string>
+    <string name="float_video_closed">Closed</string>
+    <string name="domain_config">Dom Config</string>
+    <string name="permission_request">Permission Request</string>
+    <string name="location_permission">Location Permission</string>
+    <string name="location_permission_allow_all">Allow All</string>
+    <string name="location_permission_deny_all">Deny All</string>
+    <string name="location_permission_prompt">Prompt</string>
 
 </resources>

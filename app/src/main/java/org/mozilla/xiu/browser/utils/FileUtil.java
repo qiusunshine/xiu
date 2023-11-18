@@ -729,7 +729,7 @@ public class FileUtil {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        copyFilesFromAssets(App.application, "player", fileDir);
+        copyFilesFromAssets(App.Companion.getApplication(), "player", fileDir);
     }
 
     public static void copyFilesFromAssets(Context context, String assetsPath, String savePath) {

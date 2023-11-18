@@ -16,9 +16,11 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import org.greenrobot.eventbus.EventBus
 import org.mozilla.geckoview.GeckoRuntime
 import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.GeckoView
+import org.mozilla.geckoview.WebExtension
 import org.mozilla.geckoview.WebRequestError
 import org.mozilla.xiu.browser.componets.HomeLivedata
 import org.mozilla.xiu.browser.databinding.FragmentSecondBinding
@@ -34,6 +36,9 @@ import org.mozilla.xiu.browser.utils.ThreadTool
 import org.mozilla.xiu.browser.utils.ToastMgr
 import org.mozilla.xiu.browser.utils.UriUtilsPro
 import org.mozilla.xiu.browser.utils.filePicker.FilePicker
+import org.mozilla.xiu.browser.webextension.DetectorListener
+import org.mozilla.xiu.browser.webextension.WebExtensionRuntimeManager
+import org.mozilla.xiu.browser.webextension.WebExtensionsEnableEvent
 import java.io.File
 
 
@@ -43,7 +48,9 @@ import java.io.File
  * thallo
  **/
 class WebFragment(
-    var fullscreenCall: (full: Boolean) -> Unit
+    var fullscreenCall: (full: Boolean) -> Unit,
+    var onUrlChange: (url: String, sessionDelegate: SessionDelegate) -> Unit = { u, se -> },
+    var detectorListener: DetectorListener? = null
 ) : Fragment() {
 
     private var _binding: FragmentSecondBinding? = null
@@ -119,7 +126,7 @@ class WebFragment(
         filePicker = FilePicker(launcher, requireActivity())
     }
 
-    @SuppressLint("ClickableViewAccessibility")
+    @SuppressLint("ClickableViewAccessibility", "WrongThread")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         delegate = ArrayList<SessionDelegate>()
@@ -181,6 +188,27 @@ class WebFragment(
             sessiondelegate = it
         }
         binding.geckoview.activityContextDelegate = GeckoView.ActivityContextDelegate { activity }
+
+        GeckoRuntime.getDefault(requireContext()).webExtensionController
+            .ensureBuiltIn("resource://android/assets/extensions/xiutan/", "xiutan@xiu.com")
+            .then { extension: WebExtension? ->
+                if (extension != null) {
+                    GeckoRuntime.getDefault(requireContext()).webExtensionController
+                        .setAllowedInPrivateBrowsing(
+                            extension, true
+                        )
+                } else {
+                    null
+                }
+            }.accept({ extension: WebExtension? ->
+                if (extension == null) {
+                    return@accept
+                }
+                EventBus.getDefault().post(WebExtensionsEnableEvent(extension, true))
+                WebExtensionRuntimeManager.checkOrRefresh(extension)
+            }, { exception: Throwable? ->
+                exception?.printStackTrace()
+            })
     }
 
     fun openSession(session: GeckoSession) {
@@ -197,7 +225,7 @@ class WebFragment(
                             binding.root
                         )
                     }
-                })
+                }, onUrlChange, detectorListener)
             }
         if (sessionDelegate != null) {
             sessionDelegate.setpic = object : SessionDelegate.Setpic {
@@ -253,5 +281,9 @@ class WebFragment(
 
     override fun onResume() {
         super.onResume()
+    }
+
+    fun getCoordinatorLayout(): View {
+        return binding.coordinatorLayout
     }
 }

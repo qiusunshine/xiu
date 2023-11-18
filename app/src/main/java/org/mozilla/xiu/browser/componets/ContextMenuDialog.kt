@@ -6,75 +6,98 @@ import android.content.Intent
 import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
-import com.google.android.material.button.MaterialButton
-import com.kongzue.dialogx.dialogs.PopTip
-import com.kongzue.dialogx.interfaces.OnBindView
+import org.mozilla.geckoview.GeckoSession.ContentDelegate.ContextElement
 import org.mozilla.xiu.browser.R
 import org.mozilla.xiu.browser.databinding.DiaContextmenuBinding
 import org.mozilla.xiu.browser.download.DownloadTask
 import org.mozilla.xiu.browser.download.DownloadTaskLiveData
-import org.mozilla.xiu.browser.utils.UriUtils
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.mozilla.geckoview.GeckoSession.ContentDelegate.ContextElement
+import org.mozilla.xiu.browser.utils.StringUtil
+import org.mozilla.xiu.browser.utils.ThreadTool
+import org.mozilla.xiu.browser.utils.ToastMgr
+import org.mozilla.xiu.browser.utils.copyToDownloadDir
+import timber.log.Timber
+import java.io.File
 
-class ContextMenuDialog(var context: FragmentActivity, element: ContextElement) :
+class ContextMenuDialog(
+    var context: FragmentActivity,
+    element: ContextElement,
+    val download: (src: String) -> Unit
+) :
     AlertDialog(context) {
     var binding: DiaContextmenuBinding
     var type: String? = null
-    var downloadTasks=ArrayList<DownloadTask>()
+    var downloadTasks = ArrayList<DownloadTask>()
 
     init {
         binding = DiaContextmenuBinding.inflate(LayoutInflater.from(context))
         Glide.with(context).load(element.srcUri).into(binding.imageView19)
-        DownloadTaskLiveData.getInstance().observe(context){
-             downloadTasks = it
+        DownloadTaskLiveData.getInstance().observe(context) {
+            downloadTasks = it
         }
-        binding.diaContextmenuDownloadButton.setOnClickListener(View.OnClickListener {
-            PopTip.build()
-                .setCustomView(object : OnBindView<PopTip?>(org.mozilla.xiu.browser.R.layout.pop_mytip) {
-                    override fun onBind(dialog: PopTip?, v: View) {
-                        v.findViewById<TextView>(R.id.textView17).text = "网页希望下载文件"
-                        v.findViewById<MaterialButton>(R.id.materialButton7).setOnClickListener {
-                            context.lifecycleScope.launch {
-                                var downloadTask = element.srcUri?.let { it1 ->
-                                    DownloadTask(context, it1,
-                                        withContext(Dispatchers.IO) {
-                                            UriUtils.getFileName(it1)
-                                        })
-                                }
-                                if (downloadTask != null) {
-                                    downloadTask.open()
-                                    downloadTasks.add(downloadTask)
-                                    DownloadTaskLiveData.getInstance().Value(downloadTasks)
-                                }
-                                }
+        binding.diaContextmenuDownloadButton.setOnClickListener {
+            if (!element.srcUri.isNullOrEmpty()) {
+                if (element.srcUri!!.startsWith("data")) {
+                    ThreadTool.executeNewTask {
+                        try {
+                            val file: File =
+                                Glide.with(getContext()).downloadOnly().load(element.srcUri)
+                                    .submit().get()
+                            if (!file.exists()) {
+                                Timber.d("File exists: %s", file.absolutePath)
+                                ToastMgr.shortBottomCenter(context, "出错：文件不存在")
+                                return@executeNewTask
+                            }
+                            var file2 = File(file.parent, file.name + ".png")
+                            if (!file.renameTo(file2)) {
+                                file2 = file
+                            }
+                            val result = copyToDownloadDir(context, file2.absolutePath)
+                            if (StringUtil.isNotEmpty(result)) {
+                                ToastMgr.shortBottomCenter(context, "下载成功")
+                            } else {
+                                ToastMgr.shortBottomCenter(context, "下载失败")
+                            }
+                            file2.delete()
+                        } catch (e: Throwable) {
+                            e.printStackTrace()
                         }
                     }
-                })
-                .show()
-        })
-        binding.diaContextmenuCopyButton.setOnClickListener(View.OnClickListener {
+                } else {
+                    download(element.srcUri!!)
+                }
+                dismiss()
+            }
+        }
+        binding.diaContextmenuCopyButton.setOnClickListener {
             copyToClipboard(context, element.srcUri)
             dismiss()
-        })
+        }
         if (element.srcUri == null) binding.diaContextmenuOpenButton.setVisibility(View.GONE)
-        binding.diaContextmenuOpenButton.setOnClickListener(View.OnClickListener {
+        binding.diaContextmenuOpenButton.setOnClickListener {
             val intent = Intent()
             intent.action = Intent.ACTION_VIEW
-            if (element.type == ContextElement.TYPE_IMAGE) type =
-                "image/*" else if (element.type == ContextElement.TYPE_VIDEO) type = "video/*"
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            type = when (element.type) {
+                ContextElement.TYPE_IMAGE -> {
+                    "image/*"
+                }
+
+                ContextElement.TYPE_VIDEO -> {
+                    "video/*"
+                }
+
+                else -> {
+                    "*/*"
+                }
+            }
             val uri = Uri.parse(element.srcUri)
             intent.setDataAndType(uri, type)
             context.startActivity(intent)
-        })
+        }
         setView(binding.getRoot())
     }
 

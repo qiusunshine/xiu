@@ -24,6 +24,12 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.FLASHLIGHT" />
 
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
 
@@ -93,6 +99,18 @@
         <activity
             android:name=".download.FileBrowserActivity"
             android:theme="@style/TranslucentFullScreenTheme" />
+        <activity
+            android:name=".dlan.MediaPlayActivity"
+            android:screenOrientation="portrait" />
+
+        <service android:name=".dlan.DlanForegroundService" />
+
+        <service
+            android:name="com.qingfeng.clinglibrary.service.ClingUpnpService"
+            android:exported="false" />
+        <service
+            android:name="com.qingfeng.clinglibrary.service.SystemService"
+            android:exported="false" />
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="org.mozilla.xiu.browser.fileprovider"

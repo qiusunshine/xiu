@@ -18,6 +18,10 @@
     <string name="dia_bookmark_title">名称：</string>
     <string name="dia_add_bookmark_title">添加书签</string>
     <string name="confirm">确定</string>
+    <string name="open">打开</string>
+    <string name="ignore">忽略</string>
+    <string name="refuse">拒绝</string>
+    <string name="close">关闭</string>
     <string name="cancel">取消</string>
     <string name="copy">复制到剪切板</string>
     <string name="reload">刷新</string>
@@ -146,7 +150,7 @@
     <string name="details">详情</string>
     <string name="no_addons">还没有扩展程序，快去添加吧。</string>
     <string name="private_mode">无痕模式</string>
-    <string name="local_files">已下载本地文件</string>
+    <string name="local_files">文件管理</string>
     <string name="ExtensionProcess">扩展程序独立进程</string>
     <string name="before_unload_prompt_title">离开页面？</string>
     <string name="before_unload_prompt_message">此页面想询问您是否要离开， 您输入的数据可能不会被保存。</string>
@@ -164,5 +168,21 @@
     <string name="media_front_camera">前置摄像头</string>
     <string name="media_microphone">麦克风</string>
     <string name="media_other">未知资源</string>
+    <string name="crashed_title">APP Crashed</string>
+    <string name="crashed_text">报告给Mozilla.</string>
+    <string name="crashed_ignore">忽略</string>
+    <string name="crashed_report">Report</string>
+    <string name="dev_mode">开发调试</string>
+    <string name="tools">工具箱</string>
+    <string name="float_video">悬浮嗅探</string>
+    <string name="float_video_message">当前%1$s悬浮视频嗅探功能，开启后软件会自动嗅探检索网页中的视频资源悬浮播放，支持流畅播放、投屏等加强功能</string>
+    <string name="float_video_opened">已开启</string>
+    <string name="float_video_closed">未开启</string>
+    <string name="domain_config">网站配置</string>
+    <string name="permission_request">授权</string>
+    <string name="location_permission">位置权限</string>
+    <string name="location_permission_allow_all">一律允许</string>
+    <string name="location_permission_deny_all">一律拒绝</string>
+    <string name="location_permission_prompt">询问</string>
 
 </resources>

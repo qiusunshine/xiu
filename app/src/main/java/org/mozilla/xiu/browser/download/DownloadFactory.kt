@@ -7,7 +7,9 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
 import okhttp3.Response
+import org.mozilla.xiu.browser.R
 import rxhttp.wrapper.callback.UriFactory
 import rxhttp.wrapper.utils.query
 import java.io.File
@@ -15,7 +17,7 @@ import java.io.File
 class Android10DownloadFactory @JvmOverloads constructor(
     context: Context,
     private val filename: String,
-    private val relativePath: String = Environment.DIRECTORY_DOWNLOADS
+    private val relativePath: String = Environment.DIRECTORY_DOWNLOADS + File.separator + ContextCompat.getString(context, R.string.app_name)
 ) : UriFactory(context) {
 
     /**
@@ -46,6 +48,7 @@ class Android10DownloadFactory @JvmOverloads constructor(
              */
             if (uri != null) return uri
             ContentValues().run {
+                put(MediaStore.Files.FileColumns.TITLE, filename)
                 put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath) //下载到指定目录
                 put(MediaStore.MediaColumns.DISPLAY_NAME, filename)   //文件名
                 //取contentType响应头作为文件类型

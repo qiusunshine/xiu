@@ -18,8 +18,12 @@ import org.mozilla.geckoview.WebExtension
 import org.mozilla.geckoview.WebExtension.InstallException
 import org.mozilla.geckoview.WebExtensionController
 import org.mozilla.xiu.browser.componets.HomeLivedata
+import org.mozilla.xiu.browser.session.DelegateLivedata
 import org.mozilla.xiu.browser.session.GeckoViewModel
+import org.mozilla.xiu.browser.tab.DelegateListLiveData
+import org.mozilla.xiu.browser.tab.RemoveTabLiveData
 import org.mozilla.xiu.browser.utils.FileUtil
+import org.mozilla.xiu.browser.utils.StringUtil
 import org.mozilla.xiu.browser.utils.ThreadTool.async
 import org.mozilla.xiu.browser.utils.ThreadTool.runOnUI
 import org.mozilla.xiu.browser.utils.ToastMgr
@@ -32,7 +36,6 @@ import java.util.UUID
 class WebextensionSession {
     var context: Activity
     private var webExtensionController: WebExtensionController
-    private var webExtensions = ArrayList<WebExtension>()
 
     constructor(context: Activity) {
         this.context = context
@@ -157,6 +160,7 @@ class WebextensionSession {
             if (it != null) {
                 Toast.makeText(context, it.metaData.name + "安装成功", Toast.LENGTH_LONG).show()
                 EventBus.getDefault().post(WebExtensionsRefreshEvent())
+                WebExtensionRuntimeManager.refresh()
             } else {
                 Toast.makeText(context, "安装失败", Toast.LENGTH_LONG).show()
             }
@@ -183,7 +187,6 @@ class WebextensionSession {
                         .setMessage("文件无法识别，请确认是xpi或crx扩展程序安装包文件")
                         .setPositiveButton("确定") { d, _ ->
                             d.dismiss()
-                            EventBus.getDefault().post(BrowseEvent("about:config"))
                         }.setNegativeButton("取消") { d, _ ->
                             d.dismiss()
                         }.show()
@@ -204,12 +207,25 @@ fun WebExtension.addDelegate(context: Activity) {
             val session = GeckoSession()
             //Log.d("onNewTab",session.)
             newSession(session, context)
+            if (createDetails.active == true) {
+                EventBus.getDefault().post(WebExtensionAddTabEvent(source.id))
+            }
             return GeckoResult.fromValue(session)
         }
     }
+    val id = this.id
     this.setMessageDelegate(object : WebExtension.MessageDelegate {
         override fun onConnect(port: WebExtension.Port) {
             super.onConnect(port)
+            if (id == "xiutan@xiu.com") {
+                EventBus.getDefault().post(WebExtensionConnectPortEvent(port))
+                port.setDelegate(object : WebExtension.PortDelegate {
+                    override fun onDisconnect(port: WebExtension.Port) {
+                        super.onDisconnect(port)
+                        EventBus.getDefault().post(WebExtensionConnectPortEvent(null))
+                    }
+                })
+            }
         }
 
         override fun onMessage(
@@ -217,10 +233,19 @@ fun WebExtension.addDelegate(context: Activity) {
             message: Any,
             sender: WebExtension.MessageSender
         ): GeckoResult<Any>? {
-            //todo
+            if (message is org.json.JSONObject) {
+                val json = message
+                if ("xiu" == json.optString("type")) {
+                    EventBus.getDefault().post(TabRequestEvent(json))
+                }
+            }
             return super.onMessage(nativeApp, message, sender)
         }
     }, "browser")
+    val sessionDelegates = DelegateListLiveData.getInstance().value ?: arrayListOf()
+    for (sessionDelegate in sessionDelegates) {
+        addSessionTabDelegate(context, sessionDelegate.session, arrayListOf(this))
+    }
 }
 
 fun WebExtension.removeDelegate() {
@@ -234,3 +259,65 @@ fun newSession(session: GeckoSession, activity: Activity) {
     geckoViewModel.changeSearch(session)
     HomeLivedata.getInstance().Value(false)
 }
+
+fun addSessionTabDelegate(
+    context: Activity,
+    session: GeckoSession,
+    extensions: List<WebExtension>
+) {
+    for (extension in extensions) {
+        session.webExtensionController.setTabDelegate(
+            extension,
+            object : WebExtension.SessionTabDelegate {
+                override fun onCloseTab(
+                    source: WebExtension?,
+                    session: GeckoSession
+                ): GeckoResult<AllowOrDeny> {
+                    val list = DelegateListLiveData.getInstance().value ?: arrayListOf()
+                    for (indexedValue in list.withIndex()) {
+                        if (indexedValue.value.session == session) {
+                            RemoveTabLiveData.getInstance().Value(indexedValue.index)
+                            break
+                        }
+                    }
+                    return GeckoResult.allow()
+                }
+
+                override fun onUpdateTab(
+                    extension: WebExtension,
+                    session: GeckoSession,
+                    details: WebExtension.UpdateTabDetails
+                ): GeckoResult<AllowOrDeny> {
+                    val delegates =
+                        DelegateListLiveData.getInstance().value ?: arrayListOf()
+                    for (delegate in delegates) {
+                        if (delegate.session == session) {
+                            if (!session.isOpen) {
+                                // Session's process was previously killed; reopen
+                                session.open(GeckoRuntime.getDefault(context))
+                                val u = if (StringUtil.isNotEmpty(details.url)) {
+                                    details.url
+                                } else {
+                                    delegate.u
+                                }
+                                if (!u.isNullOrEmpty()) {
+                                    session.loadUri(u)
+                                }
+                            } else {
+                                if (StringUtil.isNotEmpty(details.url) && details.url != delegate.u) {
+                                    session.loadUri(details.url!!)
+                                }
+                            }
+                            if (details.active == true && DelegateLivedata.getInstance().value?.session != session) {
+                                DelegateLivedata.getInstance().Value(delegate)
+                            }
+                            break
+                        }
+                    }
+                    return GeckoResult.allow()
+                }
+            })
+    }
+}
+
+data class WebExtensionAddTabEvent(val id: String)

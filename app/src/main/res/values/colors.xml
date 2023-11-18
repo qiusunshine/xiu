@@ -31,4 +31,8 @@
     <color name="colorBackgroundDark">#5E72E4</color>
     <color name="colorPrimaryDark">#FFFFFF</color>
     <color name="colorPrimary">#fff</color>
+    <color name="green">#14c47c</color>
+    <color name="greenAction">#5E72E4</color>
+    <color name="color_text_default">#593D3D</color>
+    <color name="dark_edit">#333333</color>
 </resources>

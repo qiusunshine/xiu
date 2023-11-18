@@ -1,5 +1,3 @@
-import org.gradle.internal.logging.text.StyledTextOutputFactory
-
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     ext{
@@ -40,5 +38,17 @@ subprojects{
             }
             because 'use GeckoView Glean instead of standalone Glean'
         }
+    }
+}
+
+allprojects {
+    project.ext {
+        compileSdkVersion=29
+        targetSdkVersion=26
+        buildToolsVersion='29.0.0'
+        minSdkVersion=17
+        versionCode = 16
+        versionName = "3.0"
+        publish_version='2.1.91'
     }
 }

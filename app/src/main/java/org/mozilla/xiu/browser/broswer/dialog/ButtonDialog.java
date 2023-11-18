@@ -1,90 +1,46 @@
 package org.mozilla.xiu.browser.broswer.dialog;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
+import org.mozilla.geckoview.GeckoResult;
 import org.mozilla.geckoview.GeckoSession;
 
-public class ButtonDialog extends androidx.appcompat.app.AlertDialog {
-    GeckoSession.PromptDelegate.PromptResponse dialogResult;
-    Handler mHandler ;
-    Context context;
-    public ButtonDialog(@NonNull Context context, GeckoSession.PromptDelegate.ButtonPrompt alertPrompt) {
-        super(context);
-        this.context=context;
-        onCreate(alertPrompt,context);
-    }
-    public void onCreate(GeckoSession.PromptDelegate.ButtonPrompt alertPrompt, Context context) {
-        setTitle(alertPrompt.title);
-        setMessage(alertPrompt.message);
-        setButton(BUTTON_POSITIVE, "确认", new OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                endDialog(alertPrompt.confirm(GeckoSession.PromptDelegate.ButtonPrompt.Type.POSITIVE));
-            }
-        });
-        setButton(BUTTON_NEGATIVE, "取消", new OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                endDialog(alertPrompt.confirm(GeckoSession.PromptDelegate.ButtonPrompt.Type.NEGATIVE));
-            }
-        });
-        setOnDismissListener(new OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialogInterface) {
-                endDialog(alertPrompt.confirm(GeckoSession.PromptDelegate.ButtonPrompt.Type.NEGATIVE));
+public class ButtonDialog {
+    private Context context;
+    private GeckoResult<GeckoSession.PromptDelegate.PromptResponse> result;
+    androidx.appcompat.app.AlertDialog dialog;
 
-            }
-        });
-
-
-    }
-    public void endDialog(GeckoSession.PromptDelegate.PromptResponse result)
-    {
-        setDialogResult(result);
-        super.dismiss();
-        Message m = mHandler.obtainMessage();
-        mHandler.sendMessage(m);
-        Log.d("endDia",result+"");
-
-
-
-
-
-    }
-    @SuppressLint("HandlerLeak")
-    public GeckoSession.PromptDelegate.PromptResponse showDialog()
-    {
-        mHandler = new Handler() {
-            @Override
-            public void handleMessage(Message mesg) {
-                // process incoming messages here
-                //super.handleMessage(msg);
-                throw new RuntimeException();
-            }
-        };
-        super.show();
-        try {
-            Looper.getMainLooper().loop();
-        }
-        catch(RuntimeException e2)
-        {
-        }
-        return dialogResult;
+    public ButtonDialog(@NonNull Context context, GeckoSession.PromptDelegate.ButtonPrompt alertPrompt,
+                        GeckoResult<GeckoSession.PromptDelegate.PromptResponse> result) {
+        this.context = context;
+        this.result = result;
+        dialog = onCreate(alertPrompt, context);
     }
 
-    public GeckoSession.PromptDelegate.PromptResponse getDialogResult() {
-        return dialogResult;
+    public androidx.appcompat.app.AlertDialog onCreate(GeckoSession.PromptDelegate.ButtonPrompt alertPrompt, Context context) {
+        return new MaterialAlertDialogBuilder(context)
+                .setTitle(alertPrompt.title)
+                .setMessage(alertPrompt.message)
+                .setPositiveButton("确认", (dialogInterface, i) -> endDialog(alertPrompt.confirm(GeckoSession.PromptDelegate.ButtonPrompt.Type.POSITIVE)))
+                .setNegativeButton("取消", (dialogInterface, i) -> endDialog(alertPrompt.confirm(GeckoSession.PromptDelegate.ButtonPrompt.Type.NEGATIVE)))
+                .setOnDismissListener(dialogInterface -> {
+                    if (!alertPrompt.isComplete()) {
+                        result.complete(alertPrompt.confirm(GeckoSession.PromptDelegate.ButtonPrompt.Type.NEGATIVE));
+                    }
+                })
+                .create();
     }
 
-    public void setDialogResult(GeckoSession.PromptDelegate.PromptResponse dialogResult) {
-        this.dialogResult = dialogResult;
+    public void show() {
+        dialog.show();
+    }
+
+    public void endDialog(GeckoSession.PromptDelegate.PromptResponse result1) {
+        result.complete(result1);
+        dialog.dismiss();
     }
 }

@@ -22,3 +22,5 @@ dependencyResolutionManagement {
 }
 rootProject.name = "stage"
 include ':app'
+include ':VideoPlayModule-Lite', ':VideoUi', ':VideoPlayModule', ':ffmpeg'
+include ':clinglibrary'

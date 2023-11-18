@@ -28,7 +28,6 @@ import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Shader;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
@@ -135,7 +134,7 @@ public class MyWebProgress extends FrameLayout {
     private void init(Context context, AttributeSet attrs, int defStyleAttr) {
         mPaint = new Paint();
         mColor = MaterialColors.getColor(getContext(), com.google.android.material.R.attr.colorPrimary, Color.parseColor(WEB_PROGRESS_COLOR));
-        Log.d("test", "init onProgressChange");
+        //Log.d("test", "init onProgressChange");
         mPaint.setAntiAlias(true);
         mPaint.setColor(mColor);
         mPaint.setDither(true);

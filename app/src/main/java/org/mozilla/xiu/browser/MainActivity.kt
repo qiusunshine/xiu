@@ -1,11 +1,14 @@
 package org.mozilla.xiu.browser
 
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Process
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.AttributeSet
@@ -21,8 +24,8 @@ import androidx.activity.OnBackPressedCallback
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -33,11 +36,19 @@ import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.sidesheet.SideSheetBehavior
+import com.google.android.material.snackbar.BaseTransientBottomBar
+import com.google.android.material.snackbar.Snackbar
+import org.apache.commons.lang3.StringUtils
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import org.json.JSONObject
+import org.mozilla.geckoview.AllowOrDeny
 import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoRuntime
+import org.mozilla.geckoview.WebExtension
+import org.mozilla.geckoview.WebNotification
+import org.mozilla.xiu.browser.base.VarHolder
 import org.mozilla.xiu.browser.broswer.dialog.SearchDialog
 import org.mozilla.xiu.browser.broswer.home.TipsAdapter
 import org.mozilla.xiu.browser.componets.BookmarkDialog
@@ -48,17 +59,38 @@ import org.mozilla.xiu.browser.componets.popup.TabPopup
 import org.mozilla.xiu.browser.database.history.HistoryViewModel
 import org.mozilla.xiu.browser.databinding.ActivityMainBinding
 import org.mozilla.xiu.browser.databinding.PrivacyAgreementLayoutBinding
+import org.mozilla.xiu.browser.download.DownloadFileWithPermissionEvent
+import org.mozilla.xiu.browser.download.UrlDetector
 import org.mozilla.xiu.browser.session.*
 import org.mozilla.xiu.browser.tab.AddTabLiveData
 import org.mozilla.xiu.browser.tab.DelegateListLiveData
 import org.mozilla.xiu.browser.tab.RemoveTabLiveData
 import org.mozilla.xiu.browser.tab.TabListAdapter
 import org.mozilla.xiu.browser.utils.FileUtil
+import org.mozilla.xiu.browser.utils.PreferenceMgr
+import org.mozilla.xiu.browser.utils.ShareUtil
 import org.mozilla.xiu.browser.utils.SoftKeyBoardListener.OnSoftKeyBoardChangeListener
 import org.mozilla.xiu.browser.utils.StatusUtils
+import org.mozilla.xiu.browser.utils.StringUtil
 import org.mozilla.xiu.browser.utils.ThreadTool
+import org.mozilla.xiu.browser.utils.ThreadTool.postDelayed
+import org.mozilla.xiu.browser.utils.ToastMgr
 import org.mozilla.xiu.browser.utils.UriUtilsPro
+import org.mozilla.xiu.browser.video.FloatVideoController
+import org.mozilla.xiu.browser.video.FloatVideoController.WebHolder
+import org.mozilla.xiu.browser.video.VideoDetector
+import org.mozilla.xiu.browser.video.event.FloatVideoSwitchEvent
+import org.mozilla.xiu.browser.video.model.DetectedMediaResult
+import org.mozilla.xiu.browser.video.model.Media
+import org.mozilla.xiu.browser.video.model.MediaType
+import org.mozilla.xiu.browser.view.toast.ChefSnackbar
+import org.mozilla.xiu.browser.view.toast.make
 import org.mozilla.xiu.browser.webextension.BrowseEvent
+import org.mozilla.xiu.browser.webextension.DetectorListener
+import org.mozilla.xiu.browser.webextension.TabRequest
+import org.mozilla.xiu.browser.webextension.TabRequestEvent
+import org.mozilla.xiu.browser.webextension.WebExtensionConnectPortEvent
+import org.mozilla.xiu.browser.webextension.WebExtensionRuntimeManager
 import org.mozilla.xiu.browser.webextension.WebExtensionsAddEvent
 import org.mozilla.xiu.browser.webextension.WebExtensionsEnableEvent
 import org.mozilla.xiu.browser.webextension.WebextensionSession
@@ -74,12 +106,18 @@ import java.util.Objects
  * 2023.2.11 19:10 正月廿一 记录
  * thallo
  **/
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), DetectorListener {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
     private lateinit var privacyAgreementLayoutBinding: PrivacyAgreementLayoutBinding
-    var fragments = listOf<Fragment>(HomeFragment(), WebFragment { full -> fullScreenCall(full) })
+    private var fragments =
+        listOf(
+            HomeFragment(),
+            WebFragment({ full -> fullScreenCall(full) }, { url, _ ->
+                floatVideoController?.loadUrl(url)
+            }, this)
+        )
     private lateinit var geckoViewModel: GeckoViewModel
     var sessionDelegates = ArrayList<SessionDelegate>()
     private val adapter = TabListAdapter()
@@ -88,6 +126,9 @@ class MainActivity : AppCompatActivity() {
     var isHome: Boolean = true
     lateinit var historyViewModel: HistoryViewModel
     var searching = ""
+    private var port: WebExtension.Port? = null
+    var downloadFileWithPermissionEvent: DownloadFileWithPermissionEvent? = null
+    private var floatVideoController: FloatVideoController? = null
 
     private fun fullScreenCall(fullScreen: Boolean) {
         if (fullScreen) {
@@ -102,6 +143,7 @@ class MainActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        App.setHomeActivity(this)
         binding = ActivityMainBinding.inflate(layoutInflater)
         privacyAgreementLayoutBinding = PrivacyAgreementLayoutBinding.inflate(layoutInflater)
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
@@ -126,6 +168,8 @@ class MainActivity : AppCompatActivity() {
 
         StatusUtils.init(this, binding.root)
         WebextensionSession(this)
+        //初始化一下
+        WebExtensionRuntimeManager
 
         onBackPressedDispatcher.addCallback(this, onBackPress)
         geckoViewModel = ViewModelProvider(this)[GeckoViewModel::class.java]
@@ -347,6 +391,7 @@ class MainActivity : AppCompatActivity() {
             sessionDelegates = it
             if (it.isEmpty()) {
                 onProgressUpdate(ProgressEvent(100))
+                WebExtensionRuntimeManager.clearSessions(this@MainActivity)
             }
         }
         HomeLivedata.getInstance().observe(this) {
@@ -378,7 +423,149 @@ class MainActivity : AppCompatActivity() {
                 FileUtil.deleteDirs(fileDirPath)
             }
         }
+        initFloatVideo()
     }
+
+
+    override fun onFindVideo(session: SessionDelegate, request: TabRequest) {
+        Timber.d("onFindVideo: %s", request.url)
+        if (DelegateLivedata.getInstance().value == session && floatVideoController != null && !UrlDetector.isMusic(
+                request.url
+            )
+        ) {
+            //videoEvent.getMediaResult().setClicked(true);
+            val uri: String = session.u
+            if (WebExtensionRuntimeManager.isFloatVideoBlockDom(uri)) {
+                return
+            }
+            floatVideoController!!.show(
+                request.url,
+                uri,
+                session.mTitle,
+                request.requestHeaderMap,
+                true
+            )
+        }
+    }
+
+    @Subscribe
+    fun changeFloatVideoSwitch(event: FloatVideoSwitchEvent) {
+        changeFloatVideoSwitch()
+    }
+    fun changeFloatVideoSwitch() {
+        val now = PreferenceMgr.getBoolean(getContext(), "float_xiutan", false)
+        PreferenceMgr.put(getContext(), "float_xiutan", !now)
+        if (now) {
+            //需要关闭
+            if (floatVideoController != null) {
+                floatVideoController?.destroy()
+                floatVideoController = null
+            }
+            ToastMgr.shortBottomCenter(getContext(), "已关闭悬浮嗅探")
+        } else {
+            //需要开启
+            if (floatVideoController == null) {
+                initFloatVideo()
+            }
+            ToastMgr.shortBottomCenter(getContext(), "已开启悬浮嗅探")
+        }
+    }
+
+    private fun initFloatVideo() {
+        if (!PreferenceMgr.getBoolean(getContext(), "float_xiutan", false)) {
+            return
+        }
+        if (binding.containerView == null) {
+            return
+        }
+        floatVideoController = FloatVideoController(this,
+            binding.containerView!!,
+            { pause: Boolean, force: Boolean? ->
+                if (pause) {
+                    val delegate = DelegateLivedata.getInstance().value
+                    if (delegate?.activeMediaSession != null) {
+                        delegate?.activeMediaSession?.pause()
+                    }
+                }
+                0
+            },
+            object : VideoDetector {
+                override fun putIntoXiuTanLiked(context: Context, dom: String, url: String) {}
+                override fun getDetectedMediaResults(webUrl: String, mt: MediaType): List<DetectedMediaResult> {
+                    if(mt != MediaType.VIDEO) {
+                        return emptyList()
+                    }
+                    val webFragment = fragments[1] as WebFragment
+                    if (StringUtils.equals(
+                            webUrl,
+                            webFragment.sessiondelegate.u
+                        ) || StringUtil.isEmpty(webUrl) || "null" == webUrl
+                    ) {
+                        return webFragment.sessiondelegate.requests.filter { it.type == TabRequest.VIDEO }.map {
+                            DetectedMediaResult(
+                                it.url
+                            ).apply {
+                                mediaType = Media(MediaType.VIDEO)
+                                headers = it.requestHeaderMap
+                            }
+                        }
+                    }
+                    for (sessionDelegate in sessionDelegates) {
+                        if (StringUtils.equals(webUrl, sessionDelegate.u)) {
+                            return sessionDelegate.requests.filter { it.type == TabRequest.VIDEO }.map {
+                                DetectedMediaResult(
+                                    it.url
+                                ).apply {
+                                    mediaType = Media(MediaType.VIDEO)
+                                    headers = it.requestHeaderMap
+                                }
+                            }
+                        }
+                    }
+                    return emptyList()
+                }
+            },
+            object : WebHolder {
+                override fun getRequestMap(): MutableMap<String, MutableMap<String, String?>?> {
+                    return hashMapOf()
+                }
+            })
+    }
+
+    @Subscribe
+    fun showOpenAppIntent(event: OpenAppIntentEvent) {
+        val holder = VarHolder(false)
+        make(
+            (fragments[1] as WebFragment).getCoordinatorLayout(),
+            getString(R.string.intent_message),
+            Snackbar.LENGTH_LONG
+        )
+            .setAction(getString(R.string.open)) { v -> holder.data = true }
+            .setCancelButton(getString(R.string.refuse)) { view ->
+                holder.data = false
+            }.addCallback(object : BaseTransientBottomBar.BaseCallback<ChefSnackbar?>() {
+                override fun onDismissed(
+                    transientBottomBar: ChefSnackbar?,
+                    e: Int
+                ) {
+
+                    if (holder.data) {
+                        event.intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        startActivity(event.intent)
+                        event.result.complete(AllowOrDeny.ALLOW)
+                    } else {
+                        event.result.complete(AllowOrDeny.DENY)
+                    }
+                    super.onDismissed(transientBottomBar, e)
+                }
+            }).show()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        floatVideoController?.onPause()
+    }
+
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
@@ -390,6 +577,10 @@ class MainActivity : AppCompatActivity() {
         if (EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().unregister(this)
         }
+        if (SeRuSettings.mKillProcessOnDestroy) {
+            postDelayed(500) { Process.killProcess(Process.myPid()) }
+        }
+        App.setHomeActivity(null)
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -405,6 +596,52 @@ class MainActivity : AppCompatActivity() {
         } else {
             event.webExtension.removeDelegate()
         }
+    }
+
+    @Subscribe
+    fun updateWebExtensionConnectPort(event: WebExtensionConnectPortEvent) {
+        port = event.port
+    }
+
+    fun evaluateJavaScript(code: String) {
+        val jsonObject = JSONObject()
+        jsonObject.put("type", "evaluateJavaScript")
+        jsonObject.put("code", code)
+        port?.postMessage(jsonObject)
+    }
+
+    @Subscribe
+    fun onRequestEvent(event: TabRequestEvent) {
+        val webFragment = fragments[1] as WebFragment
+        val request = TabRequest(event.json)
+        //Log.d("test", "onMessage: " + request.url + ", documentUrl: " + request.documentUrl)
+        if (StringUtils.equals(
+                request.documentUrl,
+                webFragment.sessiondelegate.u
+            ) || StringUtil.isEmpty(request.documentUrl) || "null" == request.documentUrl
+        ) {
+            webFragment.sessiondelegate.onRequest(request)
+            return
+        }
+        for (sessionDelegate in sessionDelegates) {
+            if (StringUtils.equals(request.documentUrl, sessionDelegate.u)) {
+                sessionDelegate.onRequest(request)
+                return
+            }
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun downloadFileWithPermission(event: DownloadFileWithPermissionEvent) {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf<String>(
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ),
+            1024
+        )
+        downloadFileWithPermissionEvent = event
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -445,6 +682,9 @@ class MainActivity : AppCompatActivity() {
 
     private val onBackPress = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
+            if (floatVideoController != null && floatVideoController!!.onBackPressed()) {
+                return
+            }
             if (binding.content.viewPager.currentItem == 0 && sessionDelegates.isNotEmpty()) {
                 HomeLivedata.getInstance().Value(false)
             } else if (binding.user?.isFull == true) {
@@ -487,6 +727,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
+        if (intent?.hasExtra("onClick") == true) {
+            val notification = intent.extras!!.getParcelable<WebNotification>("onClick")
+            if (notification != null) {
+                intent.removeExtra("onClick")
+                notification.click()
+            }
+        }
         val uri: Uri? = intent?.data
         if (uri != null) {
             createSession(uri.toString(), this)
@@ -497,15 +744,28 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (SeRuSettings.mPendingActivityResult.containsKey(requestCode)) {
+            val result: GeckoResult<Intent>? =
+                SeRuSettings.mPendingActivityResult.remove(requestCode)
+            if (resultCode == RESULT_OK) {
+                result?.complete(data)
+            } else {
+                result?.completeExceptionally(RuntimeException("Unknown error"))
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data)
+        }
+    }
+
     override fun onStart() {
         super.onStart()
-
     }
 
     override fun onResume() {
         super.onResume()
         //binding.user?.resume()
-
+        floatVideoController?.onResume()
         org.mozilla.xiu.browser.utils.SoftKeyBoardListener.setListener(
             this,
             object : OnSoftKeyBoardChangeListener {
@@ -545,6 +805,14 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == ExamplePermissionDelegate.REQUEST_PERMISSIONS) {
             val permission = binding.user?.session?.permissionDelegate as ExamplePermissionDelegate?
             permission?.onRequestPermissionsResult(permissions, grantResults)
+        } else if (requestCode == 1024) {
+            for (result in grantResults) {
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    downloadFileWithPermissionEvent = null
+                    return
+                }
+            }
+            downloadFileWithPermissionEvent?.task?.let { it() }
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }

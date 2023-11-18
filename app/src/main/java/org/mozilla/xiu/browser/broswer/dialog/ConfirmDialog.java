@@ -1,77 +1,42 @@
 package org.mozilla.xiu.browser.broswer.dialog;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
+import org.mozilla.geckoview.GeckoResult;
 import org.mozilla.geckoview.GeckoSession;
 
-public class ConfirmDialog extends androidx.appcompat.app.AlertDialog {
-    GeckoSession.PromptDelegate.PromptResponse dialogResult;
-    Handler mHandler ;
+public class ConfirmDialog {
     Context context;
-    public ConfirmDialog(@NonNull Context context, GeckoSession.PromptDelegate.RepostConfirmPrompt repostConfirmPrompt) {
-        super(context);
-        this.context=context;
-        onCreate(repostConfirmPrompt,context);
-    }
-    public void onCreate(GeckoSession.PromptDelegate.RepostConfirmPrompt repostConfirmPrompt, Context context) {
-        setTitle(repostConfirmPrompt.title);
-        //setMessage(repostConfirmPrompt.message);
-        setButton(BUTTON_POSITIVE, "确认", new OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                endDialog(repostConfirmPrompt.dismiss());
-            }
-        });
 
+    androidx.appcompat.app.AlertDialog dialog;
 
-    }
-    public void endDialog(GeckoSession.PromptDelegate.PromptResponse result)
-    {
-        setDialogResult(result);
-        super.dismiss();
-        Message m = mHandler.obtainMessage();
-        mHandler.sendMessage(m);
-        Log.d("endDia",result+"");
-
-
-
-
-
-    }
-    @SuppressLint("HandlerLeak")
-    public GeckoSession.PromptDelegate.PromptResponse showDialog()
-    {
-        mHandler = new Handler() {
-            @Override
-            public void handleMessage(Message mesg) {
-                // process incoming messages here
-                //super.handleMessage(msg);
-                throw new RuntimeException();
-            }
-        };
-        super.show();
-        try {
-            Looper.getMainLooper().loop();
-        }
-        catch(RuntimeException e2)
-        {
-        }
-        return dialogResult;
+    public ConfirmDialog(@NonNull Context context, GeckoSession.PromptDelegate.RepostConfirmPrompt alertPrompt,
+                       GeckoResult<GeckoSession.PromptDelegate.PromptResponse> result) {
+        this.context = context;
+        dialog = onCreate(alertPrompt, context, result);
     }
 
-    public GeckoSession.PromptDelegate.PromptResponse getDialogResult() {
-        return dialogResult;
+    public androidx.appcompat.app.AlertDialog onCreate(GeckoSession.PromptDelegate.RepostConfirmPrompt alertPrompt, Context context,
+                                                       GeckoResult<GeckoSession.PromptDelegate.PromptResponse> result) {
+        return new MaterialAlertDialogBuilder(context)
+                .setTitle(alertPrompt.title)
+                .setPositiveButton("确认", (dialogInterface, i) -> {
+                    result.complete(alertPrompt.dismiss());
+                    dialogInterface.dismiss();
+                })
+                .setOnDismissListener(dialogInterface -> {
+                    if (!alertPrompt.isComplete()) {
+                        result.complete(alertPrompt.dismiss());
+                    }
+                })
+                .create();
     }
 
-    public void setDialogResult(GeckoSession.PromptDelegate.PromptResponse dialogResult) {
-        this.dialogResult = dialogResult;
+    public void show() {
+        dialog.show();
     }
 }

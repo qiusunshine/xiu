@@ -1,15 +1,18 @@
 package org.mozilla.xiu.browser.session
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.Uri
 import android.util.Log
 import android.view.View
 import android.widget.TextView
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.databinding.BaseObservable
@@ -17,10 +20,12 @@ import androidx.databinding.Bindable
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.alibaba.fastjson.JSON
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.kongzue.dialogx.dialogs.PopTip
 import com.kongzue.dialogx.interfaces.OnBindView
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.mozilla.geckoview.*
@@ -34,14 +39,21 @@ import org.mozilla.xiu.browser.componets.ContextMenuDialog
 import org.mozilla.xiu.browser.componets.popup.IntentPopup
 import org.mozilla.xiu.browser.database.history.History
 import org.mozilla.xiu.browser.database.history.HistoryViewModel
+import org.mozilla.xiu.browser.download.DownloadFileWithPermissionEvent
 import org.mozilla.xiu.browser.download.DownloadTask
 import org.mozilla.xiu.browser.download.DownloadTaskLiveData
 import org.mozilla.xiu.browser.utils.PreferenceMgr
 import org.mozilla.xiu.browser.utils.StringUtil
 import org.mozilla.xiu.browser.utils.ThreadTool
+import org.mozilla.xiu.browser.utils.ToastMgr
 import org.mozilla.xiu.browser.utils.UriUtils
 import org.mozilla.xiu.browser.utils.filePicker.FilePicker
+import org.mozilla.xiu.browser.webextension.Detector
+import org.mozilla.xiu.browser.webextension.DetectorListener
+import org.mozilla.xiu.browser.webextension.TabRequest
+import org.mozilla.xiu.browser.webextension.WebExtensionRuntimeManager
 import org.mozilla.xiu.browser.webextension.WebextensionSession
+import org.mozilla.xiu.browser.webextension.addSessionTabDelegate
 import java.io.IOException
 
 
@@ -111,6 +123,12 @@ class SessionDelegate() : BaseObservable() {
     var statusBarColor: Int = 0xffffff
     var navigationBarColor: Int = 0xffffff
     private lateinit var onPageStopCall: (session: GeckoSession, sessionDelegate: SessionDelegate) -> Unit
+    private lateinit var onUrlChange: (url: String, sessionDelegate: SessionDelegate) -> Unit
+
+    val requests: ArrayList<TabRequest> = ArrayList()
+    private val detector: Detector = Detector()
+
+    var activeMediaSession: MediaSession? = null
 
     constructor(
         mContext: FragmentActivity,
@@ -118,7 +136,9 @@ class SessionDelegate() : BaseObservable() {
         filePicker: FilePicker,
         privacy: Boolean,
         fullscreenCall: (full: Boolean) -> Unit,
-        onPageStopCall1: (session: GeckoSession, sessionDelegate: SessionDelegate) -> Unit = { se, de -> }
+        onPageStopCall1: (session: GeckoSession, sessionDelegate: SessionDelegate) -> Unit = { se, de -> },
+        onUrlChange: (url: String, sessionDelegate: SessionDelegate) -> Unit = { u, se -> },
+        detectorListener: DetectorListener? = null
     ) : this() {
         this.mContext = mContext
         statusBarColor = getDefaultThemeColor(mContext)
@@ -128,6 +148,8 @@ class SessionDelegate() : BaseObservable() {
         this.privacy = privacy
         this.fullscreenCall = fullscreenCall
         this.onPageStopCall = onPageStopCall1
+        this.onUrlChange = onUrlChange
+        detector.setDetectorListener(detectorListener)
         notifyPropertyChanged(BR.privacy)
 
 
@@ -150,7 +172,12 @@ class SessionDelegate() : BaseObservable() {
                 element: GeckoSession.ContentDelegate.ContextElement
             ) {
                 super.onContextMenu(session, screenX, screenY, element)
-                ContextMenuDialog(mContext, element).open()
+                ContextMenuDialog(mContext, element) {
+                    val h = findResponseHeaders(it) ?: hashMapOf()
+                    val name = UriUtils.getFileName(it, h)
+                    addDownloadTask(name, it)
+                    ToastMgr.shortBottomCenter(mContext, "已加入下载")
+                }.open()
             }
 
             override fun onExternalResponse(session: GeckoSession, response: WebResponse) {
@@ -173,21 +200,12 @@ class SessionDelegate() : BaseObservable() {
                                 v.findViewById<TextView>(R.id.textView17).text = "网页希望下载文件"
                                 v.findViewById<MaterialButton>(R.id.materialButton7)
                                     .setOnClickListener {
-                                        mContext.lifecycleScope.launch {
-                                            var downloadTask = DownloadTask(
-                                                mContext,
-                                                uri,
-                                                name
-                                            )
-                                            downloadTask.open()
-                                            downloadTasks.add(downloadTask)
-                                            DownloadTaskLiveData.getInstance().Value(downloadTasks)
-                                        }
+                                        addDownloadTask(name, uri)
+                                        dialog?.dismiss()
                                     }
                             }
                         })
-                        .show()
-
+                        .showLong()
                 }
                 Log.d("ExternalResponse", uri)
 
@@ -232,16 +250,12 @@ class SessionDelegate() : BaseObservable() {
                 if (title != null) {
                     mTitle = title
                 }
-                if (!privacy) {
-                    var history = title?.let { History(u, it, 0) }
+                if (!privacy && u.startsWith("http")) {
+                    val history = title?.let { History(u, it, 0) }
                     historyViewModel.insertHistories(history)
                     //historySync.sync(u)
-
                 }
-
-
                 notifyPropertyChanged(BR.mTitle)
-
             }
 
             override fun onFullScreen(session: GeckoSession, fullScreen: Boolean) {
@@ -271,6 +285,16 @@ class SessionDelegate() : BaseObservable() {
                     mContext.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
                 }
             }
+
+            override fun onActivated(session: GeckoSession, mediaSession: MediaSession) {
+                super.onActivated(session, mediaSession)
+                activeMediaSession = mediaSession
+            }
+
+            override fun onDeactivated(session: GeckoSession, mediaSession: MediaSession) {
+                super.onDeactivated(session, mediaSession)
+                activeMediaSession = null
+            }
         }
 
         session.progressDelegate = object : ProgressDelegate {
@@ -297,7 +321,7 @@ class SessionDelegate() : BaseObservable() {
 
             override fun onProgressChange(session: GeckoSession, progress: Int) {
                 super.onProgressChange(session, progress)
-                Log.d("test", "onProgressChange: $progress")
+                //Log.d("test", "onProgressChange: $progress")
                 EventBus.getDefault().post(ProgressEvent(progress))
                 if (progress != 100)
                     mProgress = progress
@@ -320,7 +344,7 @@ class SessionDelegate() : BaseObservable() {
 //                    }
 //                }
                 notifyPropertyChanged(BR.y)
-
+                requests.clear()
             }
 
             override fun onPageStop(session: GeckoSession, success: Boolean) {
@@ -328,15 +352,13 @@ class SessionDelegate() : BaseObservable() {
             }
         }
 
-
-
         session.navigationDelegate = object : NavigationDelegate {
             override fun onSubframeLoadRequest(
                 session: GeckoSession,
                 request: NavigationDelegate.LoadRequest
             ): GeckoResult<AllowOrDeny>? {
                 val uri = Uri.parse(request.uri)
-                var url = request.uri
+                val url = request.uri
                 var intent: Intent? = null;
                 if (uri.scheme != null) {
                     if (!uri.scheme!!.contains("https") && !uri.scheme!!.contains("http") && !uri.scheme!!.contains(
@@ -352,26 +374,14 @@ class SessionDelegate() : BaseObservable() {
                         }
                         if (intent != null) {
                             if (intent.resolveActivity(mContext.packageManager) != null) {
-                                PopTip.build()
-                                    .setCustomView(object :
-                                        OnBindView<PopTip?>(org.mozilla.xiu.browser.R.layout.pop_mytip) {
-                                        override fun onBind(dialog: PopTip?, v: View) {
-                                            v.findViewById<TextView>(R.id.textView17).text =
-                                                mContext.getText(R.string.intent_message)
-                                            v.findViewById<MaterialButton>(R.id.materialButton7)
-                                                .setOnClickListener {
-                                                    mContext.startActivity(intent)
-                                                }
-                                        }
-                                    })
-                                    .show()
+                                val result = GeckoResult<AllowOrDeny>()
+                                EventBus.getDefault().post(OpenAppIntentEvent(intent, result))
+                                return result
                             }
                         }
                     }
                     Log.d("scheme2", uri.scheme!!)
-
                 }
-
                 return GeckoResult.allow()
             }
 
@@ -380,34 +390,21 @@ class SessionDelegate() : BaseObservable() {
                 request: NavigationDelegate.LoadRequest
             ): GeckoResult<AllowOrDeny>? {
                 val uri = Uri.parse(request.uri)
-                var url = request.uri
+                val url = request.uri
                 if (uri.scheme != null) {
                     if (!uri.scheme!!.contains("https") && !uri.scheme!!.contains("http") && !uri.scheme!!.contains(
                             "about"
                         )
                     ) {
-
-                        var intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
+                        val intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
                         if (intent.resolveActivity(mContext.packageManager) != null) {
-                            PopTip.build()
-                                .setCustomView(object :
-                                    OnBindView<PopTip?>(org.mozilla.xiu.browser.R.layout.pop_mytip) {
-                                    override fun onBind(dialog: PopTip?, v: View) {
-                                        v.findViewById<TextView>(R.id.textView17).text =
-                                            mContext.getText(R.string.intent_message)
-                                        v.findViewById<MaterialButton>(R.id.materialButton7)
-                                            .setOnClickListener {
-                                                mContext.startActivity(intent)
-                                            }
-                                    }
-                                })
-                                .show()
+                            val result = GeckoResult<AllowOrDeny>()
+                            EventBus.getDefault().post(OpenAppIntentEvent(intent, result))
+                            return result
                         }
-
                     }
-
                 }
-                return GeckoResult.fromValue(AllowOrDeny.ALLOW)
+                return GeckoResult.allow()
             }
 
             override fun onLoadError(
@@ -436,7 +433,13 @@ class SessionDelegate() : BaseObservable() {
                 url: String?,
                 perms: MutableList<GeckoSession.PermissionDelegate.ContentPermission>
             ) {
-
+                if (!url.isNullOrEmpty() && "about:blank" != url) {
+                    if (WebExtensionRuntimeManager.hasBlockDom(url)) {
+                        WebExtensionRuntimeManager.disableDangerousExtensions()
+                    } else {
+                        WebExtensionRuntimeManager.enableTemp()
+                    }
+                }
                 super.onLocationChange(session, url, perms)
                 if (url != null) {
                     Log.d("可以？", url)
@@ -446,6 +449,7 @@ class SessionDelegate() : BaseObservable() {
                 }
                 pageError.onPageChange()
                 notifyPropertyChanged(org.mozilla.xiu.browser.BR.u)
+                onUrlChange(u, this@SessionDelegate)
             }
 
             override fun onNewSession(
@@ -457,7 +461,6 @@ class SessionDelegate() : BaseObservable() {
                 return GeckoResult.fromValue(newSession)
             }
         }
-
 
         /*
         session.setAutofillDelegate(new Autofill.Delegate() {
@@ -520,14 +523,16 @@ class SessionDelegate() : BaseObservable() {
                 session: GeckoSession,
                 prompt: ButtonPrompt
             ): GeckoResult<PromptResponse>? {
+                val result = GeckoResult<PromptResponse>()
                 val buttonDialog = org.mozilla.xiu.browser.broswer.dialog.ButtonDialog(
                     mContext,
-                    prompt
+                    prompt,
+                    result
                 )
-                buttonDialog.showDialog()
+                buttonDialog.show()
                 Log.d("ButtonPrompt", "its me")
 
-                return GeckoResult.fromValue(buttonDialog.dialogResult)
+                return result
             }
 
             override fun onPopupPrompt(
@@ -552,27 +557,28 @@ class SessionDelegate() : BaseObservable() {
                 session: GeckoSession,
                 prompt: TextPrompt
             ): GeckoResult<PromptResponse>? {
+                val result = GeckoResult<PromptResponse>()
                 val alertDialog =
-                    org.mozilla.xiu.browser.broswer.dialog.TextDialog(mContext, prompt)
-                alertDialog.showDialog()
+                    org.mozilla.xiu.browser.broswer.dialog.TextDialog(mContext, prompt, result)
+                alertDialog.show()
                 Log.d("TextPrompt", "its me")
-                return GeckoResult.fromValue(alertDialog.dialogResult)
-
+                return result
             }
 
             override fun onRepostConfirmPrompt(
                 session: GeckoSession,
                 prompt: RepostConfirmPrompt
             ): GeckoResult<PromptResponse>? {
+                val result = GeckoResult<PromptResponse>()
+                //prompt.
                 val confirmPrompt =
                     org.mozilla.xiu.browser.broswer.dialog.ConfirmDialog(
                         mContext,
-                        prompt
+                        prompt,
+                        result
                     )
-                confirmPrompt.showDialog()
-                Log.d("RepostConfirm", "its me")
-
-                return GeckoResult.fromValue(confirmPrompt.dialogResult)
+                confirmPrompt.show()
+                return result
             }
 
             override fun onFilePrompt(
@@ -590,31 +596,32 @@ class SessionDelegate() : BaseObservable() {
                 session: GeckoSession,
                 prompt: ChoicePrompt
             ): GeckoResult<PromptResponse>? {
+                val result = GeckoResult<PromptResponse>()
                 //prompt.
                 val jsChoiceDialog =
                     org.mozilla.xiu.browser.broswer.dialog.JsChoiceDialog(
                         mContext,
-                        prompt
+                        prompt,
+                        result
                     )
-                jsChoiceDialog.showDialog()
-                Log.d("ButtonPrompt", "its me")
-
-                return GeckoResult.fromValue(prompt.confirm(jsChoiceDialog.dialogResult.toString()))
+                jsChoiceDialog.show()
+                return result
             }
 
             override fun onAlertPrompt(
                 session: GeckoSession,
                 prompt: AlertPrompt
             ): GeckoResult<PromptResponse>? {
+                val result = GeckoResult<PromptResponse>()
                 val alertDialog =
-                    org.mozilla.xiu.browser.broswer.dialog.AlertDialog(mContext, prompt)
-                alertDialog.showDialog()
+                    org.mozilla.xiu.browser.broswer.dialog.AlertDialog(mContext, prompt, result)
+                alertDialog.show()
                 Log.d("ButtonPrompt", "its me")
-
-                return GeckoResult.fromValue(alertDialog.dialogResult)
+                return result
             }
         }
         session.permissionDelegate = ExamplePermissionDelegate(mContext)
+        addSessionTabDelegate(mContext, session, WebExtensionRuntimeManager.extensions)
     }
 
     fun getDefaultThemeColor(context: Context?): Int {
@@ -674,7 +681,114 @@ class SessionDelegate() : BaseObservable() {
         fun onPageChange()
     }
 
+    fun setDetectorListener(listener: DetectorListener?) {
+        detector.detectorListener = listener
+    }
 
+    fun onRequest(request: TabRequest) {
+        detector.generateTypeAndSize(this, request)
+        if (StringUtil.isNotEmpty(request.url) && request.url.contains("m3u8") && request.statusCode != 0) {
+            for (indexedValue in requests.withIndex()) {
+                val req = indexedValue.value
+                if (request.url == req.url && req.statusCode == 0) {
+                    requests.removeAt(indexedValue.index)
+                    break
+                }
+            }
+        }
+        requests.add(request)
+    }
+
+    private fun addDownloadTask(name: String, u: String?) {
+        if (u.isNullOrEmpty()) {
+            return
+        }
+        if (ActivityCompat.checkSelfPermission(
+                mContext,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(
+                mContext,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            addDownloadTask1(name, u)
+        } else {
+            MaterialAlertDialogBuilder(mContext)
+                .setTitle("授权说明")
+                .setMessage(
+                    "软件需要读写存储的权限才能下载文件写入本地，请点击确定按钮后授予软件读写文件权限"
+                )
+                .setPositiveButton("确定") { d, _ ->
+                    d.dismiss()
+                    EventBus.getDefault().post(DownloadFileWithPermissionEvent {
+                        addDownloadTask(name, u)
+                    })
+                }.setNegativeButton("取消") { d, _ ->
+                    d.dismiss()
+                }.show()
+        }
+    }
+
+    private fun addDownloadTask1(name: String, u: String?) {
+        if (u.isNullOrEmpty()) {
+            return
+        }
+        addDownloadTask0(name, u, 0)
+    }
+
+    private fun addDownloadTask0(name: String, url: String, count: Int) {
+        val headers = findRequestHeaders(url)
+        if (count <= 10 && headers == null) {
+            mContext.lifecycleScope.launch {
+                delay(50)
+                addDownloadTask0(name, url, count + 1)
+            }
+            return
+        }
+        Log.d(
+            "sessionDelegate",
+            "addDownloadTask0: " + url + ", headers: " + JSON.toJSONString(headers)
+        )
+        mContext.lifecycleScope.launch {
+            val downloadTask = DownloadTask(
+                mContext,
+                url,
+                name,
+                headers
+            )
+            downloadTask.open()
+            downloadTasks.add(downloadTask)
+            DownloadTaskLiveData.getInstance().Value(downloadTasks)
+        }
+    }
+
+    private fun findRequestHeaders(u: String): MutableMap<String, String?>? {
+        for (request in requests) {
+            if (request.url == u) {
+                val h = request.requestHeaderMap
+//                h.remove("Accept")
+//                h.remove("accept")
+//                h.remove("Accept-Encoding")
+//                h.remove("accept-encoding")
+//                h.remove("Accept-Language")
+//                h.remove("accept-language")
+//                h.remove("Connection")
+//                h.remove("connection")
+                return h
+            }
+        }
+        return null
+    }
+
+    private fun findResponseHeaders(u: String): MutableMap<String, String>? {
+        for (request in requests) {
+            if (request.url == u) {
+                return request.responseHeaderMap
+            }
+        }
+        return null
+    }
 }
 
 

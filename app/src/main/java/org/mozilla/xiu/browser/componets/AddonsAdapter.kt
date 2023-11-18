@@ -16,6 +16,7 @@ import org.mozilla.geckoview.WebExtension
 import org.mozilla.geckoview.WebExtensionController
 import org.mozilla.xiu.browser.databinding.ItemAddonsManagerBinding
 import org.mozilla.xiu.browser.utils.ToastMgr
+import org.mozilla.xiu.browser.webextension.WebExtensionRuntimeManager
 import org.mozilla.xiu.browser.webextension.WebExtensionWrapper
 import org.mozilla.xiu.browser.webextension.WebExtensionsEnableEvent
 
@@ -48,6 +49,14 @@ class AddonsAdapter :
                     return@setOnCheckedChangeListener
                 }
                 if (b) {
+                    if (WebExtensionRuntimeManager.isTempExtension(bean.extension)) {
+                        compoundButton.isChecked = false
+                        ToastMgr.shortBottomCenter(
+                            mContext,
+                            "当前扩展程序无法启用，可试试换个网页"
+                        )
+                        return@setOnCheckedChangeListener
+                    }
                     bean.enabled = true
                     webExtensionController.enable(
                         bean.extension,
@@ -60,6 +69,7 @@ class AddonsAdapter :
                                 .post(WebExtensionsEnableEvent(bean.extension, false))
                             EventBus.getDefault().post(WebExtensionsEnableEvent(ext, true))
                             bean.extension = ext
+                            WebExtensionRuntimeManager.refresh()
                         }
                     }) { e ->
                         //操作失败了，复原数据
@@ -79,6 +89,7 @@ class AddonsAdapter :
                                 .post(WebExtensionsEnableEvent(bean.extension, false))
                             bean.extension = ext
                         }
+                        WebExtensionRuntimeManager.refresh()
                     }) { e ->
                         //操作失败了，复原数据
                         bean.enabled = true

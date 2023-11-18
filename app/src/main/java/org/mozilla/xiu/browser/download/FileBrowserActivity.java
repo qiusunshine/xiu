@@ -1,10 +1,16 @@
 package org.mozilla.xiu.browser.download;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -72,6 +78,34 @@ public class FileBrowserActivity extends BaseSlideActivity {
         findView(R.id.back_icon).setOnClickListener(v -> finish());
         recyclerView = findView(R.id.recycler_view);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
+        findView(R.id.menu_icon).setOnClickListener(v -> {
+            new XPopup.Builder(getContext())
+                    .atView(v)
+                    .asAttachList(new String[]{"所有文件权限"}, null, (i, s) -> {
+                        switch (s) {
+                            case "所有文件权限":
+                                goManagerFileAccess(this);
+                                break;
+                        }
+                    }).show();
+        });
+    }
+    private void goManagerFileAccess(AppCompatActivity activity) {
+        // Android 11 (Api 30)或更高版本的写文件权限需要特殊申请，需要动态申请管理所有文件的权限
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Intent appIntent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+            appIntent.setData(Uri.parse("package:" + getPackageName()));
+            //appIntent.setData(Uri.fromParts("package", activity.getPackageName(), null));
+            try {
+                activity.startActivity(appIntent);
+            } catch (ActivityNotFoundException ex) {
+                ex.printStackTrace();
+                Intent allFileIntent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                activity.startActivity(allFileIntent);
+            }
+        } else {
+            ToastMgr.shortBottomCenter(activity, "系统版本低于Android 11");
+        }
     }
 
     @Override

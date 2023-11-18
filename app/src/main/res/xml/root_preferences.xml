@@ -11,6 +11,9 @@
         <Preference
             app:key="addons"
             app:title="@string/extensions" />
+        <Preference
+            android:key="float_video"
+            android:title="@string/float_video" />
     </PreferenceCategory>
     <PreferenceCategory
         android:title="@string/advanced"
@@ -31,6 +34,13 @@
     <PreferenceCategory
         android:title="@string/private_safety"
         app:iconSpaceReserved="false">
+        <ListPreference
+            android:entryValues="@array/location_permission_values"
+            app:defaultValue="prompt"
+            app:entries="@array/location_permission_entries"
+            app:key="locationPermission"
+            app:title="@string/location_permission"
+            app:useSimpleSummaryProvider="true" />
 
         <SwitchPreference
             android:defaultValue="false"

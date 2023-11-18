@@ -6,6 +6,9 @@ class DownloadTaskLiveData : LiveData<ArrayList<DownloadTask>>() {
     fun Value(downloadTasks: ArrayList<DownloadTask>){
         postValue(downloadTasks)
     }
+    fun remove(downloadTasks: ArrayList<DownloadTask>) {
+
+    }
     override fun onActive() {
         super.onActive()
     }

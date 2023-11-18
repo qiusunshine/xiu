@@ -28,18 +28,22 @@ object UriUtils {
     }
 
     fun getFileName(response: WebResponse): String {
+        return getFileName(response.uri, response.headers)
+    }
+
+    fun getFileName(uri: String, headers: Map<String, String>): String {
         var fileName: String? = null
         val contentDispositionHeader: String?
-        contentDispositionHeader = if (response.headers.containsKey("content-disposition")) {
-            response.headers["content-disposition"]
+        contentDispositionHeader = if (headers.containsKey("content-disposition")) {
+            headers["content-disposition"]
         } else {
-            response.headers["Content-Disposition"]
+            headers["Content-Disposition"]
         }
         if (contentDispositionHeader != null && !contentDispositionHeader.isEmpty()) {
             fileName = getDispositionFileName(contentDispositionHeader)
         }
         if (StringUtil.isEmpty(fileName)) {
-            fileName = FileUtil.getResourceName(response.uri)
+            fileName = FileUtil.getResourceName(uri)
         }
         if (StringUtil.isEmpty(fileName)) {
             fileName = "unknown-" + UUIDUtil.genUUID()

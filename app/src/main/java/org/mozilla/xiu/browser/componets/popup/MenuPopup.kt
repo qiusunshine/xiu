@@ -23,7 +23,9 @@ import org.mozilla.xiu.browser.databinding.PopupMenuBinding
 import org.mozilla.xiu.browser.session.DelegateLivedata
 import org.mozilla.xiu.browser.session.PrivacyFlow
 import org.mozilla.xiu.browser.session.SessionDelegate
+import org.mozilla.xiu.browser.utils.FilesInAppUtil
 import org.mozilla.xiu.browser.utils.ShareUtil
+import org.mozilla.xiu.browser.utils.ToastMgr
 
 
 class MenuPopup {
@@ -60,8 +62,30 @@ class MenuPopup {
                     binding.privacyButton.icon = context.getDrawable(R.drawable.icon_privacy)
             }
         }
-
-
+        binding.materialButton16.setOnClickListener {
+            binding.constraintLayout13.setTransition(R.id.top_start, R.id.top_end)
+            if (binding.constraintLayout13.targetPosition == 1f) {
+                val j = binding.constraintLayout13::class.java
+                val f = j.getDeclaredField("mTransitionLastPosition")
+                f.isAccessible = true
+                f.set(binding.constraintLayout13, 1f)
+                binding.constraintLayout13.transitionToStart()
+            } else {
+                binding.constraintLayout13.transitionToEnd()
+            }
+        }
+        binding.toolsButton.setOnClickListener {
+            binding.constraintLayout13.setTransition(R.id.tools_start, R.id.tools_end)
+            if (binding.constraintLayout13.targetPosition == 1f) {
+                val j = binding.constraintLayout13::class.java
+                val f = j.getDeclaredField("mTransitionLastPosition")
+                f.isAccessible = true
+                f.set(binding.constraintLayout13, 1f)
+                binding.constraintLayout13.transitionToStart()
+            } else {
+                binding.constraintLayout13.transitionToEnd()
+            }
+        }
 
         HomeLivedata.getInstance().observe(context) {
             isHome = it
@@ -152,7 +176,9 @@ class MenuPopup {
 
         }
 
-        var adapter = MenuAddonsAdapater()
+        val adapter = MenuAddonsAdapater {
+            bottomSheetDialog.dismiss()
+        }
         binding.menuAddonsRecyclerView.layoutManager =
             LinearLayoutManager(context, RecyclerView.HORIZONTAL, false);
         binding.menuAddonsRecyclerView.adapter = adapter
@@ -179,7 +205,19 @@ class MenuPopup {
             context.startActivity(intent)
             bottomSheetDialog.dismiss()
         }
-
+        binding.devButton.setOnClickListener {
+            bottomSheetDialog.dismiss()
+            context.evaluateJavaScript(
+                FilesInAppUtil.getAssetsString(context, "eruda.js")
+            )
+        }
+        binding.floatButton.setOnClickListener {
+            bottomSheetDialog.dismiss()
+            context.changeFloatVideoSwitch()
+        }
+        binding.domainButton.setOnClickListener {
+            ToastMgr.shortBottomCenter(context, "开发中，敬请期待")
+        }
     }
 
     fun show() {

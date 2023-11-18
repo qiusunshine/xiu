@@ -27,6 +27,7 @@ import org.mozilla.xiu.browser.databinding.FragmentAddonsManagerBinding
 import org.mozilla.xiu.browser.utils.ThreadTool
 import org.mozilla.xiu.browser.utils.ToastMgr
 import org.mozilla.xiu.browser.utils.UriUtilsPro
+import org.mozilla.xiu.browser.webextension.WebExtensionRuntimeManager
 import org.mozilla.xiu.browser.webextension.WebExtensionWrapper
 import org.mozilla.xiu.browser.webextension.WebExtensionsRefreshEvent
 import org.mozilla.xiu.browser.webextension.WebextensionSession
@@ -95,7 +96,7 @@ class AddonsManagerFragment : Fragment() {
             openAddSheet()
         }
         launcher = registerForActivityResult(
-            object : ActivityResultContract<Boolean, Intent>() {
+            object : ActivityResultContract<Boolean, Intent?>() {
                 override fun createIntent(context: Context, input: Boolean): Intent {
                     val intent = Intent(Intent.ACTION_GET_CONTENT)
                     intent.type = "*/*"
@@ -103,8 +104,8 @@ class AddonsManagerFragment : Fragment() {
                     return intent
                 }
 
-                override fun parseResult(resultCode: Int, intent: Intent?): Intent {
-                    return intent!!
+                override fun parseResult(resultCode: Int, intent: Intent?): Intent? {
+                    return intent
                 }
 
             },
@@ -175,6 +176,7 @@ class AddonsManagerFragment : Fragment() {
                         )
                     })
                 }
+                WebExtensionRuntimeManager.refresh()
             }
             SheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
 

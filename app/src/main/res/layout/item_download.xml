@@ -4,10 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
+
         <variable
             name="task"
             type="org.mozilla.xiu.browser.download.DownloadTask" />
 
+        <import type="android.view.View" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -38,12 +40,12 @@
                     android:layout_marginTop="8dp"
                     android:layout_marginEnd="8dp"
                     android:ellipsize="middle"
+                    android:singleLine="true"
                     android:text="@{task.title}"
                     android:textSize="16sp"
                     app:layout_constraintEnd_toStartOf="@+id/downloadButton2"
                     app:layout_constraintStart_toEndOf="@+id/imageView4"
-                    app:layout_constraintTop_toTopOf="parent"
-                    android:singleLine="true" />
+                    app:layout_constraintTop_toTopOf="parent" />
 
                 <ProgressBar
                     android:id="@+id/downloadProgress"
@@ -54,6 +56,7 @@
                     android:layout_marginTop="4dp"
                     android:layout_marginEnd="8dp"
                     android:progress="@{task.progress}"
+                    android:visibility="@{task.state == 2 ? View.GONE:View.VISIBLE}"
                     app:layout_constraintEnd_toStartOf="@+id/downloadButton2"
                     app:layout_constraintStart_toEndOf="@+id/imageView4"
                     app:layout_constraintTop_toBottomOf="@+id/textView6" />
@@ -74,11 +77,12 @@
                     style="@style/Widget.Material3.Button.IconButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:visibility="@{task.state == 2 ? View.GONE:View.VISIBLE}"
                     app:iconSize="@dimen/dim1"
-                    app:stateIcon="@{task.state}"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:stateIcon="@{task.state}" />
 
                 <ImageView
                     android:id="@+id/imageView4"

@@ -309,4 +309,12 @@ public class PreferenceMgr {
             editor.commit();
         }
     }
+
+    public static void registerOnSharedPreferenceChangeListener(Context context, SharedPreferences.OnSharedPreferenceChangeListener listener) {
+        context.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE).registerOnSharedPreferenceChangeListener(listener);
+    }
+
+    public static void registerOnSharedPreferenceChangeListener(Context context, String filename, SharedPreferences.OnSharedPreferenceChangeListener listener) {
+        context.getSharedPreferences(filename, Context.MODE_PRIVATE).registerOnSharedPreferenceChangeListener(listener);
+    }
 }

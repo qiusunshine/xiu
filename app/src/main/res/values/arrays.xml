@@ -31,4 +31,16 @@
         <item>@string/Shenma</item>
 
     </string-array>
+
+    <string-array name="location_permission_entries">
+        <item>@string/location_permission_prompt</item>
+        <item>@string/location_permission_allow_all</item>
+        <item>@string/location_permission_deny_all</item>
+    </string-array>
+
+    <string-array name="location_permission_values">
+        <item>prompt</item>
+        <item>allow_all</item>
+        <item>deny_all</item>
+    </string-array>
 </resources>
