@@ -21,13 +21,11 @@ class FilePicker {
     constructor(getContent: ActivityResultLauncher<Boolean>,activity: FragmentActivity) {
         this.getContent=getContent
         this.activity=activity
-
     }
 
     fun open(activity: FragmentActivity, mimeTypes: Array<String> ) {
         getContent.launch(true)
         requestPermission()
-
     }
 
     fun putUriListener(uriListener: UriListener?) {
@@ -45,8 +43,8 @@ class FilePicker {
     }
 
     private fun requestPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // 先判断有没有权限
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // android13READ_EXTERNAL_STORAGE无效了
             if (Environment.isExternalStorageManager()) {
             } else {
                 val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
@@ -54,7 +52,7 @@ class FilePicker {
                 activity.startActivityForResult(intent, 1024)
                 Toast.makeText(activity, "请先授予权限", Toast.LENGTH_SHORT).show()
             }
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        } else {
             // 先判断有没有权限
             if (ActivityCompat.checkSelfPermission(
                     activity,

@@ -1,10 +1,8 @@
 package org.mozilla.xiu.browser
 
 
-import android.Manifest
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -24,7 +22,6 @@ import androidx.activity.OnBackPressedCallback
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
@@ -59,7 +56,6 @@ import org.mozilla.xiu.browser.componets.popup.TabPopup
 import org.mozilla.xiu.browser.database.history.HistoryViewModel
 import org.mozilla.xiu.browser.databinding.ActivityMainBinding
 import org.mozilla.xiu.browser.databinding.PrivacyAgreementLayoutBinding
-import org.mozilla.xiu.browser.download.DownloadFileWithPermissionEvent
 import org.mozilla.xiu.browser.download.UrlDetector
 import org.mozilla.xiu.browser.session.*
 import org.mozilla.xiu.browser.tab.AddTabLiveData
@@ -68,7 +64,6 @@ import org.mozilla.xiu.browser.tab.RemoveTabLiveData
 import org.mozilla.xiu.browser.tab.TabListAdapter
 import org.mozilla.xiu.browser.utils.FileUtil
 import org.mozilla.xiu.browser.utils.PreferenceMgr
-import org.mozilla.xiu.browser.utils.ShareUtil
 import org.mozilla.xiu.browser.utils.SoftKeyBoardListener.OnSoftKeyBoardChangeListener
 import org.mozilla.xiu.browser.utils.StatusUtils
 import org.mozilla.xiu.browser.utils.StringUtil
@@ -127,7 +122,6 @@ class MainActivity : AppCompatActivity(), DetectorListener {
     lateinit var historyViewModel: HistoryViewModel
     var searching = ""
     private var port: WebExtension.Port? = null
-    var downloadFileWithPermissionEvent: DownloadFileWithPermissionEvent? = null
     private var floatVideoController: FloatVideoController? = null
 
     private fun fullScreenCall(fullScreen: Boolean) {
@@ -452,6 +446,7 @@ class MainActivity : AppCompatActivity(), DetectorListener {
     fun changeFloatVideoSwitch(event: FloatVideoSwitchEvent) {
         changeFloatVideoSwitch()
     }
+
     fun changeFloatVideoSwitch() {
         val now = PreferenceMgr.getBoolean(getContext(), "float_xiutan", false)
         PreferenceMgr.put(getContext(), "float_xiutan", !now)
@@ -491,8 +486,11 @@ class MainActivity : AppCompatActivity(), DetectorListener {
             },
             object : VideoDetector {
                 override fun putIntoXiuTanLiked(context: Context, dom: String, url: String) {}
-                override fun getDetectedMediaResults(webUrl: String, mt: MediaType): List<DetectedMediaResult> {
-                    if(mt != MediaType.VIDEO) {
+                override fun getDetectedMediaResults(
+                    webUrl: String,
+                    mt: MediaType
+                ): List<DetectedMediaResult> {
+                    if (mt != MediaType.VIDEO) {
                         return emptyList()
                     }
                     val webFragment = fragments[1] as WebFragment
@@ -501,18 +499,8 @@ class MainActivity : AppCompatActivity(), DetectorListener {
                             webFragment.sessiondelegate.u
                         ) || StringUtil.isEmpty(webUrl) || "null" == webUrl
                     ) {
-                        return webFragment.sessiondelegate.requests.filter { it.type == TabRequest.VIDEO }.map {
-                            DetectedMediaResult(
-                                it.url
-                            ).apply {
-                                mediaType = Media(MediaType.VIDEO)
-                                headers = it.requestHeaderMap
-                            }
-                        }
-                    }
-                    for (sessionDelegate in sessionDelegates) {
-                        if (StringUtils.equals(webUrl, sessionDelegate.u)) {
-                            return sessionDelegate.requests.filter { it.type == TabRequest.VIDEO }.map {
+                        return webFragment.sessiondelegate.requests.filter { it.type == TabRequest.VIDEO }
+                            .map {
                                 DetectedMediaResult(
                                     it.url
                                 ).apply {
@@ -520,6 +508,18 @@ class MainActivity : AppCompatActivity(), DetectorListener {
                                     headers = it.requestHeaderMap
                                 }
                             }
+                    }
+                    for (sessionDelegate in sessionDelegates) {
+                        if (StringUtils.equals(webUrl, sessionDelegate.u)) {
+                            return sessionDelegate.requests.filter { it.type == TabRequest.VIDEO }
+                                .map {
+                                    DetectedMediaResult(
+                                        it.url
+                                    ).apply {
+                                        mediaType = Media(MediaType.VIDEO)
+                                        headers = it.requestHeaderMap
+                                    }
+                                }
                         }
                     }
                     return emptyList()
@@ -632,19 +632,6 @@ class MainActivity : AppCompatActivity(), DetectorListener {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    fun downloadFileWithPermission(event: DownloadFileWithPermissionEvent) {
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf<String>(
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            ),
-            1024
-        )
-        downloadFileWithPermissionEvent = event
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
     fun browse(event: BrowseEvent) {
         searching(event.url)
     }
@@ -720,8 +707,6 @@ class MainActivity : AppCompatActivity(), DetectorListener {
             ?.setOnClickListener {
                 navController.navigate(R.id.addonsPopupFragment2)
             }
-
-
     }
 
 
@@ -802,18 +787,10 @@ class MainActivity : AppCompatActivity(), DetectorListener {
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == ExamplePermissionDelegate.REQUEST_PERMISSIONS) {
             val permission = binding.user?.session?.permissionDelegate as ExamplePermissionDelegate?
             permission?.onRequestPermissionsResult(permissions, grantResults)
-        } else if (requestCode == 1024) {
-            for (result in grantResults) {
-                if (result != PackageManager.PERMISSION_GRANTED) {
-                    downloadFileWithPermissionEvent = null
-                    return
-                }
-            }
-            downloadFileWithPermissionEvent?.task?.let { it() }
         }
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 }

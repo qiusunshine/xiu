@@ -1,18 +1,17 @@
 package org.mozilla.xiu.browser.session
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.Uri
+import android.os.Build
+import android.os.Environment
 import android.util.Log
 import android.view.View
 import android.widget.TextView
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.databinding.BaseObservable
@@ -23,10 +22,15 @@ import androidx.lifecycle.lifecycleScope
 import com.alibaba.fastjson.JSON
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.hjq.permissions.OnPermissionCallback
+import com.hjq.permissions.Permission
+import com.hjq.permissions.XXPermissions
 import com.kongzue.dialogx.dialogs.PopTip
 import com.kongzue.dialogx.interfaces.OnBindView
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.greenrobot.eventbus.EventBus
 import org.mozilla.geckoview.*
 import org.mozilla.geckoview.GeckoSession.NavigationDelegate
@@ -35,25 +39,31 @@ import org.mozilla.geckoview.GeckoSession.PromptDelegate.*
 import org.mozilla.xiu.browser.App
 import org.mozilla.xiu.browser.BR
 import org.mozilla.xiu.browser.R
+import org.mozilla.xiu.browser.base.VarHolder
 import org.mozilla.xiu.browser.componets.ContextMenuDialog
 import org.mozilla.xiu.browser.componets.popup.IntentPopup
 import org.mozilla.xiu.browser.database.history.History
 import org.mozilla.xiu.browser.database.history.HistoryViewModel
-import org.mozilla.xiu.browser.download.DownloadFileWithPermissionEvent
 import org.mozilla.xiu.browser.download.DownloadTask
 import org.mozilla.xiu.browser.download.DownloadTaskLiveData
+import org.mozilla.xiu.browser.download.downloadBlob
+import org.mozilla.xiu.browser.download.getUri
+import org.mozilla.xiu.browser.download.openUriBeforePop
 import org.mozilla.xiu.browser.utils.PreferenceMgr
 import org.mozilla.xiu.browser.utils.StringUtil
 import org.mozilla.xiu.browser.utils.ThreadTool
 import org.mozilla.xiu.browser.utils.ToastMgr
 import org.mozilla.xiu.browser.utils.UriUtils
+import org.mozilla.xiu.browser.utils.copyToDownloadDir
 import org.mozilla.xiu.browser.utils.filePicker.FilePicker
+import org.mozilla.xiu.browser.utils.filePicker.getFileFromPicker
 import org.mozilla.xiu.browser.webextension.Detector
 import org.mozilla.xiu.browser.webextension.DetectorListener
 import org.mozilla.xiu.browser.webextension.TabRequest
 import org.mozilla.xiu.browser.webextension.WebExtensionRuntimeManager
 import org.mozilla.xiu.browser.webextension.WebextensionSession
 import org.mozilla.xiu.browser.webextension.addSessionTabDelegate
+import java.io.File
 import java.io.IOException
 
 
@@ -184,6 +194,64 @@ class SessionDelegate() : BaseObservable() {
                 var uri = response.uri
                 Log.d("test", "onExternalResponse: $uri")
                 val name = UriUtils.getFileName(response)
+                if (uri.startsWith("blob:")) {
+                    if (name.endsWith("xpi")) {
+                        downloadBlob(mContext, name, response) { path, e ->
+                            withContext(Dispatchers.Main) {
+                                if (e != null) {
+                                    ToastMgr.shortBottomCenter(mContext, "出错：" + e.message)
+                                } else {
+                                    WebextensionSession(mContext).install("file://$path")
+                                }
+                            }
+                        }
+                    } else {
+                        val holder = VarHolder(false)
+                        MaterialAlertDialogBuilder(mContext)
+                            .setTitle(mContext.getString(R.string.notify))
+                            .setMessage(mContext.getString(R.string.download_request))
+                            .setNegativeButton(mContext.getString(R.string.cancel)) { _, _ -> }
+                            .setPositiveButton(mContext.getString(R.string.confirm)) { dialog, which ->
+                                holder.data = true
+                            }
+                            .setOnDismissListener {
+                                if (holder.data) {
+                                    downloadBlob(mContext, name, response) { path, e ->
+                                        if (e != null) {
+                                            ToastMgr.shortBottomCenter(
+                                                mContext,
+                                                "出错：" + e.message
+                                            )
+                                        } else {
+                                            val o = copyToDownloadDir(mContext, path)
+                                            if (o != null) {
+                                                val na = File(o).name
+                                                getUri(mContext, na)?.let { u ->
+                                                    withContext(Dispatchers.Main) {
+                                                        openUriBeforePop(mContext, u)
+                                                    }
+                                                }
+                                            } else {
+                                                ToastMgr.shortBottomCenter(
+                                                    mContext,
+                                                    "下载出错，拷贝到下载目录失败"
+                                                )
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    //没有下载，关闭response
+                                    try {
+                                        response.body?.close()
+                                    } catch (e: IOException) {
+                                        e.printStackTrace()
+                                    }
+                                }
+                            }
+                            .show()
+                    }
+                    return
+                }
                 //没有下载，关闭response
                 try {
                     response.body?.close()
@@ -197,7 +265,8 @@ class SessionDelegate() : BaseObservable() {
                         .setCustomView(object :
                             OnBindView<PopTip?>(org.mozilla.xiu.browser.R.layout.pop_mytip) {
                             override fun onBind(dialog: PopTip?, v: View) {
-                                v.findViewById<TextView>(R.id.textView17).text = "网页希望下载文件"
+                                v.findViewById<TextView>(R.id.textView17).text =
+                                    mContext.getString(R.string.download_request)
                                 v.findViewById<MaterialButton>(R.id.materialButton7)
                                     .setOnClickListener {
                                         addDownloadTask(name, uri)
@@ -585,10 +654,42 @@ class SessionDelegate() : BaseObservable() {
                 session: GeckoSession,
                 prompt: FilePrompt
             ): GeckoResult<PromptResponse>? {
-                val getFile = org.mozilla.xiu.browser.utils.filePicker.GetFile(mContext, filePicker)
-                getFile.open(mContext, prompt.mimeTypes)
-                Log.d("onFilePrompt", getFile.uri.toString())
-                return GeckoResult.fromValue(prompt.confirm(mContext, getFile.uri))
+                val result = GeckoResult<PromptResponse>()
+                XXPermissions.with(mContext)
+                    .permission(Permission.READ_MEDIA_IMAGES)
+                    .permission(Permission.READ_MEDIA_AUDIO)
+                    .permission(Permission.READ_MEDIA_VIDEO)
+                    .permission(Permission.WRITE_EXTERNAL_STORAGE)
+                    .request(object : OnPermissionCallback {
+                        override fun onGranted(
+                            permissions: MutableList<String>,
+                            allGranted: Boolean
+                        ) {
+                            getFileFromPicker(mContext, filePicker, prompt, result)
+                        }
+
+                        override fun onDenied(
+                            permissions: MutableList<String>,
+                            doNotAskAgain: Boolean
+                        ) {
+                            try {
+                                result.cancel()
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                            if (doNotAskAgain) {
+                                ToastMgr.shortBottomCenter(
+                                    mContext,
+                                    "被永久拒绝授权，请手动授予存储权限"
+                                )
+                                // 如果是被永久拒绝就跳转到应用权限系统设置页面
+                                XXPermissions.startPermissionActivity(mContext, permissions)
+                            } else {
+                                ToastMgr.shortBottomCenter(mContext, "获取存储权限失败")
+                            }
+                        }
+                    })
+                return result
             }
 
 
@@ -703,31 +804,32 @@ class SessionDelegate() : BaseObservable() {
         if (u.isNullOrEmpty()) {
             return
         }
-        if (ActivityCompat.checkSelfPermission(
-                mContext,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED &&
-            ContextCompat.checkSelfPermission(
-                mContext,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            addDownloadTask1(name, u)
-        } else {
-            MaterialAlertDialogBuilder(mContext)
-                .setTitle("授权说明")
-                .setMessage(
-                    "软件需要读写存储的权限才能下载文件写入本地，请点击确定按钮后授予软件读写文件权限"
-                )
-                .setPositiveButton("确定") { d, _ ->
-                    d.dismiss()
-                    EventBus.getDefault().post(DownloadFileWithPermissionEvent {
-                        addDownloadTask(name, u)
-                    })
-                }.setNegativeButton("取消") { d, _ ->
-                    d.dismiss()
-                }.show()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (Environment.isExternalStorageManager()) {
+                addDownloadTask1(name, u)
+                return
+            }
         }
+        XXPermissions.with(mContext)
+            .permission(Permission.READ_MEDIA_IMAGES)
+            .permission(Permission.READ_MEDIA_AUDIO)
+            .permission(Permission.READ_MEDIA_VIDEO)
+            .permission(Permission.WRITE_EXTERNAL_STORAGE)
+            .request(object : OnPermissionCallback {
+                override fun onGranted(permissions: MutableList<String>, allGranted: Boolean) {
+                    addDownloadTask1(name, u)
+                }
+
+                override fun onDenied(permissions: MutableList<String>, doNotAskAgain: Boolean) {
+                    if (doNotAskAgain) {
+                        ToastMgr.shortBottomCenter(mContext, "被永久拒绝授权，请手动授予存储权限")
+                        // 如果是被永久拒绝就跳转到应用权限系统设置页面
+                        XXPermissions.startPermissionActivity(mContext, permissions)
+                    } else {
+                        ToastMgr.shortBottomCenter(mContext, "获取存储权限失败")
+                    }
+                }
+            })
     }
 
     private fun addDownloadTask1(name: String, u: String?) {

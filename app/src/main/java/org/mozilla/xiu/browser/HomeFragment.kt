@@ -216,8 +216,6 @@ class HomeFragment : Fragment() {
             override fun onLongClick(bean: Shortcut) {
                 shortcutViewModel.deleteShortcuts(bean)
             }
-
-
         }
 
         val shortcutInitVersion = 2

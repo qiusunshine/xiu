@@ -51,6 +51,9 @@
         android:title="@string/about"
         app:iconSpaceReserved="false">
         <Preference
+            app:key="settingNewVersion"
+            app:title="@string/about_new_version" />
+        <Preference
             app:key="settingAbout"
             app:title="@string/about_stage" />
         <Preference

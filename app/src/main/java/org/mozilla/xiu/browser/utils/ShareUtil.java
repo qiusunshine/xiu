@@ -125,7 +125,7 @@ public class ShareUtil {
     }
 
 
-    private static String getMIMEType(String url) {
+    public static String getMIMEType(String url) {
         String a = url.toLowerCase();
         if (a.contains(".apk")) {
             return "application/vnd.android.package-archive";

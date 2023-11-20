@@ -17,6 +17,7 @@ import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.WebExtension
 import org.mozilla.geckoview.WebExtension.InstallException
 import org.mozilla.geckoview.WebExtensionController
+import org.mozilla.xiu.browser.R
 import org.mozilla.xiu.browser.componets.HomeLivedata
 import org.mozilla.xiu.browser.session.DelegateLivedata
 import org.mozilla.xiu.browser.session.GeckoViewModel
@@ -76,7 +77,7 @@ class WebextensionSession {
 
     private fun installCrx(uri: String) {
         MaterialAlertDialogBuilder(context)
-            .setTitle("温馨提示")
+            .setTitle(context.getString(R.string.notify))
             .setMessage("即将安装crx扩展程序，注意因为本软件使用火狐Gecko内核，不能完全兼容谷歌crx格式，建议能安装原生xpi扩展的情况下优先安装xpi扩展，本软件只对crx提供有限的兼容，确定继续安装crx扩展吗？")
             .setPositiveButton("确定") { d, _ ->
                 d.dismiss()

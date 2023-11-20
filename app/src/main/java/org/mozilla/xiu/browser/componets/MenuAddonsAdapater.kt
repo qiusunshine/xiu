@@ -39,7 +39,10 @@ class MenuAddonsAdapater(
                             )?.poll()
                         })
                     }
-                    binding.addonsIcon.setOnClickListener { action.click() }
+                    binding.addonsIcon.setOnClickListener {
+                        action.click()
+                        dismissCall()
+                    }
                 }
 
                 override fun onTogglePopup(

@@ -12,41 +12,25 @@ import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.provider.Settings
-import android.util.Log
-import android.view.View
 import android.widget.RemoteViews
-import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat
 import androidx.databinding.BaseObservable
 import androidx.databinding.Bindable
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.button.MaterialButton
-import com.kongzue.dialogx.dialogs.PopTip
-import com.kongzue.dialogx.interfaces.OnBindView
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
-import org.greenrobot.eventbus.EventBus
-import org.mozilla.xiu.browser.App
 import org.mozilla.xiu.browser.BR
 import org.mozilla.xiu.browser.HolderActivity
 import org.mozilla.xiu.browser.R
 import org.mozilla.xiu.browser.utils.FileUtil
-import org.mozilla.xiu.browser.utils.ShareUtil
-import org.mozilla.xiu.browser.utils.ThreadTool
-import org.mozilla.xiu.browser.utils.ToastMgr
-import org.mozilla.xiu.browser.utils.UriUtilsPro
-import org.mozilla.xiu.browser.webextension.WebExtensionsAddEvent
 import rxhttp.RxHttpPlugins
 import rxhttp.toDownloadFlow
 import rxhttp.wrapper.param.RxHttp
-import java.io.File
 
 
 class DownloadTask : BaseObservable {
@@ -155,59 +139,7 @@ class DownloadTask : BaseObservable {
     fun open(context: Context, uri: Uri) {
         state = 2
         notifyPropertyChanged(BR.state)
-        val relativePath: String =
-            Environment.DIRECTORY_DOWNLOADS + File.separator + ContextCompat.getString(
-                context,
-                R.string.app_name
-            )
-        val name = UriUtilsPro.getFileName(uri)
-        val file = File("${Environment.getExternalStorageDirectory()}/$relativePath/$name")
-        Log.d("open", "open: " + file.absolutePath + ", exist: " + file.exists())
-        if (file.exists() && (name.contains(".crx") || name.contains(".xpi"))) {
-            val path: String =
-                UriUtilsPro.getRootDir(context) + File.separator + "_cache" + File.separator + name
-            if (File(path).exists()) {
-                File(path).delete()
-            }
-            UriUtilsPro.getFilePathFromURI(
-                context,
-                uri,
-                path,
-                object : UriUtilsPro.LoadListener {
-                    override fun success(s: String) {
-                        ThreadTool.runOnUI {
-                            EventBus.getDefault().post(WebExtensionsAddEvent(s))
-                        }
-                    }
-
-                    override fun failed(msg: String) {
-                        ToastMgr.shortBottomCenter(
-                            context,
-                            "出错：$msg"
-                        )
-                    }
-                })
-            ToastMgr.shortBottomCenter(App.application, title + "下载完成")
-        } else {
-            PopTip.build()
-                .setCustomView(object :
-                    OnBindView<PopTip?>(R.layout.pop_mytip) {
-                    override fun onBind(dialog: PopTip?, v: View) {
-                        v.findViewById<TextView>(R.id.textView17).text = title + "下载完成"
-                        val btn = v.findViewById<MaterialButton>(R.id.materialButton7)
-                        btn.setText(ContextCompat.getString(context, R.string.open))
-                        btn.setOnClickListener {
-                            val intent = Intent(Intent.ACTION_VIEW)
-                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                            intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                            intent.setDataAndType(uri, "*/*");
-                            ShareUtil.findChooser(context, intent)
-                            dialog?.dismiss()
-                        }
-                    }
-                })
-                .showLong()
-        }
+        openUriBeforePop(context, uri)
     }
 
     /**

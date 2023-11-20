@@ -184,5 +184,11 @@
     <string name="location_permission_allow_all">一律允许</string>
     <string name="location_permission_deny_all">一律拒绝</string>
     <string name="location_permission_prompt">询问</string>
+    <string name="check_update">检查更新</string>
+    <string name="about_new_version">新版本</string>
+    <string name="new_version_url" translatable="false">https://haikuo.lanzouj.com/b0ekkjzi</string>
+    <string name="download_request">网页希望下载文件</string>
+    <string name="download_finished">%1$s下载完成</string>
+    <string name="notify">温馨提示</string>
 
 </resources>

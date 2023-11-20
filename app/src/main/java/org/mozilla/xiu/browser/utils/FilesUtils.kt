@@ -307,11 +307,11 @@ fun deleteFile(context: Context, fileEntity: FileEntity): Boolean {
 /**
  * 删除文件
  */
-fun deleteFileByPath(context: Context, path: String): Boolean {
+fun deleteFileByPath(context: Context, uri: String): Boolean {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        return deleteFile(context, path)
+        return deleteFile(context, uri)
     }
-    return File(path).delete()
+    return File(uri.replace("file://", "")).delete()
 }
 
 /**

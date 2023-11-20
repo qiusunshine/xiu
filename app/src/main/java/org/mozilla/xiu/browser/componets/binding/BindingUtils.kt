@@ -12,10 +12,10 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
+import org.mozilla.geckoview.GeckoView
 import org.mozilla.xiu.browser.R
 import org.mozilla.xiu.browser.utils.RoundedCornersTransform
 import org.mozilla.xiu.browser.utils.Utils.dip2px
-import org.mozilla.geckoview.GeckoView
 import java.net.URI
 
 @BindingAdapter(value = ["imageBitmap"], requireAll = false)
@@ -55,10 +55,14 @@ fun isActiveL(view: ProgressBar, boolean: Boolean) {
 @BindingAdapter(value = ["iconUri"], requireAll = false)
 fun loadIcon(view: ImageView, url: String?) {
     if (url == null) return
-    val uri = URI.create(url)
-    val faviconUrl = uri.scheme + "://" + uri.host + "/favicon.ico"
-    Glide.with(view.context).load(faviconUrl).placeholder(R.drawable.globe)
-        .into(view)
+    try {
+        val uri = URI.create(url)
+        val faviconUrl = uri.scheme + "://" + uri.host + "/favicon.ico"
+        Glide.with(view.context).load(faviconUrl).placeholder(R.drawable.globe)
+            .into(view)
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
 }
 @BindingAdapter(value = ["stateIcon"], requireAll = false)
 fun stateIcon(view: MaterialButton, state: Int?) {

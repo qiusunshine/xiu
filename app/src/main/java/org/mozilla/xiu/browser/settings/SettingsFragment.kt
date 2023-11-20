@@ -1,5 +1,7 @@
 package org.mozilla.xiu.browser.settings
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.findNavController
@@ -7,6 +9,7 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.greenrobot.eventbus.EventBus
+import org.mozilla.xiu.browser.MainActivity
 import org.mozilla.xiu.browser.R
 import org.mozilla.xiu.browser.utils.PreferenceMgr
 import org.mozilla.xiu.browser.video.event.FloatVideoSwitchEvent
@@ -20,6 +23,13 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.root_preferences, rootKey)
+        findPreference<Preference>("settingNewVersion")?.setOnPreferenceClickListener {
+            val intent = Intent(requireContext(), MainActivity::class.java)
+            intent.data = Uri.parse(getString(R.string.new_version_url))
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+            startActivity(intent)
+            true
+        }
         findPreference<Preference>("settingAbout")?.setOnPreferenceClickListener {
             findNavController().navigate(R.id.action_settingsFragment_to_aboutFragment)
             false

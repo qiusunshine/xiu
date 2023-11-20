@@ -96,6 +96,9 @@ object UriTool {
                 // add filtered intent to a list
                 targetIntents.add(labeledIntent)
             }
+            if(targetIntents.isEmpty()) {
+                return null
+            }
             // deal with M list seperate problem
             val chooserIntent: Intent = Intent.createChooser(intent, chooserTitle)
             // add initial intents

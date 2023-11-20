@@ -12,8 +12,8 @@ plugins {
 }
 // Optionally, set any parameters to send to the plugin.
 
-def versionCodeNew = 73
-def versionNameNew = "2.1"
+def versionCodeNew = 80
+def versionNameNew = "2.2"
 def appName = "Xiu"
 
 kapt {
@@ -223,5 +223,7 @@ dependencies {
     //brotli
     api 'com.squareup.okhttp3:okhttp-brotli:4.10.0'
     api("org.brotli:dec:0.1.2")
+    // 权限请求框架：https://github.com/getActivity/XXPermissions
+    implementation 'com.github.getActivity:XXPermissions:18.5'
 }
 

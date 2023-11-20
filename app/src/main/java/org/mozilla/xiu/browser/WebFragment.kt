@@ -84,7 +84,6 @@ class WebFragment(
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         val launcher: ActivityResultLauncher<Boolean> =
             registerForActivityResult(
                 org.mozilla.xiu.browser.utils.filePicker.ResultContract(),

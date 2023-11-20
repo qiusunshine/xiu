@@ -181,5 +181,10 @@
     <string name="location_permission_allow_all">Allow All</string>
     <string name="location_permission_deny_all">Deny All</string>
     <string name="location_permission_prompt">Prompt</string>
+    <string name="check_update">Check Update</string>
+    <string name="about_new_version">New Version</string>
+    <string name="download_request">Download File Request</string>
+    <string name="download_finished">%1$s download complete</string>
+    <string name="notify">Notify</string>
 
 </resources>

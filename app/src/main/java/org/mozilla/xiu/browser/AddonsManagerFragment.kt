@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.lxj.xpopup.XPopup
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -25,10 +26,12 @@ import org.mozilla.geckoview.WebExtensionController
 import org.mozilla.xiu.browser.componets.AddonsAdapter
 import org.mozilla.xiu.browser.databinding.FragmentAddonsManagerBinding
 import org.mozilla.xiu.browser.utils.ThreadTool
+import org.mozilla.xiu.browser.utils.ThreadTool.runOnUI
 import org.mozilla.xiu.browser.utils.ToastMgr
 import org.mozilla.xiu.browser.utils.UriUtilsPro
 import org.mozilla.xiu.browser.webextension.WebExtensionRuntimeManager
 import org.mozilla.xiu.browser.webextension.WebExtensionWrapper
+import org.mozilla.xiu.browser.webextension.WebExtensionsEnableEvent
 import org.mozilla.xiu.browser.webextension.WebExtensionsRefreshEvent
 import org.mozilla.xiu.browser.webextension.WebextensionSession
 import java.io.File
@@ -153,17 +156,15 @@ class AddonsManagerFragment : Fragment() {
         binding.textView19.text = metadata.version
         binding.textView20.text = metadata.description
         SheetBehavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
-        if (metadata.optionsPageUrl != null)
-            binding.button3.visibility = View.VISIBLE
-        else
-            binding.button3.visibility = View.GONE
+        binding.button3.isEnabled = metadata.optionsPageUrl != null
 
         binding.button3.setOnClickListener {
-            val intent = Intent(requireContext(), MainActivity::class.java)
-            intent.data = Uri.parse(metadata.optionsPageUrl)
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-            startActivity(intent)
-
+            if (metadata.optionsPageUrl != null) {
+                val intent = Intent(requireContext(), MainActivity::class.java)
+                intent.data = Uri.parse(metadata.optionsPageUrl)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+                startActivity(intent)
+            }
         }
         binding.button2.setOnClickListener {
             webExtensionController.uninstall(extension).accept {
@@ -179,7 +180,48 @@ class AddonsManagerFragment : Fragment() {
                 WebExtensionRuntimeManager.refresh()
             }
             SheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+        }
 
+        binding.button5.setOnClickListener {
+            val popupView = XPopup.Builder(context)
+                .asLoading("检测更新中，请稍候...")
+            popupView.show()
+            webExtensionController.update(extension)
+                .accept({ ext: WebExtension? ->
+                    if (ext != null) {
+                        runOnUI {
+                            popupView.dismiss()
+                            ToastMgr.shortCenter(context, "更新成功")
+                            EventBus.getDefault().post(WebExtensionsEnableEvent(extension, false))
+                            EventBus.getDefault().post(WebExtensionsEnableEvent(ext, true))
+                            webExtensionController.list().accept { list ->
+                                adapter.submitList(list?.map {
+                                    WebExtensionWrapper(
+                                        it.metaData.name,
+                                        it.metaData.enabled,
+                                        it
+                                    )
+                                })
+                            }
+                            WebExtensionRuntimeManager.refresh()
+                            openSheet(ext)
+                        }
+                    } else {
+                        runOnUI {
+                            popupView.dismiss()
+                            ToastMgr.shortCenter(
+                                context,
+                                "已是" + extension.metaData.version + "最新版"
+                            )
+                        }
+                    }
+                },
+                    { exception: Throwable? ->
+                        runOnUI {
+                            popupView.dismiss()
+                            ToastMgr.shortCenter(context, "更新失败：$exception")
+                        }
+                    })
         }
     }
 
