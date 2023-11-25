@@ -22,6 +22,10 @@ class ShortcutViewModel(application: Application) : AndroidViewModel(application
         return shortcutRepository.findShortcutsWithTitle(pattern)
     }
 
+    fun findShortcutWithUrl(url: String?): Shortcut? {
+        return shortcutRepository.findShortcutWithUrl(url)
+    }
+
     fun findShortcutsWithMix(pattern: String?): LiveData<List<Shortcut?>?>? {
         return shortcutRepository.findShortcutsWithMix(pattern)
     }

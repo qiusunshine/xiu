@@ -17,6 +17,9 @@
     <string name="dia_bookmark_url">地址：</string>
     <string name="dia_bookmark_title">名称：</string>
     <string name="dia_add_bookmark_title">添加书签</string>
+    <string name="dia_add_bookmark_success">书签添加成功</string>
+    <string name="dia_add_bookmark_exist">书签已存在</string>
+    <string name="remove_bookmark_confirm">书签已存在，确认移除书签吗？</string>
     <string name="confirm">确定</string>
     <string name="open">打开</string>
     <string name="ignore">忽略</string>
@@ -46,7 +49,9 @@
     <string name="disagree">不同意</string>
     <string name="delete">删除</string>
     <string name="add_to_homepage">添加到主页</string>
+    <string name="open_by_new_tab">在新标签页中打开</string>
     <string name="other_opening_methods">其他打开方式</string>
+    <string name="url_not_found">找不到链接</string>
     <string name="donating">捐助</string>
 
 
@@ -137,6 +142,8 @@
     <string name="shenma">https://m.sm.cn/s?q=</string>
     <string name="diySearching">自定义搜索引擎</string>
     <string name="diyAddress">自定义搜索地址</string>
+    <string name="homePageUrl">自定义主页地址</string>
+    <string name="homePageUrlSummary">可输入http/https地址</string>
     <string name="edit_diy_warnning">请务必输入正确</string>
     <string name="addons_menu_add">添加扩展程序</string>
     <string name="add_addons_from_firefox">从addons.mozilla.org获取</string>
@@ -150,6 +157,8 @@
     <string name="details">详情</string>
     <string name="no_addons">还没有扩展程序，快去添加吧。</string>
     <string name="private_mode">无痕模式</string>
+    <string name="private_mode_opened">已开启无痕模式</string>
+    <string name="private_mode_closed">已关闭无痕模式</string>
     <string name="local_files">文件管理</string>
     <string name="ExtensionProcess">扩展程序独立进程</string>
     <string name="before_unload_prompt_title">离开页面？</string>
@@ -178,7 +187,7 @@
     <string name="float_video_message">当前%1$s悬浮视频嗅探功能，开启后软件会自动嗅探检索网页中的视频资源悬浮播放，支持流畅播放、投屏等加强功能</string>
     <string name="float_video_opened">已开启</string>
     <string name="float_video_closed">未开启</string>
-    <string name="domain_config">网站配置</string>
+    <string name="domain_config">网络日志</string>
     <string name="permission_request">授权</string>
     <string name="location_permission">位置权限</string>
     <string name="location_permission_allow_all">一律允许</string>
@@ -190,5 +199,13 @@
     <string name="download_request">网页希望下载文件</string>
     <string name="download_finished">%1$s下载完成</string>
     <string name="notify">温馨提示</string>
+    <string name="type_all">全部</string>
+    <string name="type_video">视频</string>
+    <string name="type_audio">音频</string>
+    <string name="type_image">图片</string>
+    <string name="type_other">其它</string>
+    <string name="browse">访问链接</string>
+    <string name="float_play">悬浮播放</string>
+    <string name="copy_url">复制链接</string>
 
 </resources>

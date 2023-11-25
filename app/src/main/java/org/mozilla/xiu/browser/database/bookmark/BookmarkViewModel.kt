@@ -22,6 +22,14 @@ class BookmarkViewModel(application: Application) : AndroidViewModel(application
         return bookmarkRepository.findBookmarksWithTitle(pattern)
     }
 
+    fun findBookmarkWithUrl(url: String?): Bookmark? {
+        return bookmarkRepository.findBookmarkWithUrl(url)
+    }
+
+    fun findBookmarksWithUrl(url: String?): LiveData<List<Bookmark?>?>? {
+        return bookmarkRepository.findBookmarksWithUrl(url)
+    }
+
     fun findBookmarksWithShow(pattern: Boolean?): LiveData<List<Bookmark?>?>? {
         return bookmarkRepository.findBookmarksWithShow(pattern)
     }

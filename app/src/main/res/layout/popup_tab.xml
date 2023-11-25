@@ -29,7 +29,7 @@
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
+    <com.yanzhenjie.recyclerview.SwipeRecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="0dp"
         android:layout_height="@dimen/dim6"

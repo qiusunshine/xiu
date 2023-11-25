@@ -69,7 +69,7 @@ class AddonsAdapter :
                                 .post(WebExtensionsEnableEvent(bean.extension, false))
                             EventBus.getDefault().post(WebExtensionsEnableEvent(ext, true))
                             bean.extension = ext
-                            WebExtensionRuntimeManager.refresh()
+                            WebExtensionRuntimeManager.refresh(true)
                         }
                     }) { e ->
                         //操作失败了，复原数据
@@ -89,7 +89,7 @@ class AddonsAdapter :
                                 .post(WebExtensionsEnableEvent(bean.extension, false))
                             bean.extension = ext
                         }
-                        WebExtensionRuntimeManager.refresh()
+                        WebExtensionRuntimeManager.refresh(true)
                     }) { e ->
                         //操作失败了，复原数据
                         bean.enabled = true

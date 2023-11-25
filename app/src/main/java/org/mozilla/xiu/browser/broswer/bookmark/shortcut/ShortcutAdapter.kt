@@ -51,7 +51,12 @@ class ShortcutAdapter(
             lp2.height = w
             binding.materialCardView8.layoutParams = lp2
             binding.root.layoutParams = lp
-            binding.textView21.text = bean.title
+            try {
+                binding.textView21.text = bean.title.split("-")[0].trim()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                binding.textView21.text = bean.title
+            }
             when (bean.url) {
                 "hiker://bookmark" -> {
                     Glide.with(mContext)

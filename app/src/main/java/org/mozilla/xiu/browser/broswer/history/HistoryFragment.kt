@@ -3,12 +3,12 @@ package org.mozilla.xiu.browser.broswer.history
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import org.mozilla.xiu.browser.R
@@ -48,8 +48,6 @@ class HistoryFragment : Fragment() {
                 historyAdapter.submitList(histories)
                 i=1
             }
-
-
         }
 
 
@@ -64,9 +62,6 @@ class HistoryFragment : Fragment() {
                 historyViewModel.findHistoriesWithMix(s1)?.observe(viewLifecycleOwner){
                         historyAdapter.submitList(it)
                 }
-
-
-
             }
 
             override fun afterTextChanged(s: Editable?) {
@@ -83,7 +78,6 @@ class HistoryFragment : Fragment() {
             override fun onSelect(url: String) {
                 createSession(url,requireActivity())
             }
-
         }
         historyAdapter.popupSelect = object : HistoryAdapter.PopupSelect {
             override fun onPopupSelect(bean: History, item: Int) {

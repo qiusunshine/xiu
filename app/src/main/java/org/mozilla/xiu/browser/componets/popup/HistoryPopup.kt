@@ -2,19 +2,21 @@ package org.mozilla.xiu.browser.componets.popup
 
 import android.view.LayoutInflater
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.tabs.TabLayoutMediator
 import org.mozilla.xiu.browser.MainActivity
 import org.mozilla.xiu.browser.R
+import org.mozilla.xiu.browser.broswer.history.HistoryFragment
 import org.mozilla.xiu.browser.componets.CollectionAdapter
 import org.mozilla.xiu.browser.componets.HomeLivedata
-import org.mozilla.xiu.browser.broswer.history.HistoryFragment
 import org.mozilla.xiu.browser.databinding.PopupHistoryBinding
 
 class HistoryPopup {
     val context: MainActivity
     lateinit var bottomSheetDialog: BottomSheetDialog
     lateinit var binding: PopupHistoryBinding
+    private var observer: Observer<Boolean>
 
     private val fragments=listOf<Fragment>(HistoryFragment())
     constructor(
@@ -30,8 +32,12 @@ class HistoryPopup {
                 0 -> tab.setIcon(R.drawable.hourglass_split)
             }
         }.attach()
-        HomeLivedata.getInstance().observe(context){
+        observer = Observer {
             if (!it) bottomSheetDialog.dismiss()
+        }
+        HomeLivedata.getInstance().observe(context, observer)
+        bottomSheetDialog.setOnDismissListener {
+            HomeLivedata.getInstance().removeObserver(observer)
         }
 
     }

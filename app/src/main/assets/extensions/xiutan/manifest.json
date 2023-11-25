@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
   "name": "内置服务",
-  "version": "2.8",
-  "description": "内置请求监听，实现下载增强、嗅探等功能",
+  "version": "2.25",
+  "description": "内置请求监听，实现下载增强、开发调试、嗅探等功能",
   "icons": {
     "32": "images/icon.png",
     "64": "images/icon.png",
@@ -13,8 +13,8 @@
       "js/background.js"
     ]
   },
+  "web_accessible_resources": ["js/eruda.js", "js/eruda1.js"],
   "permissions": [
-    "sessions",
     "tabs",
     "webRequest",
     "*://*/*",

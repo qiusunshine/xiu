@@ -14,6 +14,7 @@ open class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        registerActivityLifecycleCallbacks(ActivityManager.instance)
         // apply dynamic color
         DynamicColors.applyToActivitiesIfAvailable(this)
         DialogX.init(this)

@@ -26,6 +26,12 @@ interface BookmarkDao {
     @Query("SELECT * FROM Bookmark WHERE title_info LIKE:pattern ORDER BY ID DESC")
     fun findBookmarksWithTitle(pattern: String?): LiveData<List<Bookmark?>?>?
 
+    @Query("SELECT * FROM Bookmark WHERE url_info = :pattern ORDER BY ID DESC")
+    fun findBookmarksWithUrl(pattern: String?): List<Bookmark?>?
+
+    @Query("SELECT * FROM Bookmark WHERE url_info = :pattern ORDER BY ID DESC")
+    fun findBookmarksWithUrl1(pattern: String?): LiveData<List<Bookmark?>?>?
+
     @Query("SELECT * FROM Bookmark WHERE show_info LIKE:pattern ORDER BY ID DESC")
     fun findBookmarksWithShow(pattern: Boolean?): LiveData<List<Bookmark?>?>?
 }

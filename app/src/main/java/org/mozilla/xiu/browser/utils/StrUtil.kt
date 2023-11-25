@@ -1,9 +1,11 @@
 package org.mozilla.xiu.browser.utils
 
 import android.text.TextUtils
+import android.util.Patterns
+import android.webkit.URLUtil
 import java.io.File
 import java.io.UnsupportedEncodingException
-import java.util.*
+import java.util.Random
 import java.util.regex.Pattern
 
 /**
@@ -247,6 +249,13 @@ object StrUtil {
         return if (isWebUrl(str)) {
             true
         } else !containsChinese(str) && str.contains(".") && !str.contains(" ")
+    }
+
+    fun isGeckoUrl(value: String): Boolean {
+        return Patterns.WEB_URL.matcher(value)
+            .matches() || URLUtil.isValidUrl(value) || value.startsWith("about:") || value.startsWith(
+            "moz-extension:"
+        )
     }
 
     fun getDom(u: String?): String? {

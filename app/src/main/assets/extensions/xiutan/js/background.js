@@ -1,5 +1,6 @@
 //请求头，结构为{tab: {request: {}}}
 var headerMap = {};
+var erudaOpen = false;
 browser.webRequest.onSendHeaders.addListener(
     function (data) {
         if (!headerMap[data.tabId]) {
@@ -65,12 +66,58 @@ function xiu2(data) {
     //console.log(data.url);
 }
 
+function addEruda(tabId, showNow) {
+   function onExecuted(result) {
+     //console.log(`We executed in all subframes`);
+   }
+
+   function onError(error) {
+     console.log(`Error: ${error}`);
+   }
+   let src = browser.runtime.getURL(showNow ? "js/eruda.js" : "js/eruda1.js");
+   //console.log(src);
+   let code = `
+       var id = "eruda-hiker";
+       var existingScript = document.getElementById(id);
+       if (!existingScript) {
+           var temp = document.createElement('script');
+           temp.setAttribute('type', 'text/javascript');
+           temp.src = "${src}";
+           temp.setAttribute('id', id);
+           temp.onload = function () {
+               //this.parentNode.removeChild(this);
+           };
+           document.head.appendChild(temp);
+       }
+   `;
+   let executing = browser.tabs.executeScript(tabId, {code: code, allFrames: true});
+   executing.then(onExecuted, onError);
+}
+
+function removeEruda(tabId) {
+   function onExecuted(result) {
+     console.log(`removeEruda: We executed in all subframes`);
+   }
+
+   function onError(error) {
+     console.log(`Error: ${error}`);
+   }
+   //console.log(src);
+   let code = "let ele = document.getElementById(id);console.log('eruda destroy, ' + ele);if(ele) location.reload();";
+   let executing = browser.tabs.executeScript(tabId, {code: code, allFrames: true});
+   executing.then(onExecuted, onError);
+}
+
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
     if (changeInfo.status == "loading") {
         if (headerMap[tabId]) {
             delete headerMap[tabId];
         }
-    }
+    } else if (changeInfo.status === 'complete') {
+       if(erudaOpen) {
+            addEruda(tabId, false);
+       }
+     }
 });
 
 chrome.tabs.onRemoved.addListener(function (tabId) {
@@ -95,7 +142,22 @@ port.onMessage.addListener(function(message) {
       let executing = browser.tabs.executeScript(activeTab.id, {code: code, allFrames: true});
       executing.then(onExecuted, onError);
     });
-  }
+  } else if(message.type == "eruda") {
+     if(erudaOpen) {
+          erudaOpen = false;
+          browser.tabs.query({}, function(tabs) {
+            for(const tab of tabs) {
+                removeEruda(tab.id);
+            }
+          });
+     } else {
+         browser.tabs.query({active: true, currentWindow: true}, function(tabs) {
+           var activeTab = tabs[0];
+           erudaOpen = true;
+           addEruda(activeTab.id, true);
+         });
+     }
+   }
 });
 
 

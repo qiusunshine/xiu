@@ -23,6 +23,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -31,6 +32,7 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.sidesheet.SideSheetBehavior
 import com.google.android.material.snackbar.BaseTransientBottomBar
@@ -53,6 +55,7 @@ import org.mozilla.xiu.browser.componets.CollectionAdapter
 import org.mozilla.xiu.browser.componets.HomeLivedata
 import org.mozilla.xiu.browser.componets.popup.MenuPopup
 import org.mozilla.xiu.browser.componets.popup.TabPopup
+import org.mozilla.xiu.browser.database.history.History
 import org.mozilla.xiu.browser.database.history.HistoryViewModel
 import org.mozilla.xiu.browser.databinding.ActivityMainBinding
 import org.mozilla.xiu.browser.databinding.PrivacyAgreementLayoutBinding
@@ -66,6 +69,7 @@ import org.mozilla.xiu.browser.utils.FileUtil
 import org.mozilla.xiu.browser.utils.PreferenceMgr
 import org.mozilla.xiu.browser.utils.SoftKeyBoardListener.OnSoftKeyBoardChangeListener
 import org.mozilla.xiu.browser.utils.StatusUtils
+import org.mozilla.xiu.browser.utils.StrUtil
 import org.mozilla.xiu.browser.utils.StringUtil
 import org.mozilla.xiu.browser.utils.ThreadTool
 import org.mozilla.xiu.browser.utils.ThreadTool.postDelayed
@@ -74,6 +78,7 @@ import org.mozilla.xiu.browser.utils.UriUtilsPro
 import org.mozilla.xiu.browser.video.FloatVideoController
 import org.mozilla.xiu.browser.video.FloatVideoController.WebHolder
 import org.mozilla.xiu.browser.video.VideoDetector
+import org.mozilla.xiu.browser.video.event.FloatPlayEvent
 import org.mozilla.xiu.browser.video.event.FloatVideoSwitchEvent
 import org.mozilla.xiu.browser.video.model.DetectedMediaResult
 import org.mozilla.xiu.browser.video.model.Media
@@ -162,8 +167,6 @@ class MainActivity : AppCompatActivity(), DetectorListener {
 
         StatusUtils.init(this, binding.root)
         WebextensionSession(this)
-        //初始化一下
-        WebExtensionRuntimeManager
 
         onBackPressedDispatcher.addCallback(this, onBackPress)
         geckoViewModel = ViewModelProvider(this)[GeckoViewModel::class.java]
@@ -274,20 +277,25 @@ class MainActivity : AppCompatActivity(), DetectorListener {
             }
 
         }
+        val tipsObserver = { it: List<History?>? ->
+            tipsAdapter.submitList(it)
+        }
+        val tipsLiveDataHolder = VarHolder<LiveData<List<History?>?>?>()
         binding.SearchText?.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
 
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                var s1 = s.toString().trim()
+                val s1 = s.toString().trim()
                 if (s1 != "") {
-                    historyViewModel.findHistoriesWithMix(s1)?.observe(this@MainActivity) {
-                        tipsAdapter.submitList(it)
+                    if (tipsLiveDataHolder.data != null) {
+                        //让其释放资源
+                        tipsLiveDataHolder.data?.removeObserver(tipsObserver)
                     }
+                    tipsLiveDataHolder.data = historyViewModel.findHistoriesWithMix(s1)
+                    tipsLiveDataHolder.data?.observe(this@MainActivity, tipsObserver)
                 }
-
-
             }
 
             override fun afterTextChanged(s: Editable?) {
@@ -321,6 +329,10 @@ class MainActivity : AppCompatActivity(), DetectorListener {
         binding.materialButtonMenu?.setOnClickListener { MenuPopup(this).show() }
         binding.materialButtonHome?.setOnClickListener { HomeLivedata.getInstance().Value(true) }
         binding.materialButtonTab?.setOnClickListener { TabPopup(this).show() }
+        binding.materialButtonTab?.setOnLongClickListener {
+            HomeLivedata.getInstance().Value(true)
+            true
+        }
         binding.addButton?.setOnClickListener { HomeLivedata.getInstance().Value(true) }
         binding.content.popupCloseButton?.setOnClickListener {
             bottomSheetBehavior?.state = BottomSheetBehavior.STATE_COLLAPSED
@@ -374,8 +386,6 @@ class MainActivity : AppCompatActivity(), DetectorListener {
         })
 
 
-
-
         DelegateLivedata.getInstance().observe(this) {
             binding.user = it
         }
@@ -391,8 +401,22 @@ class MainActivity : AppCompatActivity(), DetectorListener {
         HomeLivedata.getInstance().observe(this) {
             isHome = it
             if (it) {
-                binding.content.viewPager.currentItem = 0
-                binding.urlText?.setText("")
+                val newTabUrl = WebExtensionRuntimeManager.findHomePageUrl()
+                if (newTabUrl.isNullOrEmpty()) {
+                    binding.content.viewPager.currentItem = 0
+                    binding.urlText?.setText("")
+                } else {
+                    val list = DelegateListLiveData.getInstance().value ?: emptyList()
+                    for (sessionDelegate in list) {
+                        if (sessionDelegate.u == newTabUrl) {
+                            if (DelegateLivedata.getInstance().value != sessionDelegate) {
+                                DelegateLivedata.getInstance().Value(sessionDelegate)
+                            }
+                            return@observe
+                        }
+                    }
+                    createSession(newTabUrl, this@MainActivity)
+                }
             } else {
                 binding.content.viewPager.currentItem = 1
                 bottomSheetBehavior?.state = BottomSheetBehavior.STATE_COLLAPSED
@@ -410,6 +434,8 @@ class MainActivity : AppCompatActivity(), DetectorListener {
         if (uri != null) {
             createSession(uri.toString(), this)
         }
+        //初始化一下
+        WebExtensionRuntimeManager
         ThreadTool.async {
             val fileDirPath: String =
                 UriUtilsPro.getRootDir(getContext()) + File.separator + "_cache"
@@ -439,6 +465,40 @@ class MainActivity : AppCompatActivity(), DetectorListener {
                 request.requestHeaderMap,
                 true
             )
+        }
+    }
+
+    @Subscribe
+    fun onFloatPlay(event: FloatPlayEvent) {
+        val request = event.request
+        if (floatVideoController != null) {
+            val session = DelegateLivedata.getInstance().value
+            val uri: String = request.documentUrl ?: session?.u ?: request.url!!
+            floatVideoController!!.show(
+                request.url,
+                uri,
+                session?.mTitle ?: request.url,
+                request.requestHeaderMap,
+                true
+            )
+        } else {
+            val context = getContext()
+            val c = ContextCompat.getString(context, R.string.open)
+            val m = ContextCompat.getString(context, R.string.float_video_closed)
+            MaterialAlertDialogBuilder(context)
+                .setTitle(ContextCompat.getString(context, R.string.float_video))
+                .setMessage(getString(R.string.float_video_message, m))
+                .setPositiveButton(c) { d, _ ->
+                    PreferenceMgr.put(getContext(), "float_xiutan", true)
+                    if (floatVideoController == null) {
+                        initFloatVideo()
+                    }
+                    ToastMgr.shortBottomCenter(getContext(), "已开启悬浮嗅探")
+                    onFloatPlay(event)
+                    d.dismiss()
+                }.setNegativeButton(getString(R.string.cancel)) { d, _ ->
+                    d.dismiss()
+                }.show()
         }
     }
 
@@ -493,7 +553,7 @@ class MainActivity : AppCompatActivity(), DetectorListener {
                     if (mt != MediaType.VIDEO) {
                         return emptyList()
                     }
-                    val webFragment = fragments[1] as WebFragment
+                    val webFragment = getWebFragment()
                     if (StringUtils.equals(
                             webUrl,
                             webFragment.sessiondelegate.u
@@ -536,7 +596,7 @@ class MainActivity : AppCompatActivity(), DetectorListener {
     fun showOpenAppIntent(event: OpenAppIntentEvent) {
         val holder = VarHolder(false)
         make(
-            (fragments[1] as WebFragment).getCoordinatorLayout(),
+            getWebFragment().getCoordinatorLayout(),
             getString(R.string.intent_message),
             Snackbar.LENGTH_LONG
         )
@@ -564,6 +624,7 @@ class MainActivity : AppCompatActivity(), DetectorListener {
     override fun onPause() {
         super.onPause()
         floatVideoController?.onPause()
+        DelegateLivedata.getInstance().value?.pause()
     }
 
 
@@ -610,9 +671,15 @@ class MainActivity : AppCompatActivity(), DetectorListener {
         port?.postMessage(jsonObject)
     }
 
+    fun showEruda() {
+        val jsonObject = JSONObject()
+        jsonObject.put("type", "eruda")
+        port?.postMessage(jsonObject)
+    }
+
     @Subscribe
     fun onRequestEvent(event: TabRequestEvent) {
-        val webFragment = fragments[1] as WebFragment
+        val webFragment = getWebFragment()
         val request = TabRequest(event.json)
         //Log.d("test", "onMessage: " + request.url + ", documentUrl: " + request.documentUrl)
         if (StringUtils.equals(
@@ -667,8 +734,16 @@ class MainActivity : AppCompatActivity(), DetectorListener {
         return super.onCreateView(name, context, attrs)
     }
 
+    private fun getWebFragment(): WebFragment {
+        return fragments[1] as WebFragment
+    }
+
     private val onBackPress = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
+            if (binding.content.viewPager.currentItem == 1 && getWebFragment().isErrorShown() && binding.user?.session != null) {
+                binding.user?.session?.reload()
+                return
+            }
             if (floatVideoController != null && floatVideoController!!.onBackPressed()) {
                 return
             }
@@ -764,12 +839,11 @@ class MainActivity : AppCompatActivity(), DetectorListener {
                     binding.SearchText?.clearFocus()
                 }
             })
+        DelegateLivedata.getInstance().value?.resume()
     }
 
     fun searching(value: String) {
-        if (Patterns.WEB_URL.matcher(value)
-                .matches() || URLUtil.isValidUrl(value) || value.startsWith("about:")
-        ) {
+        if (StrUtil.isGeckoUrl(value)) {
             if (binding.content.viewPager.currentItem == 1)
                 binding.user?.session?.loadUri(value)
             else

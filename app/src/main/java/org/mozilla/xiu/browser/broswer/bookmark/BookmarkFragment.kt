@@ -25,27 +25,27 @@ import org.mozilla.xiu.browser.utils.GroupUtils
  * create an instance of this fragment.
  */
 class BookmarkFragment : Fragment() {
-    lateinit var binding:FragmentBookmarkBinding
+    lateinit var binding: FragmentBookmarkBinding
     private lateinit var bookmarkViewModel: BookmarkViewModel
     private lateinit var shortcutViewModel: ShortcutViewModel
     private var bookmarks: List<Bookmark?>? = null
-    var i:Int = 0
+    var i: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        bookmarkViewModel = ViewModelProvider(requireActivity()).get<BookmarkViewModel>(BookmarkViewModel::class.java)
+        bookmarkViewModel =
+            ViewModelProvider(requireActivity()).get<BookmarkViewModel>(BookmarkViewModel::class.java)
         shortcutViewModel = ViewModelProvider(this)[ShortcutViewModel::class.java]
-
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding=FragmentBookmarkBinding.inflate(LayoutInflater.from(requireContext()))
+        binding = FragmentBookmarkBinding.inflate(LayoutInflater.from(requireContext()))
 
-        var bookmarkAdapter= BookmarkAdapter()
-        binding.bookmarkRecyclerview.adapter=bookmarkAdapter
+        var bookmarkAdapter = BookmarkAdapter()
+        binding.bookmarkRecyclerview.adapter = bookmarkAdapter
         binding.bookmarkRecyclerview.layoutManager = LinearLayoutManager(context)
 
         binding.BookmarkFragmentEdittext?.addTextChangedListener(object : TextWatcher {
@@ -55,10 +55,10 @@ class BookmarkFragment : Fragment() {
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 //var s1=s.toString().trim()
-                bookmarkViewModel.findBookmarksWithPattern(s.toString())?.observe(viewLifecycleOwner){
-                    bookmarkAdapter.submitList(it)
-                }
-
+                bookmarkViewModel.findBookmarksWithPattern(s.toString())
+                    ?.observe(viewLifecycleOwner) {
+                        bookmarkAdapter.submitList(it)
+                    }
 
 
             }
@@ -69,43 +69,46 @@ class BookmarkFragment : Fragment() {
         })
 
 
-        bookmarkViewModel.allBookmarksLive?.observe(requireActivity()){
+        bookmarkViewModel.allBookmarksLive?.observe(viewLifecycleOwner) {
             if (i == 0) {
-                val groupUtils= it?.let { it1 -> GroupUtils(it1) }
+                val groupUtils = it?.let { it1 -> GroupUtils(it1) }
                 if (groupUtils != null) {
                     bookmarks = groupUtils.groupBookmark()
                     bookmarkAdapter.submitList(groupUtils.groupBookmark())
                 }
-                i=1
+                i = 1
             }
 
         }
 
-        bookmarkAdapter.select= object : BookmarkAdapter.Select {
+        bookmarkAdapter.select = object : BookmarkAdapter.Select {
             override fun onSelect(url: String) {
-                createSession(url,requireActivity())
+                createSession(url, requireActivity())
             }
 
         }
         bookmarkAdapter.popupSelect = object : BookmarkAdapter.PopupSelect {
             override fun onPopupSelect(bean: Bookmark, item: Int) {
-                when(item){
-                    HistoryAdapter.DELETE ->{
+                when (item) {
+                    HistoryAdapter.DELETE -> {
                         bookmarkViewModel.deleteBookmarks(bean)
                         bookmarks = bookmarks?.toMutableList()?.apply { remove(bean) }
                         bookmarkAdapter.submitList(bookmarks)
 
                     }
-                    HistoryAdapter.ADD_TO_HOMEPAGE ->{
-                        shortcutViewModel.insertShortcuts(Shortcut(bean.url,bean.title,System.currentTimeMillis().toInt()))
+
+                    HistoryAdapter.ADD_TO_HOMEPAGE -> {
+                        shortcutViewModel.insertShortcuts(
+                            Shortcut(
+                                bean.url,
+                                bean.title,
+                                System.currentTimeMillis().toInt()
+                            )
+                        )
                     }
                 }
             }
-
         }
-
         return binding.root
     }
-
-
 }

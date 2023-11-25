@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/network_copy"
+        android:title="@string/copy_url" />
+    <item
+        android:id="@+id/network_browse"
+        android:title="@string/browse" />
+    <item
+        android:id="@+id/network_float_play"
+        android:title="@string/float_play" />
+</menu>

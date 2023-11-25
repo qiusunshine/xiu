@@ -167,6 +167,7 @@ class AddonsManagerFragment : Fragment() {
             }
         }
         binding.button2.setOnClickListener {
+            val id = extension.id
             webExtensionController.uninstall(extension).accept {
                 webExtensionController.list().accept { list ->
                     adapter.submitList(list?.map {
@@ -178,6 +179,7 @@ class AddonsManagerFragment : Fragment() {
                     })
                 }
                 WebExtensionRuntimeManager.refresh()
+                WebExtensionRuntimeManager.removeNewTabRecord(id)
             }
             SheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
         }
@@ -203,7 +205,7 @@ class AddonsManagerFragment : Fragment() {
                                     )
                                 })
                             }
-                            WebExtensionRuntimeManager.refresh()
+                            WebExtensionRuntimeManager.refresh(true)
                             openSheet(ext)
                         }
                     } else {

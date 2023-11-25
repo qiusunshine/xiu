@@ -39,6 +39,19 @@ class BookmarkRepository internal constructor(context: Context) {
         return bookmarkDao!!.findBookmarksWithTitle(pattern)
     }
 
+    fun findBookmarkWithUrl(url: String?): Bookmark? {
+        val list = bookmarkDao!!.findBookmarksWithUrl(url)
+        return if (list.isNullOrEmpty()) {
+            return null
+        } else {
+            list.firstOrNull()
+        }
+    }
+
+    fun findBookmarksWithUrl(url: String?): LiveData<List<Bookmark?>?>? {
+        return bookmarkDao!!.findBookmarksWithUrl1(url)
+    }
+
     fun findBookmarksWithShow(pattern: Boolean?): LiveData<List<Bookmark?>?>? {
         return bookmarkDao!!.findBookmarksWithShow(pattern)
     }

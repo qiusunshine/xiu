@@ -18,6 +18,9 @@
     <string name="dia_bookmark_url">Address:</string>
     <string name="dia_bookmark_title">Name:</string>
     <string name="dia_add_bookmark_title">Add Bookmark</string>
+    <string name="dia_add_bookmark_success">Bookmark Added</string>
+    <string name="dia_add_bookmark_exist">Bookmark Exist</string>
+    <string name="remove_bookmark_confirm">Remove Bookmark ?</string>
     <string name="confirm">Confirm</string>
     <string name="open">Open</string>
     <string name="close">Close</string>
@@ -59,6 +62,8 @@
     <string name="signature_title">Your signature</string>
     <string name="reply_title">Default reply action</string>
     <string name="other_opening_methods">Other opening methods</string>
+    <string name="open_by_new_tab">Open by new tab</string>
+    <string name="url_not_found">Url not found</string>
 
     <!-- Sync Preferences -->
     <string name="sync_title">Sync email periodically</string>
@@ -133,6 +138,8 @@
     <string name="shenma">https://m.sm.cn/s?q=</string>
     <string name="diySearching">Custom search engines</string>
     <string name="diyAddress">Customize the search address</string>
+    <string name="homePageUrl">Customize home page url</string>
+    <string name="homePageUrlSummary">support http/https address</string>
     <string name="edit_diy_warnning">Make sure you enter it correctly</string>
     <string name="addons_menu_add">Get the add-ons</string>
     <string name="add_addons_from_firefox">Get from addons.mozilla.org</string>
@@ -146,6 +153,8 @@
     <string name="details">Details</string>
     <string name="no_addons">No add-ons yet, so go ahead and add them.</string>
     <string name="private_mode">PrivateMode</string>
+    <string name="private_mode_opened">PrivateMode Opened</string>
+    <string name="private_mode_closed">PrivateMode Closed</string>
     <string name="donating">Donate</string>
     <string name="local_files">Local Files</string>
     <string name="ExtensionProcess">Extensions Process</string>
@@ -186,5 +195,13 @@
     <string name="download_request">Download File Request</string>
     <string name="download_finished">%1$s download complete</string>
     <string name="notify">Notify</string>
+    <string name="type_all">All</string>
+    <string name="type_video">Video</string>
+    <string name="type_audio">Audio</string>
+    <string name="type_image">Image</string>
+    <string name="type_other">Other</string>
+    <string name="browse">Browse Url</string>
+    <string name="float_play">Float Play</string>
+    <string name="copy_url">Copy Url</string>
 
 </resources>

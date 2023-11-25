@@ -12,8 +12,8 @@ plugins {
 }
 // Optionally, set any parameters to send to the plugin.
 
-def versionCodeNew = 80
-def versionNameNew = "2.2"
+def versionCodeNew = 90
+def versionNameNew = "2.3"
 def appName = "Xiu"
 
 kapt {
@@ -140,9 +140,9 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0'
 
 
-    def gecko_version = "121.0.20231109165012"
+    def gecko_version = "120.0.20231116134553"
     def mozilla_version = "120.0b8"
-    implementation ("org.mozilla.geckoview:geckoview-nightly:$gecko_version")
+    implementation ("org.mozilla.geckoview:geckoview:$gecko_version")
     implementation ("org.mozilla.components:browser-storage-sync:$mozilla_version")
     implementation ("org.mozilla.components:service-firefox-accounts:$mozilla_version")
     implementation ("org.mozilla.components:service-sync-logins:$mozilla_version")
@@ -225,5 +225,8 @@ dependencies {
     api("org.brotli:dec:0.1.2")
     // 权限请求框架：https://github.com/getActivity/XXPermissions
     implementation 'com.github.getActivity:XXPermissions:18.5'
+
+    implementation "com.github.luqiming666:SwipeRecyclerView:1.4.8"
+
 }
 

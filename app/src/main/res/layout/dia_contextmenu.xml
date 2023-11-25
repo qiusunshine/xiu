@@ -33,15 +33,25 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/diaContextmenuCopyButton"
+            android:id="@+id/diaContextmenuNewTabButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
+            android:text="@string/open_by_new_tab"
+            app:icon="@drawable/arrow_up_right_circle_fill"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/imageView19" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/diaContextmenuCopyButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
             android:text="@string/copy"
             app:icon="@drawable/clipboard_fill"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/imageView19" />
+            app:layout_constraintTop_toBottomOf="@+id/diaContextmenuNewTabButton" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/diaContextmenuOpenButton"

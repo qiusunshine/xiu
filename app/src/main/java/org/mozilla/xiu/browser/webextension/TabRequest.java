@@ -14,9 +14,10 @@ import java.util.Map;
 
 public class TabRequest {
 
+    public static final String ALL = "全部";
     public static final String OTHER = "其它";
     public static final String VIDEO = "视频";
-    public static final String MUSIC = "音频";
+    public static final String AUDIO = "音频";
     public static final String IMAGE = "图片";
 
 

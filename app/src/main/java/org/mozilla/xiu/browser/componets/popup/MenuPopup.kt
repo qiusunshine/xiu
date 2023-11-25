@@ -3,12 +3,14 @@ package org.mozilla.xiu.browser.componets.popup
 import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import kotlinx.coroutines.launch
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.mozilla.geckoview.GeckoRuntime
 import org.mozilla.geckoview.GeckoSessionSettings
 import org.mozilla.geckoview.StorageController.ClearFlags.ALL
@@ -18,12 +20,13 @@ import org.mozilla.xiu.browser.R
 import org.mozilla.xiu.browser.componets.BookmarkDialog
 import org.mozilla.xiu.browser.componets.HomeLivedata
 import org.mozilla.xiu.browser.componets.MenuAddonsAdapater
+import org.mozilla.xiu.browser.database.bookmark.Bookmark
 import org.mozilla.xiu.browser.database.bookmark.BookmarkViewModel
 import org.mozilla.xiu.browser.databinding.PopupMenuBinding
 import org.mozilla.xiu.browser.session.DelegateLivedata
-import org.mozilla.xiu.browser.session.PrivacyFlow
+import org.mozilla.xiu.browser.session.PrivacyModeLivedata
 import org.mozilla.xiu.browser.session.SessionDelegate
-import org.mozilla.xiu.browser.utils.FilesInAppUtil
+import org.mozilla.xiu.browser.utils.PreferenceMgr
 import org.mozilla.xiu.browser.utils.ShareUtil
 import org.mozilla.xiu.browser.utils.ToastMgr
 
@@ -35,7 +38,11 @@ class MenuPopup {
     private var bookmarkViewModel: BookmarkViewModel
     private var sessionDelegate: SessionDelegate? = null
     var isHome: Boolean = true
-    var isPrivacy: Boolean = false
+    private var homeObserver: Observer<Boolean>
+    private var delegateLiveObserver: Observer<SessionDelegate>
+    private var bookmarkObserver: Observer<List<Bookmark?>?>
+    private var bookmarkValueLiveData: LiveData<List<Bookmark?>?>? = null
+    private var privacyObserver: Observer<Boolean>
 
     constructor(
         context: MainActivity,
@@ -43,24 +50,73 @@ class MenuPopup {
         this.context = context
         bottomSheetDialog = BottomSheetDialog(context, R.style.BottomSheetDialog)
         bookmarkViewModel =
-            ViewModelProvider(context).get<BookmarkViewModel>(BookmarkViewModel::class.java)
+            ViewModelProvider(context).get(BookmarkViewModel::class.java)
         binding = PopupMenuBinding.inflate(LayoutInflater.from(context))
         bottomSheetDialog.setContentView(binding.root)
-        var privacyRename = ViewModelProvider(context)[PrivacyFlow::class.java]
-
-        DelegateLivedata.getInstance().observe(context) {
+        homeObserver = Observer {
+            isHome = it
+            if (it) {
+                binding.constraintLayout5.visibility = View.GONE
+            } else {
+                binding.constraintLayout5.visibility = View.VISIBLE
+            }
+        }
+        binding.starButton.setOnClickListener {
+            if (sessionDelegate != null) {
+                BookmarkDialog(context, sessionDelegate!!.mTitle, sessionDelegate!!.u).show()
+            }
+        }
+        bookmarkObserver = Observer {
+            if (!it.isNullOrEmpty()) {
+                val bookmark = it[0]
+                binding.starButton.icon = ContextCompat.getDrawable(context, R.drawable.star_fill)
+                binding.starButton.setOnClickListener {
+                    MaterialAlertDialogBuilder(context)
+                        .setTitle(context.getString(R.string.remove_bookmark_confirm))
+                        .setNegativeButton(context.getString(R.string.cancel)) { _, _ -> }
+                        .setPositiveButton(context.getString(R.string.confirm)) { _, _ ->
+                            bookmarkViewModel.deleteBookmarks(bookmark)
+                            binding.starButton.icon =
+                                ContextCompat.getDrawable(context, R.drawable.star2)
+                        }
+                        .show()
+                }
+            } else {
+                binding.starButton.icon = ContextCompat.getDrawable(context, R.drawable.star2)
+                binding.starButton.setOnClickListener {
+                    if (sessionDelegate != null) {
+                        BookmarkDialog(
+                            context,
+                            sessionDelegate!!.mTitle,
+                            sessionDelegate!!.u
+                        ).show()
+                    }
+                }
+            }
+        }
+        delegateLiveObserver = Observer {
             sessionDelegate = it
             binding.user = sessionDelegate
-
-        }
-        context.lifecycleScope.launch {
-            privacyRename.data.collect() { value: Boolean ->
-                isPrivacy = value
-                if (value)
-                    binding.privacyButton.icon = context.getDrawable(R.drawable.icon_privacy_fill)
-                else
-                    binding.privacyButton.icon = context.getDrawable(R.drawable.icon_privacy)
+            if (it.u.isNotEmpty()) {
+                bookmarkValueLiveData = bookmarkViewModel.findBookmarksWithUrl(sessionDelegate!!.u)
+                bookmarkValueLiveData?.observe(context, bookmarkObserver)
             }
+        }
+        privacyObserver = Observer {
+            if (it) {
+                binding.privacyButton.icon = context.getDrawable(R.drawable.icon_privacy_fill)
+            } else {
+                binding.privacyButton.icon = context.getDrawable(R.drawable.icon_privacy)
+            }
+        }
+        HomeLivedata.getInstance().observe(context, homeObserver)
+        DelegateLivedata.getInstance().observe(context, delegateLiveObserver)
+        PrivacyModeLivedata.getInstance().observe(context, privacyObserver)
+        bottomSheetDialog.setOnDismissListener {
+            HomeLivedata.getInstance().removeObserver(homeObserver)
+            DelegateLivedata.getInstance().removeObserver(delegateLiveObserver)
+            bookmarkValueLiveData?.removeObserver(bookmarkObserver)
+            PrivacyModeLivedata.getInstance().removeObserver(privacyObserver)
         }
         binding.materialButton16.setOnClickListener {
             binding.constraintLayout13.setTransition(R.id.top_start, R.id.top_end)
@@ -86,33 +142,29 @@ class MenuPopup {
                 binding.constraintLayout13.transitionToEnd()
             }
         }
-
-        HomeLivedata.getInstance().observe(context) {
-            isHome = it
-            if (it) {
-                binding.constraintLayout5.visibility = View.GONE
-            } else {
-                binding.constraintLayout5.visibility = View.VISIBLE
-            }
-        }
         binding.downloadButton.setOnClickListener {
-            var intent = Intent(context, HolderActivity::class.java)
+            val intent = Intent(context, HolderActivity::class.java)
             intent.putExtra("Page", "DOWNLOAD")
             context.startActivity(intent)
             bottomSheetDialog.dismiss()
         }
         binding.settingButton.setOnClickListener {
-            var intent = Intent(context, HolderActivity::class.java)
+            val intent = Intent(context, HolderActivity::class.java)
             intent.putExtra("Page", "SETTINGS")
             context.startActivity(intent)
             bottomSheetDialog.dismiss()
-
         }
         binding.privacyButton.setOnClickListener {
-            if (isPrivacy)
-                privacyRename.changeMode(false)
-            else
-                privacyRename.changeMode(true)
+            val isPrivacy = PrivacyModeLivedata.getInstance().value ?: false
+            if (isPrivacy) {
+                PreferenceMgr.remove(context, "privacyMode")
+                PrivacyModeLivedata.getInstance().Value(false)
+                ToastMgr.shortBottomCenter(context, context.getString(R.string.private_mode_closed))
+            } else {
+                PreferenceMgr.put(context, "privacyMode", true)
+                PrivacyModeLivedata.getInstance().Value(true)
+                ToastMgr.shortBottomCenter(context, context.getString(R.string.private_mode_opened))
+            }
             bottomSheetDialog.dismiss()
         }
         binding.bookmarkButton.setOnClickListener {
@@ -123,12 +175,6 @@ class MenuPopup {
         binding.historyButton.setOnClickListener {
             HistoryPopup(context).show()
             bottomSheetDialog.dismiss()
-
-        }
-        binding.starButton.setOnClickListener {
-            if (sessionDelegate != null) {
-                BookmarkDialog(context, sessionDelegate!!.mTitle, sessionDelegate!!.u).show()
-            }
         }
 
         binding.shareButton.setOnClickListener {
@@ -148,7 +194,6 @@ class MenuPopup {
             if (!isHome)
                 sessionDelegate?.session?.goForward()
             bottomSheetDialog.dismiss()
-
         }
         binding.dataClearingButton.setOnClickListener {
             sessionDelegate?.let { it1 ->
@@ -207,16 +252,18 @@ class MenuPopup {
         }
         binding.devButton.setOnClickListener {
             bottomSheetDialog.dismiss()
-            context.evaluateJavaScript(
-                FilesInAppUtil.getAssetsString(context, "eruda.js")
-            )
+            context.showEruda()
         }
         binding.floatButton.setOnClickListener {
             bottomSheetDialog.dismiss()
             context.changeFloatVideoSwitch()
         }
         binding.domainButton.setOnClickListener {
-            ToastMgr.shortBottomCenter(context, "开发中，敬请期待")
+            //ToastMgr.shortBottomCenter(context, "开发中，敬请期待")
+            bottomSheetDialog.dismiss()
+            DelegateLivedata.getInstance().value?.let {
+                NetworkPopup(context, it).show()
+            }
         }
     }
 

@@ -17,10 +17,12 @@ import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.WebExtension
 import org.mozilla.geckoview.WebExtension.InstallException
 import org.mozilla.geckoview.WebExtensionController
+import org.mozilla.xiu.browser.App
 import org.mozilla.xiu.browser.R
 import org.mozilla.xiu.browser.componets.HomeLivedata
 import org.mozilla.xiu.browser.session.DelegateLivedata
 import org.mozilla.xiu.browser.session.GeckoViewModel
+import org.mozilla.xiu.browser.session.SeRuSettings
 import org.mozilla.xiu.browser.tab.DelegateListLiveData
 import org.mozilla.xiu.browser.tab.RemoveTabLiveData
 import org.mozilla.xiu.browser.utils.FileUtil
@@ -30,6 +32,8 @@ import org.mozilla.xiu.browser.utils.ThreadTool.runOnUI
 import org.mozilla.xiu.browser.utils.ToastMgr
 import org.mozilla.xiu.browser.utils.UriUtilsPro
 import org.mozilla.xiu.browser.utils.ZipUtils
+import rxhttp.toDownloadFlow
+import rxhttp.wrapper.param.RxHttp
 import java.io.File
 import java.util.UUID
 
@@ -67,6 +71,12 @@ class WebextensionSession {
                 return GeckoResult.allow()
             }
         }
+//        webExtensionController.setAddonManagerDelegate(object :
+//            WebExtensionController.AddonManagerDelegate {
+//            override fun onReady(extension: WebExtension) {
+//                WebExtensionRuntimeManager.onReady(extension)
+//            }
+//        })
         webExtensionController.list().accept {
             if (it != null) {
                 for (i in it)
@@ -84,7 +94,7 @@ class WebextensionSession {
                 async(Runnable {
                     try {
                         val name: String =
-                            File(uri.replace("file://", "")).getName().replace(".crx", "")
+                            File(uri.replace("file://", "")).name.replace(".crx", "")
                         val fileDirPath: String =
                             ((UriUtilsPro.getRootDir(context) + File.separator) + "_cache" + File.separator) + name
                         FileUtil.deleteDirs(fileDirPath)
@@ -93,7 +103,7 @@ class WebextensionSession {
                         val m = File(fileDirPath + File.separator + "manifest.json")
                         if (m.exists()) {
                             val json: JSONObject =
-                                JSON.parseObject(FileUtil.fileToString(m.getAbsolutePath()))
+                                JSON.parseObject(FileUtil.fileToString(m.absolutePath))
                             if (json.containsKey("options_page")) {
                                 val optionsUi = JSONObject()
                                 optionsUi.put("page", json.getString("options_page"))
@@ -102,14 +112,24 @@ class WebextensionSession {
                                 json.put("options_ui", optionsUi)
                                 json.remove("options_page")
                             }
-                            if (json.containsKey("permissions")) {
-                                val permissions: JSONArray = json.getJSONArray("permissions")
-                                if (permissions.contains("webRequest") && !permissions.contains("webRequestBlocking")) {
-                                    permissions.add(
-                                        permissions.indexOf("webRequest") + 1,
-                                        "webRequestBlocking"
-                                    )
+                            if (!json.containsKey("permissions")) {
+                                json["permissions"] = JSONArray()
+                            }
+                            val permissions: JSONArray = json.getJSONArray("permissions")
+                            if (json.containsKey("optional_permissions")) {
+                                val optionalPermissions: JSONArray =
+                                    json.getJSONArray("optional_permissions")
+                                for (optionalPermission in optionalPermissions) {
+                                    if (!permissions.contains(optionalPermission)) {
+                                        permissions.add(optionalPermission)
+                                    }
                                 }
+                            }
+                            if (permissions.contains("webRequest") && !permissions.contains("webRequestBlocking")) {
+                                permissions.add(
+                                    permissions.indexOf("webRequest") + 1,
+                                    "webRequestBlocking"
+                                )
                             }
                             if (json.containsKey("background")) {
                                 val background: JSONObject = json.getJSONObject("background")
@@ -120,18 +140,72 @@ class WebextensionSession {
                                     background.remove("service_worker")
                                 }
                             }
+                            //解决青柠起始页等扩展无权限的问题
+                            if (json.containsKey("content_scripts")) {
+                                val contentScripts: JSONArray? =
+                                    json.getJSONArray("content_scripts")
+                                if (contentScripts != null) {
+                                    for (index in 0 until contentScripts.size) {
+                                        val script = contentScripts.getJSONObject(index)
+                                        if (script?.containsKey("matches") == true) {
+                                            if (!permissions.contains("<all_urls>")) {
+                                                permissions.add("<all_urls>")
+                                            }
+                                            break
+                                        }
+                                    }
+                                }
+                            }
                             json.remove("update_url")
                             val gecko = JSONObject()
-                            gecko.put("id", "{" + UUID.randomUUID().toString() + "}")
-                            gecko.put("strict_min_version", "63.0")
+                            var id = "{" + UUID.randomUUID().toString() + "}"
+                            var name1 = json.getString("name")
+                            if (name1?.startsWith("__MSG_") == true) {
+                                val key = name1.replace("__MSG_", "").replace("__", "")
+                                var f =
+                                    File(fileDirPath + File.separator + "_locales" + File.separator + "zh_CN" + File.separator + "messages.json")
+                                if (!f.exists()) {
+                                    f =
+                                        File(fileDirPath + File.separator + "_locales" + File.separator + "zh_TW" + File.separator + "messages.json")
+                                }
+                                if (!f.exists()) {
+                                    f =
+                                        File(fileDirPath + File.separator + "_locales" + File.separator + "en" + File.separator + "messages.json")
+                                }
+                                if (f.exists()) {
+                                    val messages: JSONObject? =
+                                        JSON.parseObject(FileUtil.fileToString(f.absolutePath))
+                                    if (messages != null && messages.containsKey(key)) {
+                                        val msg = messages.getJSONObject(key)
+                                        val b = msg?.getString("message")
+                                        if (!b.isNullOrEmpty()) {
+                                            name1 = b
+                                        }
+                                    }
+                                }
+                            }
+                            for (extension in WebExtensionRuntimeManager.extensions) {
+                                if (extension.metaData.name == name1) {
+                                    id = if (extension.id.contains("@")) {
+                                        extension.id
+                                    } else if (extension.id.contains("{")) {
+                                        extension.id
+                                    } else {
+                                        "{" + extension.id + "}"
+                                    }
+                                    break
+                                }
+                            }
+                            gecko["id"] = id
+                            gecko["strict_min_version"] = "63.0"
                             val settings = JSONObject()
-                            settings.put("gecko", gecko)
-                            json.put("browser_specific_settings", settings)
+                            settings["gecko"] = gecko
+                            json["browser_specific_settings"] = settings
                             json.remove("incognito")
                             json.remove("minimum_chrome_version")
                             FileUtil.stringToFile(
                                 JSON.toJSONString(json, SerializerFeature.PrettyFormat),
-                                m.getAbsolutePath()
+                                m.absolutePath
                             )
                         }
                         File(fileDirPath + File.separator + "META-INF").mkdirs()
@@ -139,7 +213,7 @@ class WebextensionSession {
                         FileUtil.deleteFile(xpi)
                         ZipUtils.zipFile(fileDirPath, xpi)
                         if (!context.isFinishing) {
-                            runOnUI { install("file://$xpi") }
+                            runOnUI { install0("file://$xpi") }
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -151,14 +225,86 @@ class WebextensionSession {
             }.show()
     }
 
+    private fun installXpi(uri: String) {
+        async(Runnable {
+            try {
+                val name: String =
+                    File(uri.replace("file://", "")).name.replace(".xpi", "")
+                val fileDirPath: String =
+                    ((UriUtilsPro.getRootDir(context) + File.separator) + "_cache" + File.separator) + name
+                FileUtil.deleteDirs(fileDirPath)
+                File(fileDirPath).mkdirs()
+                ZipUtils.unzipFile(uri.replace("file://", ""), fileDirPath)
+                val m = File(fileDirPath + File.separator + "manifest.json")
+                var converted = false
+                if (m.exists()) {
+                    val json: JSONObject =
+                        JSON.parseObject(FileUtil.fileToString(m.absolutePath))
+                    if (!json.containsKey("permissions")) {
+                        json["permissions"] = JSONArray()
+                        converted = true
+                    }
+                    val permissions: JSONArray = json.getJSONArray("permissions")
+                    //解决青柠起始页等扩展无权限的问题
+                    if (json.containsKey("content_scripts")) {
+                        val contentScripts: JSONArray? =
+                            json.getJSONArray("content_scripts")
+                        if (contentScripts != null) {
+                            for (index in 0 until contentScripts.size) {
+                                val script = contentScripts.getJSONObject(index)
+                                if (script?.containsKey("matches") == true) {
+                                    if (!permissions.contains("<all_urls>")) {
+                                        permissions.add("<all_urls>")
+                                        converted = true
+                                    }
+                                    break
+                                }
+                            }
+                        }
+                    }
+                    if (!converted) {
+                        runOnUI { install0(uri) }
+                        return@Runnable
+                    }
+                    FileUtil.stringToFile(
+                        JSON.toJSONString(json, SerializerFeature.PrettyFormat),
+                        m.absolutePath
+                    )
+                } else {
+                    runOnUI { install0(uri) }
+                    return@Runnable
+                }
+                File(fileDirPath + File.separator + "META-INF").mkdirs()
+                val xpi: String = uri.replace("file://", "").replace(".xpi", "_convert.xpi")
+                FileUtil.deleteFile(xpi)
+                ZipUtils.zipFile(fileDirPath, xpi)
+                if (!context.isFinishing) {
+                    runOnUI { install0("file://$xpi") }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                ToastMgr.shortBottomCenter(context, "出错：" + e.message)
+            }
+        })
+    }
+
     fun install(uri: String) {
         if (uri.startsWith("file://") && uri.endsWith(".crx")) {
             installCrx(uri)
             return
         }
+        if (uri.startsWith("file://") && uri.endsWith(".xpi")) {
+            installXpi(uri)
+            return
+        }
+        install0(uri)
+    }
+
+    private fun install0(uri: String) {
         ToastMgr.shortBottomCenter(context, "稍等，解析文件中")
         webExtensionController.install(uri).accept({ it ->
             if (it != null) {
+                loadNewTabInfo(it, uri)
                 Toast.makeText(context, it.metaData.name + "安装成功", Toast.LENGTH_LONG).show()
                 EventBus.getDefault().post(WebExtensionsRefreshEvent())
                 WebExtensionRuntimeManager.refresh()
@@ -196,6 +342,85 @@ class WebextensionSession {
             }
             Toast.makeText(context, "安装失败: $exception", Toast.LENGTH_LONG).show()
         })
+    }
+
+    private fun loadNewTabInfo(it: WebExtension, uri: String) {
+        val tabKeyWords = arrayOf("tab", "标签", "主页", "起始")
+        var hasKey = false
+        for (word in tabKeyWords) {
+            if (it.metaData.name?.lowercase()?.contains(word) == true) {
+                hasKey = true
+                break
+            }
+        }
+        if (!hasKey) {
+            return
+        }
+        async {
+            try {
+                if (uri.startsWith("file://")) {
+                    loadNewTabInfo0(it, uri.replace("file://", ""))
+                } else {
+                    val path =
+                        UriUtilsPro.getRootDir(App.getContext()) + File.separator + "_cache" + File.separator + it.metaData.name + ".zip"
+                    FileUtil.makeSureDirExist(path)
+                    val t = RxHttp.get(uri)
+                        .tag(uri)
+                    t.toDownloadFlow(path).collect { p ->
+                        if (File(p).exists()) {
+                            loadNewTabInfo0(it, p)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun loadNewTabInfo0(extension: WebExtension, path: String) {
+        async {
+            try {
+                val file = File(path)
+                if (file.exists()) {
+                    val fileDirPath: String =
+                        ((UriUtilsPro.getRootDir(context) + File.separator) + "_cache" + File.separator) + file.name.replace(
+                            ".zip",
+                            ""
+                        ).replace(
+                            ".xpi",
+                            ""
+                        ).replace(
+                            ".crx",
+                            ""
+                        )
+                    FileUtil.deleteDirs(fileDirPath)
+                    File(fileDirPath).mkdirs()
+                    ZipUtils.unzipFile(path.replace("file://", ""), fileDirPath)
+                    val m = File(fileDirPath + File.separator + "manifest.json")
+                    if (m.exists()) {
+                        val json: JSONObject =
+                            JSON.parseObject(FileUtil.fileToString(m.absolutePath))
+                        if (json.containsKey("chrome_url_overrides")) {
+                            val a = json["chrome_url_overrides"] as JSONObject
+                            if (a.containsKey("newtab")) {
+                                val newTab = a.getString("newtab")
+                                if (!newTab.isNullOrEmpty()) {
+                                    runOnUI {
+                                        WebExtensionRuntimeManager.addNewTabRecord(
+                                            extension,
+                                            newTab
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 }
 
@@ -255,6 +480,8 @@ fun WebExtension.removeDelegate() {
 }
 
 fun newSession(session: GeckoSession, activity: Activity) {
+    val sessionSettings = session.settings
+    SeRuSettings(sessionSettings, activity)
     val geckoViewModel =
         activity?.let { ViewModelProvider(it as ViewModelStoreOwner)[GeckoViewModel::class.java] }!!
     geckoViewModel.changeSearch(session)
@@ -311,6 +538,9 @@ fun addSessionTabDelegate(
                             }
                             if (details.active == true && DelegateLivedata.getInstance().value?.session != session) {
                                 DelegateLivedata.getInstance().Value(delegate)
+                            }
+                            if (details.active == true) {
+                                EventBus.getDefault().post(WebExtensionAddTabEvent(extension.id))
                             }
                             break
                         }

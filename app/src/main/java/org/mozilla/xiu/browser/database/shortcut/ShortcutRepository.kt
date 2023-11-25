@@ -39,6 +39,15 @@ internal class ShortcutRepository(context: Context) {
         return shortcutDao!!.findShortcutsWithTitle(pattern)
     }
 
+    fun findShortcutWithUrl(url: String?): Shortcut? {
+        val list = shortcutDao!!.findShortcutsWithUrl(url)
+        return if (list.isNullOrEmpty()) {
+            return null
+        } else {
+            list.firstOrNull()
+        }
+    }
+
     fun findShortcutsWithMix(pattern: String?): LiveData<List<Shortcut?>?>? {
         return shortcutDao!!.findShortcutsWithMix(pattern)
     }

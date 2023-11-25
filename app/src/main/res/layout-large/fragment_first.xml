@@ -48,7 +48,6 @@
             android:gravity="center_vertical"
             android:inputType="textPersonName"
             android:minHeight="54dp"
-            android:text="@string/hint"
             android:textSize="14sp" />
 
         <com.google.android.material.button.MaterialButton
@@ -58,6 +57,14 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical|end"
             app:icon="@drawable/icon_scan_light_white" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/search_icon_btn"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|start"
+            app:icon="@drawable/ic_main_nav_search2" />
     </com.google.android.material.card.MaterialCardView>
 
     <FrameLayout

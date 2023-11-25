@@ -95,7 +95,8 @@ class SessionDelegate() : BaseObservable() {
         }
 
     @get:Bindable
-    var privacy: Boolean = false
+    val privacy: Boolean
+        get() = PrivacyModeLivedata.getInstance().value ?: false
 
     @get:Bindable
     var mProgress: Int = 0
@@ -123,11 +124,10 @@ class SessionDelegate() : BaseObservable() {
     var downloadTasks = ArrayList<DownloadTask>()
     lateinit var historyViewModel: HistoryViewModel
     lateinit var intentPopup: IntentPopup
-    var uri: Uri? = null
     private lateinit var filePicker: FilePicker
-    lateinit var sessionState: GeckoSession.SessionState
-    private var sessionStateMap = HashMap<Int, GeckoSession.SessionState>()
+    private var sessionState: GeckoSession.SessionState? = null
     private lateinit var fullscreenCall: (full: Boolean) -> Unit
+    private lateinit var onCrashCall: () -> Unit
     //private lateinit var historySync: HistorySync
 
     var statusBarColor: Int = 0xffffff
@@ -144,10 +144,10 @@ class SessionDelegate() : BaseObservable() {
         mContext: FragmentActivity,
         session: GeckoSession,
         filePicker: FilePicker,
-        privacy: Boolean,
         fullscreenCall: (full: Boolean) -> Unit,
         onPageStopCall1: (session: GeckoSession, sessionDelegate: SessionDelegate) -> Unit = { se, de -> },
         onUrlChange: (url: String, sessionDelegate: SessionDelegate) -> Unit = { u, se -> },
+        onCrashCall: () -> Unit = {},
         detectorListener: DetectorListener? = null
     ) : this() {
         this.mContext = mContext
@@ -155,11 +155,11 @@ class SessionDelegate() : BaseObservable() {
         navigationBarColor = getDefaultThemeColor(mContext)
         this.session = session
         this.filePicker = filePicker
-        this.privacy = privacy
         this.fullscreenCall = fullscreenCall
         this.onPageStopCall = onPageStopCall1
         this.onUrlChange = onUrlChange
-        detector.setDetectorListener(detectorListener)
+        this.onCrashCall = onCrashCall
+        detector.detectorListener = detectorListener
         notifyPropertyChanged(BR.privacy)
 
 
@@ -169,11 +169,6 @@ class SessionDelegate() : BaseObservable() {
         bitmap = mContext.getDrawable(R.drawable.logo72)?.toBitmap()!!
         intentPopup = IntentPopup(mContext)
         //historySync = HistorySync(mContext)
-
-
-        DownloadTaskLiveData.getInstance().observe(mContext) {
-            downloadTasks = it
-        }
         session.contentDelegate = object : GeckoSession.ContentDelegate {
             override fun onContextMenu(
                 session: GeckoSession,
@@ -289,10 +284,15 @@ class SessionDelegate() : BaseObservable() {
             override fun onCrash(session: GeckoSession) {
                 super.onCrash(session)
                 Log.d("test", "onCrash")
+                if (sessionState != null) {
+                    onCrashCall()
+                }
                 if (!session.isOpen) {
                     session.open(GeckoRuntime.getDefault(mContext))
                 }
-                session.restoreState(sessionStateMap[session.hashCode()] ?: sessionState)
+                sessionState?.let {
+                    session.restoreState(it)
+                }
                 ThreadTool.postUIDelayed(100) {
                     pageFinish(session)
                 }
@@ -301,10 +301,15 @@ class SessionDelegate() : BaseObservable() {
             override fun onKill(session: GeckoSession) {
                 super.onKill(session)
                 Log.d("test", "onCrash kill")
+                if (sessionState != null) {
+                    onCrashCall()
+                }
                 if (!session.isOpen) {
                     session.open(GeckoRuntime.getDefault(mContext))
                 }
-                session.restoreState(sessionStateMap[session.hashCode()] ?: sessionState)
+                sessionState?.let {
+                    session.restoreState(it)
+                }
                 ThreadTool.postUIDelayed(100) {
                     pageFinish(session)
                 }
@@ -385,7 +390,6 @@ class SessionDelegate() : BaseObservable() {
             ) {
                 super.onSessionStateChange(session, sessionState)
                 this@SessionDelegate.sessionState = sessionState
-                sessionStateMap[session.hashCode()] = sessionState
             }
 
             override fun onProgressChange(session: GeckoSession, progress: Int) {
@@ -481,8 +485,7 @@ class SessionDelegate() : BaseObservable() {
                 uri: String?,
                 error: WebRequestError
             ): GeckoResult<String>? {
-                pageError.onPageError(session, uri, error)
-                return super.onLoadError(session, uri, error)
+                return pageError.onPageError(session, uri, error)
             }
 
             override fun onCanGoForward(session: GeckoSession, canGoForward: Boolean) {
@@ -525,7 +528,23 @@ class SessionDelegate() : BaseObservable() {
                 session: GeckoSession,
                 uri: String
             ): GeckoResult<GeckoSession>? {
+                try {
+                    if (uri.startsWith("moz-extension://")) {
+                        val u = DelegateLivedata.getInstance().value?.u
+                        if (u?.startsWith("moz-extension://") == true) {
+                            if (Uri.parse(u).host == Uri.parse(uri).host) {
+                                //扩展程序打开新窗口，不能直接返回，否则会空白
+                                createSession(uri, mContext)
+                                return null
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
                 val newSession = GeckoSession()
+                val sessionSettings = newSession.settings
+                SeRuSettings(sessionSettings, mContext)
                 geckoViewModel.changeSearch(newSession)
                 return GeckoResult.fromValue(newSession)
             }
@@ -735,7 +754,6 @@ class SessionDelegate() : BaseObservable() {
     }
 
     fun close() {
-        sessionStateMap.remove(session.hashCode())
         session.close()
         bitmap.recycle()
         if (mProgress in 1..99) {
@@ -751,9 +769,17 @@ class SessionDelegate() : BaseObservable() {
 
     @SuppressLint("SuspiciousIndentation")
     fun resume() {
-        if (!session.isOpen)
+        if (!session.isOpen) {
             session.open(GeckoRuntime.getDefault(mContext))
-        session.restoreState(sessionStateMap[session.hashCode()] ?: sessionState)
+        }
+//        sessionState?.let {
+//            session.restoreState(it)
+//        }
+        session.setActive(true)
+    }
+
+    fun pause() {
+        session.setActive(false)
     }
 
     private fun pageFinish(session: GeckoSession) {
@@ -777,7 +803,7 @@ class SessionDelegate() : BaseObservable() {
             session: GeckoSession,
             uri: String?,
             error: WebRequestError
-        )
+        ): GeckoResult<String>?
 
         fun onPageChange()
     }
@@ -860,8 +886,9 @@ class SessionDelegate() : BaseObservable() {
                 headers
             )
             downloadTask.open()
-            downloadTasks.add(downloadTask)
-            DownloadTaskLiveData.getInstance().Value(downloadTasks)
+            val tasks = ArrayList(DownloadTaskLiveData.getInstance().value ?: arrayListOf())
+            tasks.add(downloadTask)
+            DownloadTaskLiveData.getInstance().Value(tasks)
         }
     }
 

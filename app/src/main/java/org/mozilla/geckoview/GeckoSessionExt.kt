@@ -109,8 +109,20 @@ fun GeckoSession.capture(context: Context): GeckoResult<Bitmap> {
             )
         } else GeckoResult.fromException(Throwable("Failed to create bitmap", e))
     }
-    this.mCompositor.requestScreenPixels(
-        result, target, 0, 0, mSrcWidth, mSrcHeight, mOutWidth, mOutHeight
-    )
+    try {
+        this.mCompositor.requestScreenPixels(
+            result, target, 0, 0, mSrcWidth, mSrcHeight, mOutWidth, mOutHeight
+        )
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
     return result
+}
+
+fun GeckoSession.getSessionId(): String {
+    return if(this.id.isNullOrEmpty()) {
+        this.hashCode().toString()
+    } else {
+        this.id
+    }
 }

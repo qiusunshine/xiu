@@ -14,7 +14,9 @@ import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.WebExtension
 import org.mozilla.xiu.browser.componets.popup.AddonsPopup
+import org.mozilla.xiu.browser.componets.popup.NetworkPopup
 import org.mozilla.xiu.browser.databinding.ItemMenuAddonsBinding
+import org.mozilla.xiu.browser.session.DelegateLivedata
 
 class MenuAddonsAdapater(
     val dismissCall: () -> Unit
@@ -67,6 +69,14 @@ class MenuAddonsAdapater(
                     return GeckoResult.fromValue(session)
                 }
             })
+            if (bean.id == "xiutan@xiu.com") {
+                binding.addonsIcon.setOnClickListener {
+                    dismissCall()
+                    DelegateLivedata.getInstance().value?.let {
+                        NetworkPopup(mContext, it).show()
+                    }
+                }
+            }
         }
     }
 

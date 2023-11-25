@@ -2,6 +2,7 @@ package org.mozilla.xiu.browser.webextension;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.mozilla.xiu.browser.download.UrlDetector;
 import org.mozilla.xiu.browser.session.SessionDelegate;
 import org.mozilla.xiu.browser.utils.CollectionUtil;
 import org.mozilla.xiu.browser.utils.FileUtil;
@@ -57,7 +58,7 @@ public class Detector {
                                         type = TabRequest.VIDEO;
                                     }
                                 } else if (contentType.startsWith("audio/")) {
-                                    type = TabRequest.MUSIC;
+                                    type = TabRequest.AUDIO;
                                 } else if (contentType.startsWith("image/")) {
                                     if (hasM3u8) {
                                         //fuckImage
@@ -105,6 +106,12 @@ public class Detector {
                     }
                     if (detectorListener != null) {
                         detectorListener.onFindVideo(sessionDelegate, request);
+                    }
+                } else if (TabRequest.OTHER.equals(type)) {
+                    if (UrlDetector.isMusic(request.getUrl())) {
+                        request.setType(TabRequest.AUDIO);
+                    } else if (UrlDetector.isImage(request.getUrl())) {
+                        request.setType(TabRequest.IMAGE);
                     }
                 }
             } else {

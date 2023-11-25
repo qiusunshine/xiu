@@ -26,6 +26,9 @@ interface ShortcutDao {
     @Query("SELECT * FROM Shortcut WHERE title_info LIKE:pattern ORDER BY ID DESC")
     fun findShortcutsWithTitle(pattern: String?): LiveData<List<Shortcut?>?>?
 
+    @Query("SELECT * FROM Shortcut WHERE url_info = :pattern ORDER BY ID DESC")
+    fun findShortcutsWithUrl(pattern: String?): List<Shortcut?>?
+
     @Query("SELECT * FROM Shortcut WHERE mix LIKE:pattern ORDER BY ID DESC")
     fun findShortcutsWithMix(pattern: String?): LiveData<List<Shortcut?>?>?
 }

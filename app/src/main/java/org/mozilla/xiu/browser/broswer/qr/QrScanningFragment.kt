@@ -6,11 +6,12 @@ import android.content.res.Configuration
 import android.media.Image
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraControl
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
@@ -29,7 +30,10 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
@@ -64,36 +68,45 @@ import androidx.fragment.app.Fragment
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
+import org.mozilla.xiu.browser.App
 import org.mozilla.xiu.browser.MainActivity
 import org.mozilla.xiu.browser.R
 import org.mozilla.xiu.browser.session.createSession
+import org.mozilla.xiu.browser.utils.ClipboardUtil
+import org.mozilla.xiu.browser.utils.StrUtil
+import org.mozilla.xiu.browser.utils.ThreadTool
+import org.mozilla.xiu.browser.utils.ToastMgr
+import org.mozilla.xiu.browser.utils.UriUtilsPro
 import org.mozilla.xiu.browser.utils.Utils.playVibrate
 import org.mozilla.xiu.browser.utils.Utils.requireColor
+import java.io.File
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-@ExperimentalGetImage class QrScanningFragment: Fragment() {
+@ExperimentalGetImage
+class QrScanningFragment : Fragment() {
 
-    var width :Float = 0f
-    var height :Float = 0f
-    private var scaleY :Float = 0f
-    private var scaleX :Float = 0f
+    var width: Float = 0f
+    var height: Float = 0f
+    private var scaleY: Float = 0f
+    private var scaleX: Float = 0f
+
     @ExperimentalAnimationApi
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View= ComposeView(requireContext()).apply {
+    ): View = ComposeView(requireContext()).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         WindowCompat.setDecorFitsSystemWindows(requireActivity().window, false)
 
         setContent {
 
             var x by remember {
-                mutableStateOf((this.width/2).toFloat())
+                mutableStateOf((this.width / 2).toFloat())
             }
             var y by remember {
-                mutableStateOf((this.height/2).toFloat())
+                mutableStateOf((this.height / 2).toFloat())
             }
             var enableTorch by remember {
                 mutableStateOf(false)
@@ -108,90 +121,99 @@ import kotlin.coroutines.suspendCoroutine
                 mutableStateOf("")
             }
 
-
             val imageAnalysis = ImageAnalysis
                 .Builder()
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build()
-
             imageAnalysis.setAnalyzer(
                 ContextCompat.getMainExecutor(requireContext())
             ) { it ->
                 val mediaImage: Image? = it.image
-
                 if (mediaImage != null) {
                     // 创建InputImage对象
                     val inputImage: InputImage = InputImage.fromMediaImage(
                         mediaImage,
                         it.imageInfo.rotationDegrees
                     )
-
                     // 使用BarcodeScanner识别二维码
-                    val barcodeScanner = BarcodeScanning.getClient();
-                    initScale(it.width,it.height)
-
+                    val barcodeScanner = BarcodeScanning.getClient()
+                    initScale(it.width, it.height)
                     barcodeScanner
                         .process(inputImage)
                         .addOnSuccessListener { barcodes ->
-                            if (barcodes.isNotEmpty()){
+                            if (barcodes.isNotEmpty()) {
                                 val barcode = barcodes[0]
-                                barcode.boundingBox.let {rect ->
+                                barcode.boundingBox.let { rect ->
                                     if (rect != null) {
-                                        x = rect.centerX().toFloat()-rect.width()
-                                        y = rect.centerY().toFloat()+rect.height()*3/2
-
+                                        x = rect.centerX().toFloat() - rect.width()
+                                        y = rect.centerY().toFloat() + rect.height() * 3 / 2
                                     }
-
                                 }
-
-
-                                if (barcode.format === Barcode.FORMAT_QR_CODE) {
-                                    playVibrate(requireContext(),false)
+                                if (barcode.format == Barcode.FORMAT_QR_CODE) {
+                                    playVibrate(requireContext(), false)
                                     barcodeScanner.close()
                                     it.close()
-
-                                    Handler().postDelayed({
+                                    ThreadTool.postUIDelayed(1000) {
                                         openDialog.value = true
-                                        result = barcode.url?.url!!
-                                    }, 1000)
-                                    /*val intent = Intent(requireContext(), MainActivity::class.java)
-                                    if ((getResources().getConfiguration().screenLayout and
-                                                Configuration.SCREENLAYOUT_SIZE_MASK) ===
-                                        Configuration.SCREENLAYOUT_SIZE_LARGE)
-                                    {
-                                        createSession(barcode.url?.url,requireActivity())
-                                    }else {
-                                        intent.data = Uri.parse(barcode.url?.url)
-                                        intent.flags= Intent.FLAG_ACTIVITY_CLEAR_TOP
-                                        startActivity(intent)
-                                    }*/
-
+                                        result = barcode.url?.url ?: barcode.rawValue ?: ""
+                                    }
                                 }
                             }
-
-
-
                             scan = barcodes.size != 0
-
                         }
                         .addOnFailureListener { e ->
                             // 处理扫描失败的情况
                             Log.e("QrScanActivity", "Failed to scan barcode", e)
                         }
-                        .addOnCompleteListener { task -> it.close()
+                        .addOnCompleteListener { task ->
+                            it.close()
                         }
                 } else {
                     it.close()
                     Log.d("QrScanActivity", "Failed to scan barcode")
-
                 }
             }
+            val processLocalImage = { inputImage: InputImage ->
+                val barcodeScanner = BarcodeScanning.getClient()
+                barcodeScanner
+                    .process(inputImage)
+                    .addOnSuccessListener { barcodes ->
+                        if (barcodes.isNotEmpty()) {
+                            val barcode = barcodes[0]
+                            barcode.boundingBox.let { rect ->
+                                if (rect != null) {
+                                    x = rect.centerX().toFloat() - rect.width()
+                                    y = rect.centerY().toFloat() + rect.height() * 3 / 2
+                                }
+                            }
+                            if (barcode.format == Barcode.FORMAT_QR_CODE) {
+                                playVibrate(requireContext(), false)
+                                barcodeScanner.close()
+                                ThreadTool.postUIDelayed(1000) {
+                                    openDialog.value = true
+                                    result = barcode.url?.url ?: barcode.rawValue ?: ""
+                                }
+                            }
+                        }
+                        scan = barcodes.size != 0
+                    }
+                    .addOnFailureListener { e ->
+                        // 处理扫描失败的情况
+                        Log.e("QrScanActivity", "Failed to scan barcode", e)
+                    }
+            }
             Box(contentAlignment = Alignment.BottomCenter) {
-                CameraView(preview = androidx.camera.core.Preview.Builder().build(), imageAnalysis = imageAnalysis, enableTorch = enableTorch)
-                Button(modifier = Modifier.fillMaxSize(),
-                    onClick = { enableTorch = !enableTorch},
+                CameraView(
+                    preview = Preview.Builder().build(),
+                    imageAnalysis = imageAnalysis,
+                    enableTorch = enableTorch
+                )
+                Button(
+                    modifier = Modifier.fillMaxSize(),
+                    onClick = { enableTorch = !enableTorch },
                     colors = ButtonDefaults.buttonColors(
-                        Color.Transparent),
+                        Color.Transparent
+                    ),
                     shape = RoundedCornerShape(0.dp)
                 ) {
 
@@ -201,35 +223,65 @@ import kotlin.coroutines.suspendCoroutine
                     enter = scaleIn(
                         animationSpec = tween(300),
                         initialScale = 0f,
-                        transformOrigin = TransformOrigin.Center),
+                        transformOrigin = TransformOrigin.Center
+                    ),
                     exit = scaleOut(
                         animationSpec = tween(300),
                         targetScale = 0f,
-                        transformOrigin = TransformOrigin.Center),
+                        transformOrigin = TransformOrigin.Center
+                    ),
                 ) {
                     Canvas(
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        drawCircle(color = R.color.components.requireColor(requireContext()), radius = 48f ,center = Offset(x.dp.toPx(),y.dp.toPx()) )
-                        drawCircle(color = R.color.surface.requireColor(requireContext()), radius = 40f ,center = Offset(x.dp.toPx(),y.dp.toPx()) )
-                        Log.d("initScale","$x/$y")
+                        drawCircle(
+                            color = R.color.components.requireColor(requireContext()),
+                            radius = 48f,
+                            center = Offset(x.dp.toPx(), y.dp.toPx())
+                        )
+                        drawCircle(
+                            color = R.color.surface.requireColor(requireContext()),
+                            radius = 40f,
+                            center = Offset(x.dp.toPx(), y.dp.toPx())
+                        )
+                        Log.d("initScale", "$x/$y")
 
                         this@QrScanningFragment.width = this.size.width
                         this@QrScanningFragment.height = this.size.height
                     }
                 }
-                Text(modifier = Modifier.padding(bottom = 32.dp), text = "轻触屏幕点亮灯光", color = Color.White)
-                Dialog(openDialog,result)
-
-
-
-
+                val launcher =
+                    rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+                        loadFileForUri(context, uri) { fileName, s ->
+                            processLocalImage(
+                                InputImage.fromFilePath(
+                                    context,
+                                    Uri.fromFile(File(s))
+                                )
+                            )
+                        }
+                    }
+                Column(horizontalAlignment =  Alignment.CenterHorizontally) {
+                    Button(
+                        onClick = {
+                            launcher.launch("image/*")
+                        },
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = "从相册获取",
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        modifier = Modifier.padding(bottom = 32.dp),
+                        text = "轻触屏幕点亮灯光",
+                        color = Color.White
+                    )
+                }
+                Dialog(openDialog, result)
             }
-
-
-
         }
-
     }
 
     @Composable
@@ -319,14 +371,11 @@ import kotlin.coroutines.suspendCoroutine
     }
 
 
-
     private suspend fun Context.getCameraProvider(): ProcessCameraProvider =
         suspendCoroutine { continuation ->
             ProcessCameraProvider.getInstance(this).also { cameraProvider ->
                 cameraProvider.addListener({
                     continuation.resume(cameraProvider.get())
-
-
 
 
                 }, ContextCompat.getMainExecutor(this))
@@ -340,17 +389,18 @@ import kotlin.coroutines.suspendCoroutine
                 ContextCompat.getMainExecutor(context)
             )
         }
-    private fun initScale(imageWidth : Int, imageHeight : Int){
 
-            scaleX = width / imageWidth.toFloat()
-            scaleY = height / imageHeight.toFloat()
+    private fun initScale(imageWidth: Int, imageHeight: Int) {
+
+        scaleX = width / imageWidth.toFloat()
+        scaleY = height / imageHeight.toFloat()
         //Log.d("initScale","$height/$imageHeight")
 
 
     }
 
     @Composable
-    fun Dialog(openDialog: MutableState<Boolean>,result :String){
+    fun Dialog(openDialog: MutableState<Boolean>, result: String) {
         if (openDialog.value) {
             AlertDialog(
                 onDismissRequest = {
@@ -360,7 +410,7 @@ import kotlin.coroutines.suspendCoroutine
                     openDialog.value = false
                 },
                 title = {
-                    Text(text = "结果")
+                    Text(text = "识别结果")
                 },
                 text = {
                     Text(text = result)
@@ -378,25 +428,61 @@ import kotlin.coroutines.suspendCoroutine
                     TextButton(
                         onClick = {
                             openDialog.value = false
-                            val intent = Intent(requireContext(),MainActivity::class.java)
-
-                            if ((getResources().getConfiguration().screenLayout and
-                                        Configuration.SCREENLAYOUT_SIZE_MASK) ===
-                                Configuration.SCREENLAYOUT_SIZE_LARGE)
-                            {
-                                createSession(result,requireActivity())
-                            }else {
-                                intent.data = Uri.parse(result)
-                                intent.flags=Intent.FLAG_ACTIVITY_CLEAR_TOP
-                                startActivity(intent)
+                            if (StrUtil.isGeckoUrl(result)) {
+                                val intent = Intent(requireContext(), MainActivity::class.java)
+                                if ((resources.configuration.screenLayout and
+                                            Configuration.SCREENLAYOUT_SIZE_MASK) ==
+                                    Configuration.SCREENLAYOUT_SIZE_LARGE
+                                ) {
+                                    createSession(result, requireActivity())
+                                } else {
+                                    intent.data = Uri.parse(result)
+                                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+                                    startActivity(intent)
+                                }
+                            } else {
+                                ClipboardUtil.copyToClipboard(context, result)
                             }
                         }
                     ) {
-                        Text("访问")
+                        Text(if (StrUtil.isGeckoUrl(result)) "访问" else "复制")
                     }
                 }
             )
         }
     }
 
+    /**
+     * 本地文件
+     */
+    private fun loadFileForUri(
+        context: Context,
+        uri: Uri?,
+        successConsume: (fileName: String, url: String) -> Unit
+    ) {
+        if (uri == null) {
+            return
+        }
+        val fileName = UriUtilsPro.getFileName(uri)
+        val dir = File(UriUtilsPro.getRootDir(App.application) + File.separator + "_cache")
+        if (!dir.exists()) {
+            dir.mkdirs()
+        }
+        val cacheFile = dir.absolutePath + File.separator + fileName
+        UriUtilsPro.getFilePathFromURI(
+            App.application,
+            uri,
+            cacheFile,
+            object : UriUtilsPro.LoadListener {
+                override fun success(s: String?) {
+                    if (!s.isNullOrEmpty()) {
+                        successConsume(fileName, s)
+                    }
+                }
+
+                override fun failed(msg: String?) {
+                    ToastMgr.shortBottomCenter(context, "出错：$msg")
+                }
+            })
+    }
 }

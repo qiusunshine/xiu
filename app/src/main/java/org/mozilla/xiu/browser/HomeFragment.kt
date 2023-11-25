@@ -14,7 +14,10 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import org.mozilla.xiu.browser.broswer.bookmark.shortcut.ShortcutAdapter
+import org.mozilla.xiu.browser.componets.HomeLivedata
 import org.mozilla.xiu.browser.componets.popup.BookmarkPopup
 import org.mozilla.xiu.browser.componets.popup.HistoryPopup
 import org.mozilla.xiu.browser.database.shortcut.Shortcut
@@ -24,6 +27,8 @@ import org.mozilla.xiu.browser.session.GeckoViewModel
 import org.mozilla.xiu.browser.session.createSession
 import org.mozilla.xiu.browser.utils.PreferenceMgr
 import org.mozilla.xiu.browser.utils.ToastMgr
+import org.mozilla.xiu.browser.webextension.NewTabUrlChangeEvent
+import org.mozilla.xiu.browser.webextension.WebExtensionRuntimeManager
 import java.util.Calendar
 
 /**
@@ -53,10 +58,43 @@ class HomeFragment : Fragment() {
 
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onNewTabUrlChanged(event: NewTabUrlChangeEvent) {
+        val newtabUrl0 = WebExtensionRuntimeManager.getHomePageUrlOrNewTabUrl()
+        if (!newtabUrl0.isNullOrEmpty()) {
+            binding.searchView?.visibility = View.GONE
+            binding.tips?.visibility = View.GONE
+            binding.HomeSearchText?.visibility = View.GONE
+            binding.imageView12?.visibility = View.GONE
+            binding.constraintLayout3?.visibility = View.GONE
+            binding.shortcutsRecyclerView?.visibility = View.GONE
+            if(HomeLivedata.getInstance().value == true) {
+                activity?.let { WebExtensionRuntimeManager.createNewTabUrlSession(newtabUrl0) }
+            }
+        } else {
+            binding.searchView?.visibility = View.VISIBLE
+            binding.tips?.visibility = View.VISIBLE
+            binding.HomeSearchText?.visibility = View.VISIBLE
+            binding.imageView12?.visibility = View.VISIBLE
+            binding.constraintLayout3?.visibility = View.VISIBLE
+            binding.shortcutsRecyclerView?.visibility = View.VISIBLE
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         geckoViewModel = ViewModelProvider(requireActivity())[GeckoViewModel::class.java]
         shortcutViewModel = ViewModelProvider(requireActivity())[ShortcutViewModel::class.java]
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this)
+        }
+        val newtabUrl0 = WebExtensionRuntimeManager.getHomePageUrlOrNewTabUrl()
+        if (!newtabUrl0.isNullOrEmpty()) {
+            binding.searchView?.visibility = View.GONE
+            binding.tips?.visibility = View.GONE
+            binding.constraintLayout3?.visibility = View.GONE
+            binding.shortcutsRecyclerView?.visibility = View.GONE
+        }
         //fxaViewModel = ViewModelProvider(requireActivity())[AccountProfileViewModel::class.java]
         //accountManagerCollection = ViewModelProvider(requireActivity())[AccountManagerCollection::class.java]
 //        try {
@@ -171,10 +209,13 @@ class HomeFragment : Fragment() {
         binding.searchViewText?.setOnClickListener {
             EventBus.getDefault().post(ShowSearchEvent())
         }
+        binding.searchIconBtn?.setOnClickListener {
+            EventBus.getDefault().post(ShowSearchEvent())
+        }
         var shortcutAdapter = ShortcutAdapter(context)
         binding.shortcutsRecyclerView?.adapter = shortcutAdapter
         binding.shortcutsRecyclerView?.layoutManager = GridLayoutManager(context, 4)
-        shortcutViewModel.allShortcutsLive?.observe(requireActivity()) {
+        shortcutViewModel.allShortcutsLive?.observe(viewLifecycleOwner) {
             shortcutAdapter.submitList(it?.reversed())
         }
         binding.shortcutsRecyclerView?.addItemDecoration(shortcutAdapter.dividerItem)
@@ -257,6 +298,9 @@ class HomeFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
+        if (EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().unregister(this)
+        }
 //        try {
 //            fxaAccountManager?.close()
 //        } catch (e: Exception) {
