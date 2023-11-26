@@ -14,10 +14,10 @@ interface HistoryDao {
     @Delete
     fun deleteHistory(vararg histories: History?)
 
-    @Query("DELETE FROM HISTORY")
+    @Query("DELETE FROM History")
     fun deleteAllHistories()
 
-    @get:Query("SELECT * FROM HISTORY ORDER BY ID DESC")
+    @get:Query("SELECT * FROM History ORDER BY ID DESC")
     val allHistoriesLive: LiveData<List<History?>?>?
 
     @Query("SELECT * FROM History WHERE url_info LIKE:pattern ORDER BY ID DESC")

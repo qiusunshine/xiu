@@ -17,8 +17,10 @@
     <string name="dia_bookmark_url">地址：</string>
     <string name="dia_bookmark_title">名称：</string>
     <string name="dia_add_bookmark_title">添加书签</string>
-    <string name="dia_add_bookmark_success">书签添加成功</string>
+    <string name="edit_bookmark_title">编辑书签</string>
+    <string name="dia_add_bookmark_success">添加成功</string>
     <string name="dia_add_bookmark_exist">书签已存在</string>
+    <string name="dir_exist">文件夹已存在</string>
     <string name="remove_bookmark_confirm">书签已存在，确认移除书签吗？</string>
     <string name="confirm">确定</string>
     <string name="open">打开</string>
@@ -207,5 +209,23 @@
     <string name="browse">访问链接</string>
     <string name="float_play">悬浮播放</string>
     <string name="copy_url">复制链接</string>
+    <string name="import_bookmark">从HTML导入</string>
+    <string name="export_bookmark">导出为HTML</string>
+    <string name="create_dir">创建文件夹</string>
+    <string name="rename_dir">重命名文件夹</string>
+    <string name="choose_dir">选择文件夹</string>
+    <string name="cannot_be_empty">不能为空</string>
+    <string name="edit">编辑</string>
+    <string name="update_success">更新成功</string>
+    <string name="create_dir_failed">创建目录失败</string>
+    <string name="delete_file_failed">删除文件失败</string>
+    <string name="move">转存</string>
+    <string name="share">分享</string>
+    <string name="import_error">文件内容为空，或者格式有误</string>
+    <string name="import_success">成功导入%1$s条书签</string>
+    <string name="clear_bookmark">清空书签</string>
+    <string name="clear_bookmark_message">注意此操作会删除所有书签和文件夹，请谨慎操作，确定继续删除吗？</string>
+    <string name="delete_bookmark_dir_message">注意此操作会删除该文件夹下所有书签和文件夹，请谨慎操作，确定继续删除吗？</string>
+    <string name="export_success">导出成功，请选择操作，点击转存会保存到Download目录，可在文件管理器管理，卸载软件也不会丢失，分享则可以发送到微信、QQ、云盘保存</string>
 
 </resources>

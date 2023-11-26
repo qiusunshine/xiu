@@ -18,8 +18,10 @@
     <string name="dia_bookmark_url">Address:</string>
     <string name="dia_bookmark_title">Name:</string>
     <string name="dia_add_bookmark_title">Add Bookmark</string>
+    <string name="edit_bookmark_title">Edit Bookmark</string>
     <string name="dia_add_bookmark_success">Bookmark Added</string>
     <string name="dia_add_bookmark_exist">Bookmark Exist</string>
+    <string name="dir_exist">Dir Exist</string>
     <string name="remove_bookmark_confirm">Remove Bookmark ?</string>
     <string name="confirm">Confirm</string>
     <string name="open">Open</string>
@@ -203,5 +205,23 @@
     <string name="browse">Browse Url</string>
     <string name="float_play">Float Play</string>
     <string name="copy_url">Copy Url</string>
+    <string name="import_bookmark">Import from html</string>
+    <string name="export_bookmark">Export to html</string>
+    <string name="create_dir">Create directory</string>
+    <string name="rename_dir">Rename directory</string>
+    <string name="choose_dir">Choose dir</string>
+    <string name="cannot_be_empty">Cannot be empty</string>
+    <string name="edit">Edit</string>
+    <string name="update_success">Update Success</string>
+    <string name="create_dir_failed">Create dir failed</string>
+    <string name="delete_file_failed">Delete file failed</string>
+    <string name="move">Move to Download</string>
+    <string name="share">Share</string>
+    <string name="import_error">File is empty or format error</string>
+    <string name="import_success">Successfully imported %1$s bookmarks</string>
+    <string name="clear_bookmark">Clear Bookmarks</string>
+    <string name="clear_bookmark_message">Note that this operation will delete all bookmarks and folders, please operate with caution, Are you sure to continue with the operation</string>
+    <string name="delete_bookmark_dir_message">Please note that this operation will delete all bookmarks and folders under this folder. Please proceed with caution. Are you sure you want to continue deleting?</string>
+    <string name="export_success">Export Success</string>
 
 </resources>

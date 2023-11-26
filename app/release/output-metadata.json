@@ -16,9 +16,9 @@
         }
       ],
       "attributes": [],
-      "versionCode": 90,
-      "versionName": "2.3",
-      "outputFile": "Xiu_V2.3_C90-32位.apk"
+      "versionCode": 95,
+      "versionName": "2.4",
+      "outputFile": "Xiu_V2.4_C95-32位.apk"
     },
     {
       "type": "ONE_OF_MANY",
@@ -29,9 +29,9 @@
         }
       ],
       "attributes": [],
-      "versionCode": 90,
-      "versionName": "2.3",
-      "outputFile": "Xiu_V2.3_C90-64位.apk"
+      "versionCode": 95,
+      "versionName": "2.4",
+      "outputFile": "Xiu_V2.4_C95-64位.apk"
     }
   ],
   "elementType": "File"

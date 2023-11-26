@@ -1,6 +1,7 @@
 package org.mozilla.xiu.browser.componets.popup
 
 import android.view.LayoutInflater
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.tabs.TabLayoutMediator
@@ -18,13 +19,22 @@ class BookmarkPopup {
     lateinit var binding: PopupBookmarkBinding
     private var observer: Observer<Boolean>
 
-    private val fragments = listOf(BookmarkFragment(), SyncBookmarkFolderFragment())
+    private var fragments: List<Fragment>
 
     constructor(
         context: MainActivity
     ) {
         this.context = context
-        bottomSheetDialog = BottomSheetDialog(context, R.style.BottomSheetDialog)
+        val bookmarkFragment = BookmarkFragment(context)
+        fragments = listOf(bookmarkFragment, SyncBookmarkFolderFragment())
+        bottomSheetDialog = object : BottomSheetDialog(context, R.style.BottomSheetDialog) {
+            override fun onBackPressed() {
+                if(bookmarkFragment.onBackPressed()) {
+                    return
+                }
+                super.onBackPressed()
+            }
+        }
         binding = PopupBookmarkBinding.inflate(LayoutInflater.from(context))
         bottomSheetDialog.setContentView(binding.root)
         binding.bookmarkViewPager.adapter = CollectionAdapter(context, fragments)

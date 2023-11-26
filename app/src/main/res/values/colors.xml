@@ -35,4 +35,7 @@
     <color name="greenAction">#5E72E4</color>
     <color name="color_text_default">#593D3D</color>
     <color name="dark_edit">#333333</color>
+    <color name="grey_black">#DFDFDF</color>
+    <color name="gray_rice">#FFF5F5F5</color>
+    <color name="black_666">#444444</color>
 </resources>

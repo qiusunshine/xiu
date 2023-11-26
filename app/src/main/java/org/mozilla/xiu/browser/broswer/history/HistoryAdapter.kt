@@ -18,6 +18,7 @@ class HistoryAdapter : ListAdapter<History, HistoryAdapter.ItemTestViewHolder>(H
     companion object {
         var DELETE = 0
         var ADD_TO_HOMEPAGE = 1
+        var UPDATE = 2
     }
 
     inner class ItemTestViewHolder(private val binding: ItemBookmarkBinding): RecyclerView.ViewHolder(binding.root){

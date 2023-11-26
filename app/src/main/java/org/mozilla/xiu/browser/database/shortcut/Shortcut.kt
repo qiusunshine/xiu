@@ -8,7 +8,8 @@ import androidx.room.PrimaryKey
 class Shortcut(
     @field:ColumnInfo(name = "url_info") var url: String,
     @field:ColumnInfo(name = "title_info") var title: String,
-    @field:ColumnInfo(name = "time_info") var time: Int
+    @field:ColumnInfo(name = "time_info") var time: Int,
+    @field:ColumnInfo(name = "icon", defaultValue = "") var icon: String = "",
 ) {
     @PrimaryKey(autoGenerate = true)
     var id = 0

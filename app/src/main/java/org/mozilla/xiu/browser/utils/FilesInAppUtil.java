@@ -193,7 +193,7 @@ public class FilesInAppUtil {
     public static Uri getUri(Context context, String url) {
         if (url.startsWith("file:") || url.startsWith("content") || url.startsWith("/")) {
             try {
-                return FileProvider.getUriForFile(context, "org.mozilla.xiu.browser.provider", new File(url.replaceFirst("file://", "")));
+                return FileProvider.getUriForFile(context, "org.mozilla.xiu.browser.fileprovider", new File(url.replaceFirst("file://", "")));
             } catch (Exception e) {
                 e.printStackTrace();
                 return Uri.parse(url);

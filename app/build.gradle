@@ -12,8 +12,8 @@ plugins {
 }
 // Optionally, set any parameters to send to the plugin.
 
-def versionCodeNew = 90
-def versionNameNew = "2.3"
+def versionCodeNew = 95
+def versionNameNew = "2.4"
 def appName = "Xiu"
 
 kapt {
@@ -39,7 +39,11 @@ android {
         vectorDrawables {
             useSupportLibrary true
         }
-
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
+            }
+        }
     }
 
     buildTypes {
@@ -228,5 +232,6 @@ dependencies {
 
     implementation "com.github.luqiming666:SwipeRecyclerView:1.4.8"
 
+    implementation 'org.jsoup:jsoup:1.14.3'
 }
 

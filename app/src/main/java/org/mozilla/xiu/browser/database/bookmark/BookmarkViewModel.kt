@@ -14,12 +14,21 @@ class BookmarkViewModel(application: Application) : AndroidViewModel(application
     val allBookmarksLive: LiveData<List<Bookmark?>?>?
         get() = bookmarkRepository.allBookmarkLive
 
+
+    fun loadAllBookmarks(): List<Bookmark?>? {
+        return bookmarkRepository.loadAllBookmarks()
+    }
+
     fun findBookmarksWithPattern(pattern: String): LiveData<List<Bookmark?>?>? {
         return bookmarkRepository.findBookmarksWithPattern(pattern)
     }
 
     fun findBookmarksWithTitle(pattern: String?): LiveData<List<Bookmark?>?>? {
         return bookmarkRepository.findBookmarksWithTitle(pattern)
+    }
+
+    fun findBookmarkWithTitle(pattern: String?): List<Bookmark?>? {
+        return bookmarkRepository.findBookmarkWithTitle(pattern)
     }
 
     fun findBookmarkWithUrl(url: String?): Bookmark? {
@@ -36,6 +45,10 @@ class BookmarkViewModel(application: Application) : AndroidViewModel(application
 
     fun insertBookmarks(vararg bookmarks: Bookmark?) {
         bookmarkRepository.insertBookmark(*bookmarks)
+    }
+
+    fun insertBookmarksSync(vararg bookmarks: Bookmark?): Array<Int>? {
+        return bookmarkRepository.insertBookmarkSync(*bookmarks)
     }
 
     fun updateBookmarks(vararg bookmarks: Bookmark?) {

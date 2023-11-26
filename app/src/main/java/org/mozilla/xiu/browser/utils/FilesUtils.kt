@@ -390,3 +390,20 @@ private fun getMimeType(path: String?): String {
     }
     return mime
 }
+
+fun getNewFilePath(context: Context, filePath: String, film: String? = ""): String? {
+    val file = File(filePath)
+    if (!file.exists()) {
+        return null
+    }
+    val app: String = context.resources.getString(R.string.app_name)
+    val dir = File(
+        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+        app
+    )
+    var name = file.name
+//    if (!film.isNullOrEmpty() && !DownloadChooser.isSystemFilm(film)) {
+//        name = "$film@@$name"
+//    }
+    return File(dir, name).absolutePath
+}

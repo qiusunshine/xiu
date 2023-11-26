@@ -8,6 +8,7 @@ import android.view.WindowManager
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.githang.statusbar.StatusBarCompat
 import org.mozilla.xiu.browser.R
 
@@ -62,10 +63,12 @@ object StatusUtils {
         if (!visible) {
             val controllerCompat = WindowCompat.getInsetsController(context.window, rootView)
             controllerCompat.hide(WindowInsetsCompat.Type.systemBars())
+            controllerCompat.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             return
         } else {
             val controllerCompat = WindowCompat.getInsetsController(context.window, rootView)
             controllerCompat.show(WindowInsetsCompat.Type.systemBars())
+            controllerCompat.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
             return
         }
     }

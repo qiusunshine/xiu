@@ -15,8 +15,16 @@ class BookmarkRepository internal constructor(context: Context) {
         allBookmarkLive = bookmarkDao?.allBookmarksLive
     }
 
+    fun loadAllBookmarks(): List<Bookmark?>? {
+        return bookmarkDao?.allBookmarks
+    }
+
     fun insertBookmark(vararg bookmarks: Bookmark?) {
         InsertAsyncTask(bookmarkDao).execute(*bookmarks)
+    }
+
+    fun insertBookmarkSync(vararg bookmarks: Bookmark?): Array<Int>? {
+        return bookmarkDao!!.insertBookmark(*bookmarks)?.map { it.toInt() }?.toTypedArray()
     }
 
     fun updateBookmark(vararg bookmarks: Bookmark?) {
@@ -37,6 +45,10 @@ class BookmarkRepository internal constructor(context: Context) {
 
     fun findBookmarksWithTitle(pattern: String?): LiveData<List<Bookmark?>?>? {
         return bookmarkDao!!.findBookmarksWithTitle(pattern)
+    }
+
+    fun findBookmarkWithTitle(pattern: String?): List<Bookmark?>? {
+        return bookmarkDao!!.findBookmarkWithTitle(pattern)
     }
 
     fun findBookmarkWithUrl(url: String?): Bookmark? {
