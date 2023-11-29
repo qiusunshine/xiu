@@ -56,6 +56,7 @@
     <string name="dialog_history_title">Sure to delete history?</string>
     <string name="delete">Delete</string>
     <string name="add_to_homepage">Add to homepage</string>
+    <string name="add_to_bookmark">Add to bookmark</string>
     <!-- Preference Titles -->
     <string name="messages_header">Messages</string>
     <string name="sync_header">Sync</string>

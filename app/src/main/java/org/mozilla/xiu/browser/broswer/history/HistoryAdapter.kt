@@ -19,6 +19,7 @@ class HistoryAdapter : ListAdapter<History, HistoryAdapter.ItemTestViewHolder>(H
         var DELETE = 0
         var ADD_TO_HOMEPAGE = 1
         var UPDATE = 2
+        var ADD_TO_BOOKMARK = 3
     }
 
     inner class ItemTestViewHolder(private val binding: ItemBookmarkBinding): RecyclerView.ViewHolder(binding.root){
@@ -50,18 +51,19 @@ class HistoryAdapter : ListAdapter<History, HistoryAdapter.ItemTestViewHolder>(H
 
     private fun showMenu(v: View, bean: History,context: Context) {
         val popup = PopupMenu(context!!, v)
-        popup.menuInflater.inflate(R.menu.bookmark_item_menu, popup.menu)
+        popup.menuInflater.inflate(R.menu.history_item_menu, popup.menu)
 
         popup.setOnMenuItemClickListener { menuItem: MenuItem ->
             // Respond to menu item click.
             when(menuItem.itemId){
                 R.id.menu_bookmark_item_delete -> {
                     popupSelect.onPopupSelect(bean, DELETE)
-
                 }
                 R.id.menu_bookmark_item_add_home ->{
                     popupSelect.onPopupSelect(bean, ADD_TO_HOMEPAGE)
-
+                }
+                R.id.menu_bookmark_item_add_bookmark ->{
+                    popupSelect.onPopupSelect(bean, ADD_TO_BOOKMARK)
                 }
             }
             false
