@@ -6,13 +6,13 @@ import androidx.room.*
 @Dao
 interface ShortcutDao {
     @Insert
-    fun insertShortcut(vararg shortcuts: Shortcut?)
+    fun insertShortcut(vararg shortcuts: Shortcut)
 
     @Update
-    fun updateShortcut(vararg shortcuts: Shortcut?)
+    fun updateShortcut(vararg shortcuts: Shortcut)
 
     @Delete
-    fun deleteShortcut(vararg shortcuts: Shortcut?)
+    fun deleteShortcut(vararg shortcuts: Shortcut)
 
     @Query("DELETE FROM Shortcut")
     fun deleteAllShortcuts()

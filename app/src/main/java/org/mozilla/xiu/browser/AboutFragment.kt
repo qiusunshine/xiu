@@ -14,6 +14,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import org.mozilla.xiu.browser.databinding.FragmentAboutBinding
 import org.mozilla.xiu.browser.session.createSession
@@ -40,10 +41,13 @@ class AboutFragment : Fragment() {
                 BottomSheetBehavior.from(fragmentAboutBinding.aboutDrawer as ConstraintLayout)
             SheetBehavior.peekHeight = 0
         }
-        fragmentAboutBinding.materialButton2.setOnClickListener { sendEmail() }
         fragmentAboutBinding.materialButton1.setOnClickListener {
+            findNavController().navigate(R.id.action_aboutFragment_to_updateRecordsFragment)
+        }
+        fragmentAboutBinding.materialButton2.setOnClickListener {
             SheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
         }
+        fragmentAboutBinding.textView2.text = getString(R.string.app_name) + "\nBrowser\nV" + CommonUtil.getVersionName(context)
         fragmentAboutBinding.textView2.setOnClickListener {
             Toast.makeText(
                 requireContext(),

@@ -15,19 +15,19 @@ internal class HistoryRepository(context: Context) {
         allHistoriesLive = historyDao?.allHistoriesLive
     }
 
-    fun insertHistory(vararg histories: History?) {
+    fun insertHistory(vararg histories: History) {
         InsertAsyncTask(historyDao).execute(*histories)
     }
 
-    fun updateHistory(vararg histories: History?) {
+    fun updateHistory(vararg histories: History) {
         UpdateAsyncTask(historyDao).execute(*histories)
     }
 
-    fun deleteHistory(vararg histories: History?) {
+    fun deleteHistory(vararg histories: History) {
         DeleteAsyncTask(historyDao).execute(*histories)
     }
 
-    fun deleteAllHistories(vararg histories: History?) {
+    fun deleteAllHistories() {
         DeleteAllAsyncTask(historyDao).execute()
     }
 
@@ -44,24 +44,24 @@ internal class HistoryRepository(context: Context) {
     }
 
     internal class InsertAsyncTask(private val historyDao: HistoryDao?) :
-        AsyncTask<History?, Void?, Void?>() {
-        protected override fun doInBackground(vararg params: History?): Void? {
+        AsyncTask<History, Void?, Void?>() {
+        protected override fun doInBackground(vararg params: History): Void? {
             historyDao!!.insertHistory(*params)
             return null
         }
     }
 
     internal class UpdateAsyncTask(private val historyDao: HistoryDao?) :
-        AsyncTask<History?, Void?, Void?>() {
-        protected override fun doInBackground(vararg params: History?): Void? {
+        AsyncTask<History, Void?, Void?>() {
+        protected override fun doInBackground(vararg params: History): Void? {
             historyDao!!.updateHistory(*params)
             return null
         }
     }
 
     internal class DeleteAsyncTask(private val historyDao: HistoryDao?) :
-        AsyncTask<History?, Void?, Void?>() {
-        protected override fun doInBackground(vararg params: History?): Void? {
+        AsyncTask<History, Void?, Void?>() {
+        protected override fun doInBackground(vararg params: History): Void? {
             historyDao!!.deleteHistory(*params)
             return null
         }

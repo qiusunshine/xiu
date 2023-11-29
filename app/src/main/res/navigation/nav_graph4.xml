@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/settings"
         android:name="org.mozilla.xiu.browser.settings.SettingsFragment"
-        android:label="@string/settins">
+        android:label="@string/settings">
         <action
             android:id="@+id/action_settingsFragment2_to_downloadFragment2"
             app:destination="@id/download"
@@ -34,6 +34,9 @@
         <action
             android:id="@+id/action_settings_to_addonsPopupFragment2"
             app:destination="@id/addonsPopupFragment2" />
+        <action
+            android:id="@+id/action_settingsFragment_to_privacyAndServiceFragment"
+            app:destination="@id/privacyAndServiceFragment" />
     </fragment>
     <fragment
         android:id="@+id/download"
@@ -62,7 +65,21 @@
         android:id="@+id/aboutFragment2"
         android:name="org.mozilla.xiu.browser.AboutFragment"
         android:label="@string/about"
-        tools:layout="@layout/fragment_about" />
+        tools:layout="@layout/fragment_about">
+        <action
+            android:id="@+id/action_aboutFragment_to_updateRecordsFragment"
+            app:destination="@id/updateRecordsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/privacyAndServiceFragment"
+        android:name="org.mozilla.xiu.browser.PrivacyAndServiceFragment"
+        android:label="@string/privacy_and_service_agreement"
+        tools:layout="@layout/fragment_privacy_and_service" />
+    <fragment
+        android:id="@+id/updateRecordsFragment"
+        android:name="org.mozilla.xiu.browser.settings.UpdateRecordsFragment"
+        android:label="@string/update_records"
+        tools:layout="@layout/fragment_privacy_and_service" />
     <fragment
         android:id="@+id/addonsPopupFragment2"
         android:name="org.mozilla.xiu.browser.menu.AddonsPopupFragment"

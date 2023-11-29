@@ -95,7 +95,7 @@ class DownloadTask : BaseObservable {
             if (!headers.isNullOrEmpty()) {
                 t.addAllHeader(headers)
             }
-            t.toDownloadFlow(downloadFactory, true) {
+            t.toDownloadFlow(downloadFactory, true).onProgress {
                 progress = it.progress //当前进度 0-100
                 currentSize = it.currentSize
                 totalSize = it.totalSize

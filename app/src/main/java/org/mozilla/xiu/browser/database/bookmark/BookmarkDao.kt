@@ -6,13 +6,13 @@ import androidx.room.*
 @Dao
 interface BookmarkDao {
     @Insert
-    fun insertBookmark(vararg bookmarks: Bookmark?): Array<Long>?
+    fun insertBookmark(vararg bookmarks: Bookmark): Array<Long>
 
     @Update
-    fun updateBookmark(vararg bookmarks: Bookmark?)
+    fun updateBookmark(vararg bookmarks: Bookmark)
 
     @Delete
-    fun deleteBookmark(vararg bookmarks: Bookmark?)
+    fun deleteBookmark(vararg bookmarks: Bookmark)
 
     @Query("Delete FROM BOOKMARK")
     fun deleteAllBookmark()

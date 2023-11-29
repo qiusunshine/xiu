@@ -30,15 +30,15 @@ class ShortcutViewModel(application: Application) : AndroidViewModel(application
         return shortcutRepository.findShortcutsWithMix(pattern)
     }
 
-    fun insertShortcuts(vararg shortcuts: Shortcut?) {
+    fun insertShortcuts(vararg shortcuts: Shortcut) {
         shortcutRepository.insertShortcut(*shortcuts)
     }
 
-    fun updateShortcuts(vararg shortcuts: Shortcut?) {
+    fun updateShortcuts(vararg shortcuts: Shortcut) {
         shortcutRepository.updateShortcut(*shortcuts)
     }
 
-    fun deleteShortcuts(vararg shortcuts: Shortcut?) {
+    fun deleteShortcuts(vararg shortcuts: Shortcut) {
         shortcutRepository.deleteShortcut(*shortcuts)
     }
 

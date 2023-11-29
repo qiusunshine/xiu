@@ -26,15 +26,15 @@ class HistoryViewModel(application: Application) : AndroidViewModel(application)
         return historyRepository.findHistoriesWithMix(pattern)
     }
 
-    fun insertHistories(vararg histories: History?) {
+    fun insertHistories(vararg histories: History) {
         historyRepository.insertHistory(*histories)
     }
 
-    fun updateHistories(vararg histories: History?) {
+    fun updateHistories(vararg histories: History) {
         historyRepository.updateHistory(*histories)
     }
 
-    fun deleteHistories(vararg histories: History?) {
+    fun deleteHistories(vararg histories: History) {
         historyRepository.deleteHistory(*histories)
     }
 

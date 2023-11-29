@@ -4,7 +4,7 @@
     <item
         android:id="@+id/settings"
         android:icon="@drawable/gear_fill"
-        android:title="@string/settins" />
+        android:title="@string/settings" />
     <item
         android:id="@+id/download"
         android:icon="@drawable/download"

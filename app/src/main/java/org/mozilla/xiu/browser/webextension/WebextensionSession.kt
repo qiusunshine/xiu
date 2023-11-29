@@ -338,6 +338,8 @@ class WebextensionSession {
                             d.dismiss()
                         }.show()
                     return@accept
+                } else if (exception.code == InstallException.ErrorCodes.ERROR_USER_CANCELED) {
+                    return@accept
                 }
             }
             Toast.makeText(context, "安装失败: $exception", Toast.LENGTH_LONG).show()
@@ -502,9 +504,9 @@ fun addSessionTabDelegate(
                     session: GeckoSession
                 ): GeckoResult<AllowOrDeny> {
                     val list = DelegateListLiveData.getInstance().value ?: arrayListOf()
-                    for (indexedValue in list.withIndex()) {
-                        if (indexedValue.value.session == session) {
-                            RemoveTabLiveData.getInstance().Value(indexedValue.index)
+                    for (value in list) {
+                        if (value.session == session) {
+                            RemoveTabLiveData.getInstance().Value(value)
                             break
                         }
                     }

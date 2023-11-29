@@ -58,6 +58,8 @@ class WebFragment(
     var detectorListener: DetectorListener? = null
 ) : Fragment() {
 
+    constructor() : this({ full -> })
+
     private var _binding: FragmentSecondBinding? = null
     lateinit var session: GeckoSession
     lateinit var geckoViewModel: GeckoViewModel
@@ -126,6 +128,23 @@ class WebFragment(
         filePicker = FilePicker(launcher, requireActivity())
     }
 
+    fun removeSessionDelegates(exclude: SessionDelegate?) {
+        val iterator = delegate.iterator()
+        while (iterator.hasNext()) {
+            val sessionDelegate = iterator.next()
+            if (sessionDelegate == exclude) {
+                continue
+            }
+            sessionDelegate.close()
+            iterator.remove()
+        }
+        DelegateListLiveData.getInstance().Value(delegate)
+        if (exclude == null) {
+            //全部移除
+            HomeLivedata.getInstance().Value(true)
+        }
+    }
+
     @SuppressLint("ClickableViewAccessibility", "WrongThread")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -140,9 +159,10 @@ class WebFragment(
         DelegateListLiveData.getInstance().observe(viewLifecycleOwner) {
             delegate = it
         }
-        RemoveTabLiveData.getInstance().observe(viewLifecycleOwner) {
+        RemoveTabLiveData.getInstance().observe(viewLifecycleOwner) { sessionDelegate0 ->
+            val it = delegate.indexOf(sessionDelegate0)
+            sessionDelegate0.close()
             if (it >= 0 && delegate.size > it) {
-                delegate[it].close()
                 val removed = delegate.removeAt(it)
                 if (removed.active) {
                     if (delegate.getOrNull(it) == null) {

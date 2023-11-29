@@ -7,7 +7,7 @@
     <fragment
         android:id="@+id/settingsFragment"
         android:name="org.mozilla.xiu.browser.settings.SettingsFragment"
-        android:label="@string/settins" >
+        android:label="@string/settings">
         <action
             android:id="@+id/action_settingsFragment_to_aboutFragment"
             app:destination="@id/aboutFragment"
@@ -40,7 +40,11 @@
         android:id="@+id/aboutFragment"
         android:name="org.mozilla.xiu.browser.AboutFragment"
         android:label=" "
-        tools:layout="@layout/fragment_about" />
+        tools:layout="@layout/fragment_about">
+        <action
+            android:id="@+id/action_aboutFragment_to_updateRecordsFragment"
+            app:destination="@id/updateRecordsFragment" />
+    </fragment>
     <fragment
         android:id="@+id/settingsSearching2"
         android:name="org.mozilla.xiu.browser.settings.SettingsSearching"
@@ -49,6 +53,11 @@
         android:id="@+id/privacyAndServiceFragment"
         android:name="org.mozilla.xiu.browser.PrivacyAndServiceFragment"
         android:label="@string/privacy_and_service_agreement"
+        tools:layout="@layout/fragment_privacy_and_service" />
+    <fragment
+        android:id="@+id/updateRecordsFragment"
+        android:name="org.mozilla.xiu.browser.settings.UpdateRecordsFragment"
+        android:label="@string/update_records"
         tools:layout="@layout/fragment_privacy_and_service" />
     <fragment
         android:id="@+id/qrScanningFragment"

@@ -6,13 +6,13 @@ import androidx.room.*
 @Dao
 interface HistoryDao {
     @Insert
-    fun insertHistory(vararg histories: History?)
+    fun insertHistory(vararg histories: History)
 
     @Update
-    fun updateHistory(vararg histories: History?)
+    fun updateHistory(vararg histories: History)
 
     @Delete
-    fun deleteHistory(vararg histories: History?)
+    fun deleteHistory(vararg histories: History)
 
     @Query("DELETE FROM History")
     fun deleteAllHistories()

@@ -8,6 +8,7 @@
     <style name="Theme.Stage.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="dialogCornerRadius">@dimen/dim2</item>
     </style>
 
     <style name="Theme.Stage.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />

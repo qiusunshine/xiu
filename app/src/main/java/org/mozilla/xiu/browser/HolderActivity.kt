@@ -48,7 +48,7 @@ class HolderActivity : AppCompatActivity() {
             }
 
         }
-        navController.graph=navGraph
+        navController.graph = navGraph
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
     }

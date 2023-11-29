@@ -17,6 +17,7 @@ import org.mozilla.geckoview.StorageController.ClearFlags.ALL
 import org.mozilla.xiu.browser.HolderActivity
 import org.mozilla.xiu.browser.MainActivity
 import org.mozilla.xiu.browser.R
+import org.mozilla.xiu.browser.base.addOnBackPressed
 import org.mozilla.xiu.browser.componets.BookmarkDialog
 import org.mozilla.xiu.browser.componets.HomeLivedata
 import org.mozilla.xiu.browser.componets.MenuAddonsAdapater
@@ -49,6 +50,9 @@ class MenuPopup {
     ) {
         this.context = context
         bottomSheetDialog = BottomSheetDialog(context, R.style.BottomSheetDialog)
+        val onBackPressedCallback = bottomSheetDialog.addOnBackPressed {
+            false
+        }
         bookmarkViewModel =
             ViewModelProvider(context).get(BookmarkViewModel::class.java)
         binding = PopupMenuBinding.inflate(LayoutInflater.from(context))
@@ -68,7 +72,7 @@ class MenuPopup {
         }
         bookmarkObserver = Observer {
             if (!it.isNullOrEmpty()) {
-                val bookmark = it[0]
+                val bookmark = it[0]!!
                 binding.starButton.icon = ContextCompat.getDrawable(context, R.drawable.star_fill)
                 binding.starButton.setOnClickListener {
                     MaterialAlertDialogBuilder(context)
@@ -113,6 +117,7 @@ class MenuPopup {
         DelegateLivedata.getInstance().observe(context, delegateLiveObserver)
         PrivacyModeLivedata.getInstance().observe(context, privacyObserver)
         bottomSheetDialog.setOnDismissListener {
+            onBackPressedCallback.remove()
             HomeLivedata.getInstance().removeObserver(homeObserver)
             DelegateLivedata.getInstance().removeObserver(delegateLiveObserver)
             bookmarkValueLiveData?.removeObserver(bookmarkObserver)

@@ -11,6 +11,7 @@ import org.mozilla.geckoview.GeckoRuntime
 import org.mozilla.geckoview.GeckoSession
 import org.mozilla.xiu.browser.MainActivity
 import org.mozilla.xiu.browser.R
+import org.mozilla.xiu.browser.base.addOnBackPressed
 import org.mozilla.xiu.browser.componets.HomeLivedata
 import org.mozilla.xiu.browser.databinding.PopupTabBinding
 import org.mozilla.xiu.browser.session.GeckoViewModel
@@ -36,6 +37,9 @@ class TabPopup {
     }
 
     fun show() {
+        val onBackPressedCallback = bottomSheetDialog.addOnBackPressed {
+            false
+        }
         val adapter = TabListAdapter()
         binding.recyclerView.adapter = adapter
         adapter.select = object : TabListAdapter.Select {
@@ -49,6 +53,7 @@ class TabPopup {
         }
         DelegateListLiveData.getInstance().observe(context, observer!!)
         bottomSheetDialog.setOnDismissListener {
+            onBackPressedCallback.remove()
             DelegateListLiveData.getInstance().removeObserver(observer!!)
         }
         binding.popAddButton.setOnClickListener {
@@ -66,7 +71,7 @@ class TabPopup {
 
             override fun onItemDismiss(srcHolder: RecyclerView.ViewHolder) {
                 try {
-                    RemoveTabLiveData.getInstance().Value(srcHolder.bindingAdapterPosition)
+                    RemoveTabLiveData.getInstance().Value(adapter.currentList[srcHolder.bindingAdapterPosition])
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }

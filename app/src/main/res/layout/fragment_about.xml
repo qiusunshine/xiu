@@ -12,8 +12,7 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/surface">
+            android:layout_height="match_parent">
 
             <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/textView2"
@@ -21,7 +20,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:autoText="false"
-
                 android:fontFamily="@font/alfa_slab_one"
                 android:freezesText="false"
                 android:gravity="start"
@@ -85,9 +83,9 @@
                 style="@style/Widget.Material3.Button.IconButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="微信公众号"
+                android:text="更新日志"
                 android:textSize="20sp"
-                app:icon="@drawable/wechat"
+                app:icon="@drawable/emoji_sunglasses_fill"
                 app:iconSize="@dimen/dim2"
                 app:layout_constraintBottom_toTopOf="@+id/materialButton2"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -99,9 +97,9 @@
                 style="@style/Widget.Material3.Button.IconButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="email"
+                android:text="公众号"
                 android:textSize="20sp"
-                app:icon="@drawable/envelope_fill"
+                app:icon="@drawable/wechat"
                 app:iconSize="@dimen/dim2"
                 app:layout_constraintBottom_toTopOf="@+id/materialButton5"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -125,7 +123,7 @@
             android:id="@+id/aboutDrawer"
             style="@style/Widget.Material3.BottomSheet"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
             <ImageView
@@ -134,7 +132,7 @@
                 android:layout_height="@dimen/dim5"
                 android:scaleType="centerCrop"
                 android:src="@drawable/wechat_qr_hk"
-                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginTop="16dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -153,7 +151,7 @@
                 android:id="@+id/imageView15"
                 android:layout_width="@dimen/dim5"
                 android:layout_height="@dimen/dim5"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="16dp"
                 android:scaleType="centerCrop"
                 android:src="@drawable/wechat_qr"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -165,6 +163,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
+                android:paddingBottom="16dp"
                 android:text="关注Stage原作者公众号"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

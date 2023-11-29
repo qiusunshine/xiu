@@ -7,6 +7,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.tabs.TabLayoutMediator
 import org.mozilla.xiu.browser.MainActivity
 import org.mozilla.xiu.browser.R
+import org.mozilla.xiu.browser.base.addOnBackPressed
 import org.mozilla.xiu.browser.broswer.bookmark.BookmarkFragment
 import org.mozilla.xiu.browser.broswer.bookmark.sync.SyncBookmarkFolderFragment
 import org.mozilla.xiu.browser.componets.CollectionAdapter
@@ -27,13 +28,9 @@ class BookmarkPopup {
         this.context = context
         val bookmarkFragment = BookmarkFragment(context)
         fragments = listOf(bookmarkFragment, SyncBookmarkFolderFragment())
-        bottomSheetDialog = object : BottomSheetDialog(context, R.style.BottomSheetDialog) {
-            override fun onBackPressed() {
-                if(bookmarkFragment.onBackPressed()) {
-                    return
-                }
-                super.onBackPressed()
-            }
+        bottomSheetDialog = BottomSheetDialog(context, R.style.BottomSheetDialog)
+        val onBackPressedCallback = bottomSheetDialog.addOnBackPressed {
+            bookmarkFragment.onBackPressed()
         }
         binding = PopupBookmarkBinding.inflate(LayoutInflater.from(context))
         bottomSheetDialog.setContentView(binding.root)
@@ -49,6 +46,7 @@ class BookmarkPopup {
         }
         HomeLivedata.getInstance().observe(context, observer)
         bottomSheetDialog.setOnDismissListener {
+            onBackPressedCallback.remove()
             HomeLivedata.getInstance().removeObserver(observer)
         }
     }

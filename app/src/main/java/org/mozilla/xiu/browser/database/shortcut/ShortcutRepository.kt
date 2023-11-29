@@ -15,19 +15,19 @@ internal class ShortcutRepository(context: Context) {
         allShortcutsLive = shortcutDao?.allShortcutsLive
     }
 
-    fun insertShortcut(vararg shortcuts: Shortcut?) {
+    fun insertShortcut(vararg shortcuts: Shortcut) {
         InsertAsyncTask(shortcutDao).execute(*shortcuts)
     }
 
-    fun updateShortcut(vararg shortcuts: Shortcut?) {
+    fun updateShortcut(vararg shortcuts: Shortcut) {
         UpdateAsyncTask(shortcutDao).execute(*shortcuts)
     }
 
-    fun deleteShortcut(vararg shortcuts: Shortcut?) {
+    fun deleteShortcut(vararg shortcuts: Shortcut) {
         DeleteAsyncTask(shortcutDao).execute(*shortcuts)
     }
 
-    fun deleteAllShortcuts(vararg shortcuts: Shortcut?) {
+    fun deleteAllShortcuts() {
         DeleteAllAsyncTask(shortcutDao).execute()
     }
 
@@ -53,24 +53,24 @@ internal class ShortcutRepository(context: Context) {
     }
 
     internal class InsertAsyncTask(private val shortcutDao: ShortcutDao?) :
-        AsyncTask<Shortcut?, Void?, Void?>() {
-        protected override fun doInBackground(vararg params: Shortcut?): Void? {
+        AsyncTask<Shortcut, Void?, Void?>() {
+        protected override fun doInBackground(vararg params: Shortcut): Void? {
             shortcutDao!!.insertShortcut(*params)
             return null
         }
     }
 
     internal class UpdateAsyncTask(private val shortcutDao: ShortcutDao?) :
-        AsyncTask<Shortcut?, Void?, Void?>() {
-        protected override fun doInBackground(vararg params: Shortcut?): Void? {
+        AsyncTask<Shortcut, Void?, Void?>() {
+        protected override fun doInBackground(vararg params: Shortcut): Void? {
             shortcutDao!!.updateShortcut(*params)
             return null
         }
     }
 
     internal class DeleteAsyncTask(private val shortcutDao: ShortcutDao?) :
-        AsyncTask<Shortcut?, Void?, Void?>() {
-        protected override fun doInBackground(vararg params: Shortcut?): Void? {
+        AsyncTask<Shortcut, Void?, Void?>() {
+        protected override fun doInBackground(vararg params: Shortcut): Void? {
             shortcutDao!!.deleteShortcut(*params)
             return null
         }

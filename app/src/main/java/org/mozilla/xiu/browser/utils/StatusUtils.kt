@@ -55,17 +55,19 @@ object StatusUtils {
     }
 
     /**
-     * 为啥不直接用setStatusBarVisibilityFullTheme，因为会出现横屏切换竖屏时屏幕左侧出现和状态栏高度一样的白边
+     * 显示或者隐藏状态栏、导航栏
      *
      * @param visible
      */
     fun setStatusBarVisibility(context: Activity, visible: Boolean, rootView: View) {
         if (!visible) {
             val controllerCompat = WindowCompat.getInsetsController(context.window, rootView)
+            WindowCompat.setDecorFitsSystemWindows(context.window, false)
             controllerCompat.hide(WindowInsetsCompat.Type.systemBars())
             controllerCompat.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             return
         } else {
+            WindowCompat.setDecorFitsSystemWindows(context.window, true)
             val controllerCompat = WindowCompat.getInsetsController(context.window, rootView)
             controllerCompat.show(WindowInsetsCompat.Type.systemBars())
             controllerCompat.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT

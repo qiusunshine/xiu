@@ -46,7 +46,19 @@ object UriUtils {
             fileName = FileUtil.getResourceName(uri)
         }
         if (StringUtil.isEmpty(fileName)) {
-            fileName = "unknown-" + UUIDUtil.genUUID()
+            fileName = UUIDUtil.genUUID()
+        }
+        if (fileName?.contains(".") == false && uri.contains("edgeextension")) {
+            fileName = "$fileName.crx"
+        }
+        if (fileName?.contains(".") == false) {
+            val exts = ShareUtil.getExtensions()
+            for (ext in exts) {
+                if (uri.contains(".$ext")) {
+                    fileName = "$fileName.$ext"
+                    break
+                }
+            }
         }
         return fileName ?: ""
     }

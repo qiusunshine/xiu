@@ -24,10 +24,18 @@ class TabListAdapter :
                 select.onSelect()
             }
             binding.materialButton?.setOnClickListener {
-                RemoveTabLiveData.getInstance().Value(bindingAdapterPosition)
+                try {
+                    RemoveTabLiveData.getInstance().Value(currentList[bindingAdapterPosition])
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
             binding.deleteButton?.setOnClickListener {
-                RemoveTabLiveData.getInstance().Value(bindingAdapterPosition)
+                try {
+                    RemoveTabLiveData.getInstance().Value(currentList[bindingAdapterPosition])
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
     }

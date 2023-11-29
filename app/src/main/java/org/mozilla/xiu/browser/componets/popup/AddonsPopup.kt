@@ -15,6 +15,7 @@ import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.GeckoSession.ProgressDelegate
 import org.mozilla.geckoview.WebExtension
 import org.mozilla.xiu.browser.R
+import org.mozilla.xiu.browser.base.addOnBackPressed
 import org.mozilla.xiu.browser.databinding.PopupAddonsBinding
 import org.mozilla.xiu.browser.utils.ThreadTool
 import org.mozilla.xiu.browser.webextension.WebExtensionAddTabEvent
@@ -104,7 +105,11 @@ class AddonsPopup {
         binding.addonsView.coverUntilFirstPaint(ContextCompat.getColor(context, R.color.surface))
         binding.addonsView.setSession(session)
         bottomSheetDialog.show()
+        val onBackPressedCallback = bottomSheetDialog.addOnBackPressed {
+            false
+        }
         bottomSheetDialog.setOnDismissListener {
+            onBackPressedCallback.remove()
             if (EventBus.getDefault().isRegistered(this)) {
                 EventBus.getDefault().unregister(this)
             }

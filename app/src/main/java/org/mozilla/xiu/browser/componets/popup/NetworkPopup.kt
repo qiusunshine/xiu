@@ -6,6 +6,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import org.mozilla.xiu.browser.R
+import org.mozilla.xiu.browser.base.addOnBackPressed
 import org.mozilla.xiu.browser.databinding.PopupNetworkBinding
 import org.mozilla.xiu.browser.session.SessionDelegate
 import org.mozilla.xiu.browser.webextension.TabRequest
@@ -22,6 +23,12 @@ class NetworkPopup {
     ) {
         this.context = context
         bottomSheetDialog = BottomSheetDialog(context, R.style.BottomSheetDialog)
+        val onBackPressedCallback = bottomSheetDialog.addOnBackPressed {
+            false
+        }
+        bottomSheetDialog.setOnDismissListener {
+            onBackPressedCallback.remove()
+        }
         binding = PopupNetworkBinding.inflate(LayoutInflater.from(context))
         bottomSheetDialog.setContentView(binding.root)
         adapter = NetworkAdapter()

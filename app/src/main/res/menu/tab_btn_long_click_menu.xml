@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/tab_open_one"
+        android:title="@string/add_tab" />
+    <item
+        android:id="@+id/tab_remove"
+        android:title="@string/tab_remove" />
+    <item
+        android:id="@+id/tab_remove_other"
+        android:title="@string/tab_remove_other" />
+    <item
+        android:id="@+id/tab_remove_all"
+        android:title="@string/tab_remove_all" />
+</menu>

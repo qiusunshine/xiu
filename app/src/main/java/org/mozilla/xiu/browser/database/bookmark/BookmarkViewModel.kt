@@ -43,19 +43,19 @@ class BookmarkViewModel(application: Application) : AndroidViewModel(application
         return bookmarkRepository.findBookmarksWithShow(pattern)
     }
 
-    fun insertBookmarks(vararg bookmarks: Bookmark?) {
+    fun insertBookmarks(vararg bookmarks: Bookmark) {
         bookmarkRepository.insertBookmark(*bookmarks)
     }
 
-    fun insertBookmarksSync(vararg bookmarks: Bookmark?): Array<Int>? {
+    fun insertBookmarksSync(vararg bookmarks: Bookmark): Array<Int> {
         return bookmarkRepository.insertBookmarkSync(*bookmarks)
     }
 
-    fun updateBookmarks(vararg bookmarks: Bookmark?) {
+    fun updateBookmarks(vararg bookmarks: Bookmark) {
         bookmarkRepository.updateBookmark(*bookmarks)
     }
 
-    fun deleteBookmarks(vararg bookmarks: Bookmark?) {
+    fun deleteBookmarks(vararg bookmarks: Bookmark) {
         bookmarkRepository.deleteBookmark(*bookmarks)
     }
 

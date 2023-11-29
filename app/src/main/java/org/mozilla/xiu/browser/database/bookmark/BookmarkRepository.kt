@@ -19,19 +19,19 @@ class BookmarkRepository internal constructor(context: Context) {
         return bookmarkDao?.allBookmarks
     }
 
-    fun insertBookmark(vararg bookmarks: Bookmark?) {
+    fun insertBookmark(vararg bookmarks: Bookmark) {
         InsertAsyncTask(bookmarkDao).execute(*bookmarks)
     }
 
-    fun insertBookmarkSync(vararg bookmarks: Bookmark?): Array<Int>? {
-        return bookmarkDao!!.insertBookmark(*bookmarks)?.map { it.toInt() }?.toTypedArray()
+    fun insertBookmarkSync(vararg bookmarks: Bookmark): Array<Int> {
+        return bookmarkDao!!.insertBookmark(*bookmarks).map { it.toInt() }.toTypedArray()
     }
 
-    fun updateBookmark(vararg bookmarks: Bookmark?) {
+    fun updateBookmark(vararg bookmarks: Bookmark) {
         UpdateAsyncTask(bookmarkDao).execute(*bookmarks)
     }
 
-    fun deleteBookmark(vararg bookmarks: Bookmark?) {
+    fun deleteBookmark(vararg bookmarks: Bookmark) {
         DeleteAsyncTask(bookmarkDao).execute(*bookmarks)
     }
 
@@ -69,24 +69,24 @@ class BookmarkRepository internal constructor(context: Context) {
     }
 
     internal class InsertAsyncTask(private val bookmarkDao: BookmarkDao?) :
-        AsyncTask<Bookmark?, Void?, Void?>() {
-        protected override fun doInBackground(vararg params: Bookmark?): Void? {
+        AsyncTask<Bookmark, Void?, Void?>() {
+        protected override fun doInBackground(vararg params: Bookmark): Void? {
             bookmarkDao!!.insertBookmark(*params)
             return null
         }
     }
 
     internal class UpdateAsyncTask(private val bookmarkDao: BookmarkDao?) :
-        AsyncTask<Bookmark?, Void?, Void?>() {
-        protected override fun doInBackground(vararg params: Bookmark?): Void? {
+        AsyncTask<Bookmark, Void?, Void?>() {
+        protected override fun doInBackground(vararg params: Bookmark): Void? {
             bookmarkDao!!.updateBookmark(*params)
             return null
         }
     }
 
     internal class DeleteAsyncTask(private val bookmarkDao: BookmarkDao?) :
-        AsyncTask<Bookmark?, Void?, Void?>() {
-        protected override fun doInBackground(vararg params: Bookmark?): Void? {
+        AsyncTask<Bookmark, Void?, Void?>() {
+        protected override fun doInBackground(vararg params: Bookmark): Void? {
             bookmarkDao!!.deleteBookmark(*params)
             return null
         }

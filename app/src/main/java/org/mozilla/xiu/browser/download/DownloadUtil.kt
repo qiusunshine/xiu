@@ -185,6 +185,10 @@ fun openUriBeforePop(context: Context, uri: Uri) {
                         openIntent(context, name, uri)
                         dialog?.dismiss()
                     }
+                    v.findViewById<MaterialButton>(R.id.btnCancel)
+                        .setOnClickListener {
+                            dialog?.dismiss()
+                        }
                 }
             })
             .showLong()

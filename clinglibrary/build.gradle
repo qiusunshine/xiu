@@ -31,10 +31,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'], excludes: ['rt.jar', 'javax.inject.jar'])
-    implementation 'androidx.appcompat:appcompat:1.4.2'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
 
     compileOnly files ('libs/rt.jar')
     compileOnly files ('libs/javax.inject.jar')

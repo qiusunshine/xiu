@@ -289,7 +289,7 @@
 
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/settins"
+                    android:text="@string/settings"
                     app:icon="@drawable/icon_setting_more"
                     app:iconGravity="textTop"
                     app:iconPadding="@dimen/dim4dp"

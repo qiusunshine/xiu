@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.mozilla.xiu.browser.App
 import org.mozilla.xiu.browser.MainActivity
 import org.mozilla.xiu.browser.R
 import org.mozilla.xiu.browser.broswer.bookmark.data.ChromeParser
@@ -57,6 +58,10 @@ import java.io.IOException
 class BookmarkFragment(
     val activity: MainActivity
 ) : Fragment() {
+    constructor() : this(App.getHomeActivity() as MainActivity) {
+
+    }
+
     lateinit var binding: FragmentBookmarkBinding
     private lateinit var bookmarkViewModel: BookmarkViewModel
     private lateinit var shortcutViewModel: ShortcutViewModel
@@ -160,7 +165,8 @@ class BookmarkFragment(
                                     val groupNode: ChromeParser.BookmarkGroupNode =
                                         ChromeParser.toGroupNode(bookmarks, bean)
                                     deleteByGroupNode(bookmarkViewModel, groupNode)
-                                }.setNegativeButton(requireContext().getString(R.string.cancel)) { d, _ ->
+                                }
+                                .setNegativeButton(requireContext().getString(R.string.cancel)) { d, _ ->
                                     d.dismiss()
                                 }.show()
                         } else {

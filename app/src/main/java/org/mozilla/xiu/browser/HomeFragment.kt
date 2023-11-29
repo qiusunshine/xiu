@@ -18,8 +18,6 @@ import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import org.mozilla.xiu.browser.broswer.bookmark.shortcut.ShortcutAdapter
 import org.mozilla.xiu.browser.componets.HomeLivedata
-import org.mozilla.xiu.browser.componets.popup.BookmarkPopup
-import org.mozilla.xiu.browser.componets.popup.HistoryPopup
 import org.mozilla.xiu.browser.database.shortcut.Shortcut
 import org.mozilla.xiu.browser.database.shortcut.ShortcutViewModel
 import org.mozilla.xiu.browser.databinding.FragmentFirstBinding
@@ -65,7 +63,6 @@ class HomeFragment : Fragment() {
             binding.searchView?.visibility = View.GONE
             binding.tips?.visibility = View.GONE
             binding.HomeSearchText?.visibility = View.GONE
-            binding.imageView12?.visibility = View.GONE
             binding.constraintLayout3?.visibility = View.GONE
             binding.shortcutsRecyclerView?.visibility = View.GONE
             if(HomeLivedata.getInstance().value == true) {
@@ -75,7 +72,6 @@ class HomeFragment : Fragment() {
             binding.searchView?.visibility = View.VISIBLE
             binding.tips?.visibility = View.VISIBLE
             binding.HomeSearchText?.visibility = View.VISIBLE
-            binding.imageView12?.visibility = View.VISIBLE
             binding.constraintLayout3?.visibility = View.VISIBLE
             binding.shortcutsRecyclerView?.visibility = View.VISIBLE
         }
@@ -223,29 +219,13 @@ class HomeFragment : Fragment() {
         shortcutAdapter.select = object : ShortcutAdapter.Select {
             override fun onSelect(url: String) {
                 when (url) {
-                    "hiker://bookmark" -> {
+                    "hiker://bookmark",  "hiker://download", "hiker://history"-> {
                         try {
-                            BookmarkPopup(requireActivity() as MainActivity).show()
+                            (requireActivity() as MainActivity).showPage(url)
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }
                     }
-
-                    "hiker://download" -> {
-                        val intent = Intent(context, HolderActivity::class.java)
-                        intent.putExtra("Page", "DOWNLOAD")
-                        intent.putExtra("downloaded", true)
-                        context?.startActivity(intent)
-                    }
-
-                    "hiker://history" -> {
-                        try {
-                            HistoryPopup(requireActivity() as MainActivity).show()
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                    }
-
                     else -> {
                         createSession(url, requireActivity())
                     }

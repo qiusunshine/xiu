@@ -77,6 +77,17 @@
                 app:layout_constraintTop_toBottomOf="@+id/addFromFirefox" />
 
             <Button
+                android:id="@+id/addFromEdge"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/add_addons_from_edge"
+                app:iconGravity="end"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/addFromLocal" />
+
+            <Button
                 android:id="@+id/addFromOther"
                 style="@style/Widget.Material3.Button.IconButton"
                 android:layout_width="0dp"
@@ -85,7 +96,7 @@
                 app:iconGravity="end"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/addFromLocal" />
+                app:layout_constraintTop_toBottomOf="@+id/addFromEdge" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -235,7 +246,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
                 android:layout_marginEnd="32dp"
-                android:text="@string/settins"
+                android:text="@string/settings"
                 app:iconGravity="end"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/guideline_center"

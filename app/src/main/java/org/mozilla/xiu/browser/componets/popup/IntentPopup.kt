@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import org.mozilla.xiu.browser.R
+import org.mozilla.xiu.browser.base.addOnBackPressed
 import org.mozilla.xiu.browser.databinding.PopupIntentBinding
 
 class IntentPopup {
@@ -17,6 +18,12 @@ class IntentPopup {
         this.context = context
         binding = PopupIntentBinding.inflate(LayoutInflater.from(context))
         bottomSheetDialog = BottomSheetDialog(context!!, R.style.BottomSheetDialog)
+        val onBackPressedCallback = bottomSheetDialog.addOnBackPressed {
+            false
+        }
+        bottomSheetDialog.setOnDismissListener {
+            onBackPressedCallback.remove()
+        }
         bottomSheetDialog.setContentView(binding!!.root)
     }
 

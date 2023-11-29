@@ -11,23 +11,28 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.AttributeSet
 import android.util.Log
-import android.util.Patterns
 import android.view.KeyEvent
+import android.view.MenuItem
 import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.webkit.URLUtil
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.PopupMenu
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.core.view.forEach
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.FloatingWindow
+import androidx.navigation.NavController
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupWithNavController
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.ViewPager2
@@ -53,6 +58,8 @@ import org.mozilla.xiu.browser.broswer.home.TipsAdapter
 import org.mozilla.xiu.browser.componets.BookmarkDialog
 import org.mozilla.xiu.browser.componets.CollectionAdapter
 import org.mozilla.xiu.browser.componets.HomeLivedata
+import org.mozilla.xiu.browser.componets.popup.BookmarkPopup
+import org.mozilla.xiu.browser.componets.popup.HistoryPopup
 import org.mozilla.xiu.browser.componets.popup.MenuPopup
 import org.mozilla.xiu.browser.componets.popup.TabPopup
 import org.mozilla.xiu.browser.database.history.History
@@ -87,6 +94,7 @@ import org.mozilla.xiu.browser.view.toast.ChefSnackbar
 import org.mozilla.xiu.browser.view.toast.make
 import org.mozilla.xiu.browser.webextension.BrowseEvent
 import org.mozilla.xiu.browser.webextension.DetectorListener
+import org.mozilla.xiu.browser.webextension.EvalJSEvent
 import org.mozilla.xiu.browser.webextension.TabRequest
 import org.mozilla.xiu.browser.webextension.TabRequestEvent
 import org.mozilla.xiu.browser.webextension.WebExtensionConnectPortEvent
@@ -98,6 +106,7 @@ import org.mozilla.xiu.browser.webextension.addDelegate
 import org.mozilla.xiu.browser.webextension.removeDelegate
 import timber.log.Timber
 import java.io.File
+import java.lang.ref.WeakReference
 import java.util.Objects
 
 
@@ -111,13 +120,7 @@ class MainActivity : AppCompatActivity(), DetectorListener {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
     private lateinit var privacyAgreementLayoutBinding: PrivacyAgreementLayoutBinding
-    private var fragments =
-        listOf(
-            HomeFragment(),
-            WebFragment({ full -> fullScreenCall(full) }, { url, _ ->
-                floatVideoController?.loadUrl(url)
-            }, this)
-        )
+    private var fragments: List<Fragment>? = null
     private lateinit var geckoViewModel: GeckoViewModel
     var sessionDelegates = ArrayList<SessionDelegate>()
     private val adapter = TabListAdapter()
@@ -131,10 +134,10 @@ class MainActivity : AppCompatActivity(), DetectorListener {
 
     private fun fullScreenCall(fullScreen: Boolean) {
         if (fullScreen) {
-            StatusUtils.setStatusBarVisibility(this, false, binding.containerView!!)
+            StatusUtils.setStatusBarVisibility(this, false, binding.content.viewPager)
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         } else {
-            StatusUtils.setStatusBarVisibility(this, true, binding.containerView!!)
+            StatusUtils.setStatusBarVisibility(this, true, binding.content.viewPager)
             window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
     }
@@ -143,6 +146,13 @@ class MainActivity : AppCompatActivity(), DetectorListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         App.setHomeActivity(this)
+        fragments =
+            listOf(
+                HomeFragment(),
+                WebFragment({ full -> fullScreenCall(full) }, { url, _ ->
+                    floatVideoController?.loadUrl(url)
+                }, this)
+            )
         binding = ActivityMainBinding.inflate(layoutInflater)
         privacyAgreementLayoutBinding = PrivacyAgreementLayoutBinding.inflate(layoutInflater)
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
@@ -171,9 +181,9 @@ class MainActivity : AppCompatActivity(), DetectorListener {
         onBackPressedDispatcher.addCallback(this, onBackPress)
         geckoViewModel = ViewModelProvider(this)[GeckoViewModel::class.java]
         historyViewModel = ViewModelProvider(this)[HistoryViewModel::class.java]
-        if (binding.content.drawer != null) {
+        if (binding.drawer != null) {
             bottomSheetBehavior =
-                BottomSheetBehavior.from(binding.content.drawer as ConstraintLayout)
+                BottomSheetBehavior.from(binding.drawer as ConstraintLayout)
             bottomSheetBehavior!!.peekHeight = 0
             bottomSheetBehavior!!.isDraggable = false
         }
@@ -324,17 +334,17 @@ class MainActivity : AppCompatActivity(), DetectorListener {
         binding.recyclerView2?.adapter = adapter
         binding.recyclerView2?.layoutManager =
             LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        binding.content.viewPager.adapter = CollectionAdapter(this, fragments)
+        binding.content.viewPager.adapter = CollectionAdapter(this, fragments!!)
         binding.content.viewPager.isUserInputEnabled = false
         binding.materialButtonMenu?.setOnClickListener { MenuPopup(this).show() }
         binding.materialButtonHome?.setOnClickListener { HomeLivedata.getInstance().Value(true) }
         binding.materialButtonTab?.setOnClickListener { TabPopup(this).show() }
         binding.materialButtonTab?.setOnLongClickListener {
-            HomeLivedata.getInstance().Value(true)
+            showTabLongClickMenu(it)
             true
         }
         binding.addButton?.setOnClickListener { HomeLivedata.getInstance().Value(true) }
-        binding.content.popupCloseButton?.setOnClickListener {
+        binding.popupCloseButton?.setOnClickListener {
             bottomSheetBehavior?.state = BottomSheetBehavior.STATE_COLLAPSED
         }
         if (binding.content.viewPager.currentItem == 1) {
@@ -346,7 +356,7 @@ class MainActivity : AppCompatActivity(), DetectorListener {
             binding.backButtonL?.setOnClickListener {
                 if (binding.user?.canBack == true)
                     binding.user?.session?.goBack()
-                else RemoveTabLiveData.getInstance().Value(sessionDelegates.indexOf(binding.user))
+                else RemoveTabLiveData.getInstance().Value(binding.user)
             }
             binding.forwardButtonL?.setOnClickListener {
                 if (binding.user?.canForward == true)
@@ -444,6 +454,51 @@ class MainActivity : AppCompatActivity(), DetectorListener {
             }
         }
         initFloatVideo()
+    }
+
+    private fun showTabLongClickMenu(v: View?) {
+        if (v == null) {
+            return
+        }
+        if (DelegateListLiveData.getInstance().value.isNullOrEmpty()) {
+            return
+        }
+        val popup = PopupMenu(getContext(), v)
+        popup.menuInflater.inflate(R.menu.tab_btn_long_click_menu, popup.menu)
+        if (HomeLivedata.getInstance().value == true) {
+            popup.menu.removeItem(R.id.tab_open_one)
+            popup.menu.removeItem(R.id.tab_remove)
+            popup.menu.removeItem(R.id.tab_remove_other)
+        }
+        popup.setOnMenuItemClickListener { menuItem: MenuItem ->
+            when (menuItem.itemId) {
+                R.id.tab_open_one -> {
+                    HomeLivedata.getInstance().Value(true)
+                }
+
+                R.id.tab_remove -> {
+                    DelegateLivedata.getInstance().value?.let { sessionDelegate ->
+                        RemoveTabLiveData.getInstance().Value(sessionDelegate)
+                    }
+                }
+
+                R.id.tab_remove_other -> {
+                    DelegateLivedata.getInstance().value?.let { sessionDelegate ->
+                        val webFragment = getWebFragment()
+                        webFragment?.removeSessionDelegates(sessionDelegate)
+                        ToastMgr.shortBottomCenter(getContext(), getString(R.string.excute_success))
+                    }
+                }
+
+                R.id.tab_remove_all -> {
+                    val webFragment = getWebFragment()
+                    webFragment?.removeSessionDelegates(null)
+                    ToastMgr.shortBottomCenter(getContext(), getString(R.string.excute_success))
+                }
+            }
+            true
+        }
+        popup.show()
     }
 
 
@@ -553,21 +608,23 @@ class MainActivity : AppCompatActivity(), DetectorListener {
                     if (mt != MediaType.VIDEO) {
                         return emptyList()
                     }
-                    val webFragment = getWebFragment()
-                    if (StringUtils.equals(
-                            webUrl,
-                            webFragment.sessiondelegate.u
-                        ) || StringUtil.isEmpty(webUrl) || "null" == webUrl
-                    ) {
-                        return webFragment.sessiondelegate.requests.filter { it.type == TabRequest.VIDEO }
-                            .map {
-                                DetectedMediaResult(
-                                    it.url
-                                ).apply {
-                                    mediaType = Media(MediaType.VIDEO)
-                                    headers = it.requestHeaderMap
+                    val fragment = getWebFragment()
+                    fragment?.let { webFragment ->
+                        if (StringUtils.equals(
+                                webUrl,
+                                webFragment.sessiondelegate.u
+                            ) || StringUtil.isEmpty(webUrl) || "null" == webUrl
+                        ) {
+                            return webFragment.sessiondelegate.requests.filter { it.type == TabRequest.VIDEO }
+                                .map {
+                                    DetectedMediaResult(
+                                        it.url
+                                    ).apply {
+                                        mediaType = Media(MediaType.VIDEO)
+                                        headers = it.requestHeaderMap
+                                    }
                                 }
-                            }
+                        }
                     }
                     for (sessionDelegate in sessionDelegates) {
                         if (StringUtils.equals(webUrl, sessionDelegate.u)) {
@@ -596,7 +653,7 @@ class MainActivity : AppCompatActivity(), DetectorListener {
     fun showOpenAppIntent(event: OpenAppIntentEvent) {
         val holder = VarHolder(false)
         make(
-            getWebFragment().getCoordinatorLayout(),
+            getWebFragment()?.getCoordinatorLayout() ?: binding.root,
             getString(R.string.intent_message),
             Snackbar.LENGTH_LONG
         )
@@ -671,6 +728,11 @@ class MainActivity : AppCompatActivity(), DetectorListener {
         port?.postMessage(jsonObject)
     }
 
+    @Subscribe
+    fun evalJS(event: EvalJSEvent) {
+        evaluateJavaScript(event.code)
+    }
+
     fun showEruda() {
         val jsonObject = JSONObject()
         jsonObject.put("type", "eruda")
@@ -679,16 +741,18 @@ class MainActivity : AppCompatActivity(), DetectorListener {
 
     @Subscribe
     fun onRequestEvent(event: TabRequestEvent) {
-        val webFragment = getWebFragment()
+        val fragment = getWebFragment()
         val request = TabRequest(event.json)
         //Log.d("test", "onMessage: " + request.url + ", documentUrl: " + request.documentUrl)
-        if (StringUtils.equals(
-                request.documentUrl,
-                webFragment.sessiondelegate.u
-            ) || StringUtil.isEmpty(request.documentUrl) || "null" == request.documentUrl
-        ) {
-            webFragment.sessiondelegate.onRequest(request)
-            return
+        fragment?.let { webFragment ->
+            if (StringUtils.equals(
+                    request.documentUrl,
+                    webFragment.sessiondelegate.u
+                ) || StringUtil.isEmpty(request.documentUrl) || "null" == request.documentUrl
+            ) {
+                webFragment.sessiondelegate.onRequest(request)
+                return
+            }
         }
         for (sessionDelegate in sessionDelegates) {
             if (StringUtils.equals(request.documentUrl, sessionDelegate.u)) {
@@ -734,13 +798,17 @@ class MainActivity : AppCompatActivity(), DetectorListener {
         return super.onCreateView(name, context, attrs)
     }
 
-    private fun getWebFragment(): WebFragment {
-        return fragments[1] as WebFragment
+    private fun getWebFragment(): WebFragment? {
+        return if (fragments.isNullOrEmpty() || fragments!!.size < 2) null else fragments!![1] as WebFragment
     }
 
     private val onBackPress = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
-            if (binding.content.viewPager.currentItem == 1 && getWebFragment().isErrorShown() && binding.user?.session != null) {
+            if(bottomSheetBehavior?.state == BottomSheetBehavior.STATE_EXPANDED) {
+                bottomSheetBehavior?.state = BottomSheetBehavior.STATE_COLLAPSED
+                return
+            }
+            if (binding.content.viewPager.currentItem == 1 && getWebFragment()?.isErrorShown() == true && binding.user?.session != null) {
                 binding.user?.session?.reload()
                 return
             }
@@ -755,7 +823,7 @@ class MainActivity : AppCompatActivity(), DetectorListener {
                 binding.user?.session?.goBack()
             } else {
                 if (sessionDelegates.indexOf(binding.user) != -1)
-                    RemoveTabLiveData.getInstance().Value(sessionDelegates.indexOf(binding.user))
+                    RemoveTabLiveData.getInstance().Value(binding.user)
                 else {
                     finish()
                 }
@@ -763,25 +831,108 @@ class MainActivity : AppCompatActivity(), DetectorListener {
         }
     }
 
-    private fun openMenu() {
-        bottomSheetBehavior?.state = BottomSheetBehavior.STATE_EXPANDED
-        var navController = findNavController(R.id.fragmentContainerView3)
-        binding.content.navigationrail?.setupWithNavController(navController)
-        binding.content.appbar?.setupWithNavController(
-            navController,
-            AppBarConfiguration(navController.graph)
-        )
-        if (isHome)
-            binding.content.navigationrail?.headerView?.findViewById<FloatingActionButton>(R.id.floatingActionButton)?.visibility =
-                View.GONE
-        else
-            binding.content.navigationrail?.headerView?.findViewById<FloatingActionButton>(R.id.floatingActionButton)?.visibility =
-                View.VISIBLE
-
-        binding.content.navigationrail?.headerView?.findViewById<FloatingActionButton>(R.id.floatingActionButton)
-            ?.setOnClickListener {
-                navController.navigate(R.id.addonsPopupFragment2)
+    fun showPage(url: String) {
+        when (url) {
+            "hiker://bookmark" -> {
+                if (binding.drawer != null) {
+                    openMenu("bookmark")
+                } else {
+                    BookmarkPopup(this).show()
+                }
             }
+
+            "hiker://download" -> {
+                if (binding.drawer != null) {
+                    openMenu("download")
+                } else {
+                    val intent = Intent(getContext(), HolderActivity::class.java)
+                    intent.putExtra("Page", "DOWNLOAD")
+                    intent.putExtra("downloaded", true)
+                    startActivity(intent)
+                }
+            }
+
+            "hiker://history" -> {
+                if (binding.drawer != null) {
+                    openMenu("history")
+                } else {
+                    HistoryPopup(this).show()
+                }
+            }
+        }
+    }
+
+    private fun getDestId(item: MenuItem): Int {
+        return when (item.title) {
+            getString(R.string.download) -> R.id.download
+            getString(R.string.settings) -> R.id.settings
+            getString(R.string.bookmark) -> R.id.bookmark
+            getString(R.string.history) -> R.id.history
+            getString(R.string.addons) -> R.id.addons
+            else -> R.id.settings
+        }
+    }
+
+    private fun openMenu(dest: String? = null) {
+        bottomSheetBehavior?.state = BottomSheetBehavior.STATE_EXPANDED
+        val navController = findNavController(R.id.fragmentContainerView3)
+        //不用NavigationUI是因为有时候有问题
+        binding.navigationrail?.let { navigationBarView ->
+            navigationBarView.headerView?.findViewById<FloatingActionButton>(R.id.floatingActionButton)?.visibility =
+                if (isHome) View.GONE else View.VISIBLE
+            binding.navigationrail?.headerView?.findViewById<FloatingActionButton>(R.id.floatingActionButton)
+                ?.setOnClickListener {
+                    navController.navigate(R.id.addonsPopupFragment2)
+                }
+            if (navigationBarView.tag != null) {
+                return@let
+            }
+            navigationBarView.tag = true
+            navigationBarView.setOnItemSelectedListener { item ->
+                val id = getDestId(item)
+                if (navController.currentDestination?.id != id) {
+                    navController.navigate(id)
+                }
+                true
+            }
+            navController.addOnDestinationChangedListener(
+                object : NavController.OnDestinationChangedListener {
+                    override fun onDestinationChanged(
+                        controller: NavController,
+                        destination: NavDestination,
+                        arguments: Bundle?
+                    ) {
+                        val view = binding.navigationrail
+                        if (view == null) {
+                            navController.removeOnDestinationChangedListener(this)
+                            return
+                        }
+                        if (destination is FloatingWindow) {
+                            return
+                        }
+                        view.menu.forEach { item ->
+                            if (destination.hierarchy.any { it.id == getDestId(item) }) {
+                                item.isChecked = true
+                            }
+                        }
+                    }
+                })
+        }
+        binding.navigationrail?.post {
+            when (dest) {
+                "download" -> {
+                    navController.navigate(R.id.download)
+                }
+
+                "bookmark" -> {
+                    navController.navigate(R.id.bookmark)
+                }
+
+                "history" -> {
+                    navController.navigate(R.id.history)
+                }
+            }
+        }
     }
 
 

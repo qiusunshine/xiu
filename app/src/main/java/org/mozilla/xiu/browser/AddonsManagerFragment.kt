@@ -239,6 +239,12 @@ class AddonsManagerFragment : Fragment() {
             SheetBehavior2.state = BottomSheetBehavior.STATE_COLLAPSED
             launcher.launch(true)
         }
+        binding.addFromEdge.setOnClickListener {
+            val intent = Intent(requireContext(), MainActivity::class.java)
+            intent.data = Uri.parse("https://microsoftedge.microsoft.com/addons/Microsoft-Edge-Extensions-Home?hl=zh-CN")
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+            startActivity(intent)
+        }
         binding.addFromOther.setOnClickListener {
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle("使用协议")

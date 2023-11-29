@@ -7,6 +7,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.tabs.TabLayoutMediator
 import org.mozilla.xiu.browser.MainActivity
 import org.mozilla.xiu.browser.R
+import org.mozilla.xiu.browser.base.addOnBackPressed
 import org.mozilla.xiu.browser.broswer.history.HistoryFragment
 import org.mozilla.xiu.browser.componets.CollectionAdapter
 import org.mozilla.xiu.browser.componets.HomeLivedata
@@ -24,6 +25,9 @@ class HistoryPopup {
     ) {
         this.context = context
         bottomSheetDialog = BottomSheetDialog(context, R.style.BottomSheetDialog )
+        val onBackPressedCallback = bottomSheetDialog.addOnBackPressed {
+            false
+        }
         binding = PopupHistoryBinding.inflate(LayoutInflater.from(context))
         bottomSheetDialog.setContentView(binding.root)
         binding.historyViewPager.adapter= CollectionAdapter(context,fragments)
@@ -37,6 +41,7 @@ class HistoryPopup {
         }
         HomeLivedata.getInstance().observe(context, observer)
         bottomSheetDialog.setOnDismissListener {
+            onBackPressedCallback.remove()
             HomeLivedata.getInstance().removeObserver(observer)
         }
 

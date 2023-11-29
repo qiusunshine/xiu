@@ -33,6 +33,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.greenrobot.eventbus.EventBus
 import org.mozilla.geckoview.*
+import org.mozilla.geckoview.GeckoSession.HistoryDelegate
 import org.mozilla.geckoview.GeckoSession.NavigationDelegate
 import org.mozilla.geckoview.GeckoSession.ProgressDelegate
 import org.mozilla.geckoview.GeckoSession.PromptDelegate.*
@@ -49,6 +50,8 @@ import org.mozilla.xiu.browser.download.DownloadTaskLiveData
 import org.mozilla.xiu.browser.download.downloadBlob
 import org.mozilla.xiu.browser.download.getUri
 import org.mozilla.xiu.browser.download.openUriBeforePop
+import org.mozilla.xiu.browser.tab.RemoveTabLiveData
+import org.mozilla.xiu.browser.utils.FilesInAppUtil
 import org.mozilla.xiu.browser.utils.PreferenceMgr
 import org.mozilla.xiu.browser.utils.StringUtil
 import org.mozilla.xiu.browser.utils.ThreadTool
@@ -59,6 +62,7 @@ import org.mozilla.xiu.browser.utils.filePicker.FilePicker
 import org.mozilla.xiu.browser.utils.filePicker.getFileFromPicker
 import org.mozilla.xiu.browser.webextension.Detector
 import org.mozilla.xiu.browser.webextension.DetectorListener
+import org.mozilla.xiu.browser.webextension.EvalJSEvent
 import org.mozilla.xiu.browser.webextension.TabRequest
 import org.mozilla.xiu.browser.webextension.WebExtensionRuntimeManager
 import org.mozilla.xiu.browser.webextension.WebextensionSession
@@ -255,16 +259,26 @@ class SessionDelegate() : BaseObservable() {
                 }
                 if (uri.endsWith("xpi")) {
                     WebextensionSession(mContext).install(uri)
+                    if(u == "about:blank" && mTitle == "" && !canBack && !canForward) {
+                        RemoveTabLiveData.getInstance().Value(this@SessionDelegate)
+                    }
                 } else {
                     PopTip.build()
                         .setCustomView(object :
-                            OnBindView<PopTip?>(org.mozilla.xiu.browser.R.layout.pop_mytip) {
+                            OnBindView<PopTip?>(R.layout.pop_mytip) {
                             override fun onBind(dialog: PopTip?, v: View) {
                                 v.findViewById<TextView>(R.id.textView17).text =
                                     mContext.getString(R.string.download_request)
                                 v.findViewById<MaterialButton>(R.id.materialButton7)
                                     .setOnClickListener {
                                         addDownloadTask(name, uri)
+                                        dialog?.dismiss()
+                                        if(u == "about:blank" && mTitle == "" && !canBack && !canForward) {
+                                            RemoveTabLiveData.getInstance().Value(this@SessionDelegate)
+                                        }
+                                    }
+                                v.findViewById<MaterialButton>(R.id.btnCancel)
+                                    .setOnClickListener {
                                         dialog?.dismiss()
                                     }
                             }
@@ -326,7 +340,9 @@ class SessionDelegate() : BaseObservable() {
                 }
                 if (!privacy && u.startsWith("http")) {
                     val history = title?.let { History(u, it, 0) }
-                    historyViewModel.insertHistories(history)
+                    history?.let {
+                        historyViewModel.insertHistories(it)
+                    }
                     //historySync.sync(u)
                 }
                 notifyPropertyChanged(BR.mTitle)
@@ -422,7 +438,14 @@ class SessionDelegate() : BaseObservable() {
 
             override fun onPageStop(session: GeckoSession, success: Boolean) {
                 pageFinish(session)
+                if(u.startsWith("https://microsoftedge.microsoft.com/addons")) {
+                    val js = FilesInAppUtil.getAssetsString(mContext, "edge.js")
+                    EventBus.getDefault().post(EvalJSEvent(js))
+                }
             }
+        }
+        session.historyDelegate = object : HistoryDelegate {
+
         }
 
         session.navigationDelegate = object : NavigationDelegate {
