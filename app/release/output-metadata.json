@@ -16,9 +16,9 @@
         }
       ],
       "attributes": [],
-      "versionCode": 97,
+      "versionCode": 98,
       "versionName": "2.4",
-      "outputFile": "Xiu_V2.4_C97-32位.apk"
+      "outputFile": "Xiu_V2.4_C98-32位.apk"
     },
     {
       "type": "ONE_OF_MANY",
@@ -29,9 +29,9 @@
         }
       ],
       "attributes": [],
-      "versionCode": 97,
+      "versionCode": 98,
       "versionName": "2.4",
-      "outputFile": "Xiu_V2.4_C97-64位.apk"
+      "outputFile": "Xiu_V2.4_C98-64位.apk"
     }
   ],
   "elementType": "File"

@@ -168,6 +168,10 @@ class AddonsManagerFragment : Fragment() {
         }
         binding.button2.setOnClickListener {
             val id = extension.id
+            if (id == "xiutan@xiu.com") {
+                ToastMgr.shortCenter(requireContext(), "内置扩展不支持删除")
+                return@setOnClickListener
+            }
             webExtensionController.uninstall(extension).accept {
                 webExtensionController.list().accept { list ->
                     adapter.submitList(list?.map {
@@ -241,7 +245,8 @@ class AddonsManagerFragment : Fragment() {
         }
         binding.addFromEdge.setOnClickListener {
             val intent = Intent(requireContext(), MainActivity::class.java)
-            intent.data = Uri.parse("https://microsoftedge.microsoft.com/addons/Microsoft-Edge-Extensions-Home?hl=zh-CN")
+            intent.data =
+                Uri.parse("https://microsoftedge.microsoft.com/addons/Microsoft-Edge-Extensions-Home?hl=zh-CN")
             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
             startActivity(intent)
         }

@@ -227,6 +227,7 @@
     <string name="tab_remove_all">Close all tabs</string>
     <string name="excute_success">Execution succeeded</string>
     <string name="update_records">Change Log</string>
+    <string name="custom_downloader">Custom downloader</string>
     <string name="clear_bookmark_message">Note that this operation will delete all bookmarks and folders, please operate with caution, Are you sure to continue with the operation</string>
     <string name="delete_bookmark_dir_message">Please note that this operation will delete all bookmarks and folders under this folder. Please proceed with caution. Are you sure you want to continue deleting?</string>
     <string name="export_success">Export Success</string>

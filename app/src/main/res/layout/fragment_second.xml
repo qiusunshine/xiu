@@ -4,38 +4,38 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
+
         <variable
             name="use"
             type="org.mozilla.xiu.browser.session.SessionDelegate" />
 
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".WebFragment">
 
-        <org.mozilla.geckoview.GeckoView
-            android:id="@+id/geckoview"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-        </org.mozilla.geckoview.GeckoView>
+            <org.mozilla.geckoview.GeckoView
+                android:id="@+id/geckoview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+        </RelativeLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/errorpage"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/surface"
-            android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            android:visibility="gone">
 
             <com.airbnb.lottie.LottieAnimationView
                 android:id="@+id/lottieAnimationView"
@@ -91,10 +91,10 @@
                 android:id="@+id/errorCodeText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
                 android:text="404"
                 android:textSize="30sp"
                 android:textStyle="bold"
-                android:gravity="center_horizontal"
                 app:layout_constraintBottom_toTopOf="@+id/guideline11"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -102,11 +102,9 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:id="@+id/coordinatorLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/coordinatorLayout"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            android:layout_gravity="bottom" />
+    </FrameLayout>
 </layout>

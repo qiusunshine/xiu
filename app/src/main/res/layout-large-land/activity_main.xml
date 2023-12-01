@@ -80,6 +80,7 @@
                     android:layout_marginBottom="8dp"
                     android:background="@drawable/bg_edittext2"
                     android:ems="10"
+                    android:selectAllOnFocus="true"
                     android:hint="@string/hint"
                     android:inputType="textPersonName"
                     android:text="@{user.u}"

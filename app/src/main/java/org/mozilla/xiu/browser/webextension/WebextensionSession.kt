@@ -465,6 +465,8 @@ fun WebExtension.addDelegate(context: Activity) {
                 val json = message
                 if ("xiu" == json.optString("type")) {
                     EventBus.getDefault().post(TabRequestEvent(json))
+                } else if ("input" == json.optString("type")) {
+                    EventBus.getDefault().post(InputHeightListenEvent(json.optBoolean("isUp")))
                 }
             }
             return super.onMessage(nativeApp, message, sender)

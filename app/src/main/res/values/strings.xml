@@ -231,6 +231,7 @@
     <string name="tab_remove_all">关闭全部标签页</string>
     <string name="excute_success">执行成功</string>
     <string name="update_records">更新日志</string>
+    <string name="custom_downloader">自定义下载器</string>
     <string name="clear_bookmark_message">注意此操作会删除所有书签和文件夹，请谨慎操作，确定继续删除吗？</string>
     <string name="delete_bookmark_dir_message">注意此操作会删除该文件夹下所有书签和文件夹，请谨慎操作，确定继续删除吗？</string>
     <string name="export_success">导出成功，请选择操作，点击转存会保存到Download目录，可在文件管理器管理，卸载软件也不会丢失，分享则可以发送到微信、QQ、云盘保存</string>

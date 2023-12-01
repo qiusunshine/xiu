@@ -18,7 +18,7 @@ window.define = undefined;
 
 eruda.init();
 let console = eruda.get('console');
-console.config.set('maxLogNum', '30');
+console.config.set('maxLogNum', '50');
 window.define = ddd0001;
 eruda.show();
 })()

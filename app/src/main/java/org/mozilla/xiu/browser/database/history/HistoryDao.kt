@@ -14,6 +14,9 @@ interface HistoryDao {
     @Delete
     fun deleteHistory(vararg histories: History)
 
+    @Query("DELETE FROM History WHERE url_info = :url")
+    fun deleteByUrl(url: String)
+
     @Query("DELETE FROM History")
     fun deleteAllHistories()
 

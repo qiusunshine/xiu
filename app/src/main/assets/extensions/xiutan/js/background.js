@@ -113,17 +113,28 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
         if (headerMap[tabId]) {
             delete headerMap[tabId];
         }
-    } else if (changeInfo.status === 'complete') {
-       if(erudaOpen) {
-            addEruda(tabId, false);
-       }
-     }
+    }
+});
+browser.webNavigation.onDOMContentLoaded.addListener((details) => {
+   if(erudaOpen) {
+        addEruda(details.tabId, false);
+   }
 });
 
 chrome.tabs.onRemoved.addListener(function (tabId) {
     if (headerMap[tabId]) {
         delete headerMap[tabId];
     }
+});
+browser.runtime.onMessage.addListener((message) => {
+  // 处理来自 content scripts 的消息
+  if(message.type == "input") {
+        let msg = {
+            type: "input",
+            isUp: message.isUp
+        };
+        browser.runtime.sendNativeMessage("browser", msg);
+  }
 });
 let port = browser.runtime.connectNative("browser");
 port.onMessage.addListener(function(message) {
@@ -142,21 +153,63 @@ port.onMessage.addListener(function(message) {
       let executing = browser.tabs.executeScript(activeTab.id, {code: code, allFrames: true});
       executing.then(onExecuted, onError);
     });
-  } else if(message.type == "eruda") {
-     if(erudaOpen) {
-          erudaOpen = false;
-          browser.tabs.query({}, function(tabs) {
-            for(const tab of tabs) {
-                removeEruda(tab.id);
-            }
-          });
-     } else {
-         browser.tabs.query({active: true, currentWindow: true}, function(tabs) {
-           var activeTab = tabs[0];
-           erudaOpen = true;
-           addEruda(activeTab.id, true);
-         });
-     }
+  } else if(message.type == "inputHeight") {
+        browser.tabs.query({active: true, currentWindow: true}, function(tabs) {
+          var activeTab = tabs[0];
+          let c = 1;
+          if(c == 1) {
+            //这种方案需要和content scripts互相通信，可能效率低，但是dom是纯净的，第二种方案可能document.querySelect都被原网页hook了
+            browser.tabs.sendMessage(activeTab.id, { type: "input" });
+          } else {
+              function onExecuted(result) {
+                    let msg = {
+                        type: "input",
+                        isUp: result + "" == "true"
+                    };
+                    browser.runtime.sendNativeMessage("browser", msg);
+              }
+              function onError(error) {
+                    console.log(`Error: ${error}`);
+                    let msg = {
+                        type: "input",
+                        isUp: false
+                    };
+                    browser.runtime.sendNativeMessage("browser", msg);
+              }
+              let code = `
+              function isInputInUpperHalf(element) {
+                  if(element == null) {
+                      console.log("showSoftInput: element is null");
+                      return false;
+                  }
+                  console.log("showSoftInput: element is not null");
+                  const rect = element.getBoundingClientRect();
+                  const viewportHeight = window.innerHeight;
+                  const screenCenterY = viewportHeight / 2;
+                  return rect.top + rect.height < screenCenterY;
+              }
+              let ele = document.querySelector('input[type^="text"]:focus, input[type^="number"]:focus, input[type^="password"]:focus, input[type^="search"]:focus, input[type^="tel"]:focus, input[type^="email"]:focus, input[type^="date"]:focus, input[type^="time"]:focus, input[type^="url"]:focus, textarea:focus, input:not([type]):focus');
+              isInputInUpperHalf(ele)
+              `;
+              let executing = browser.tabs.executeScript(activeTab.id, {code: code, allFrames: true});
+              executing.then(onExecuted, onError);
+          }
+        });
+      } else if(message.type == "eruda") {
+         if(erudaOpen) {
+              erudaOpen = false;
+              browser.tabs.query({}, function(tabs) {
+                for(const tab of tabs) {
+                    removeEruda(tab.id);
+                }
+              });
+         } else {
+             browser.tabs.query({active: true, currentWindow: true}, function(tabs) {
+               var activeTab = tabs[0];
+               erudaOpen = true;
+               addEruda(activeTab.id, true);
+             });
+         }
    }
 });
 

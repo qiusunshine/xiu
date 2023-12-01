@@ -38,6 +38,10 @@ class HistoryViewModel(application: Application) : AndroidViewModel(application)
         historyRepository.deleteHistory(*histories)
     }
 
+    fun deleteHistory(url: String) {
+        historyRepository.deleteHistory(url)
+    }
+
     fun deleteAllHistories() {
         historyRepository.deleteAllHistories()
     }

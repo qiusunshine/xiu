@@ -95,6 +95,8 @@ import org.mozilla.xiu.browser.view.toast.make
 import org.mozilla.xiu.browser.webextension.BrowseEvent
 import org.mozilla.xiu.browser.webextension.DetectorListener
 import org.mozilla.xiu.browser.webextension.EvalJSEvent
+import org.mozilla.xiu.browser.webextension.InputHeightListenEvent
+import org.mozilla.xiu.browser.webextension.InputHeightListenPostEvent
 import org.mozilla.xiu.browser.webextension.TabRequest
 import org.mozilla.xiu.browser.webextension.TabRequestEvent
 import org.mozilla.xiu.browser.webextension.WebExtensionConnectPortEvent
@@ -106,7 +108,6 @@ import org.mozilla.xiu.browser.webextension.addDelegate
 import org.mozilla.xiu.browser.webextension.removeDelegate
 import timber.log.Timber
 import java.io.File
-import java.lang.ref.WeakReference
 import java.util.Objects
 
 
@@ -232,8 +233,12 @@ class MainActivity : AppCompatActivity(), DetectorListener {
         }
         binding.SearchText?.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
+                window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
                 binding.bottomMotionLayout?.transitionToEnd()
                 binding.constraintLayout10?.visibility = View.VISIBLE
+                if(binding.SearchText?.text?.toString() == "about:blank") {
+                    binding.SearchText?.setText("")
+                }
                 when (org.mozilla.xiu.browser.broswer.SearchEngine(this)) {
                     getString(org.mozilla.xiu.browser.R.string.baidu) -> binding.materialButton13?.text =
                         getString(R.string.EngineTips, getString(R.string.Baidu))
@@ -411,6 +416,7 @@ class MainActivity : AppCompatActivity(), DetectorListener {
         HomeLivedata.getInstance().observe(this) {
             isHome = it
             if (it) {
+                window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
                 val newTabUrl = WebExtensionRuntimeManager.findHomePageUrl()
                 if (newTabUrl.isNullOrEmpty()) {
                     binding.content.viewPager.currentItem = 0
@@ -762,6 +768,40 @@ class MainActivity : AppCompatActivity(), DetectorListener {
         }
     }
 
+    private var inputHeightListener: InputHeightListenPostEvent? = null
+
+    @Subscribe
+    fun inputHeightListenPost(event: InputHeightListenPostEvent) {
+        if (DelegateLivedata.getInstance().value != null) {
+            val delegate = DelegateLivedata.getInstance().value!!
+            if (delegate.u.startsWith("moz-extension") && (
+                        delegate.mTitle.contains("标签页") ||
+                                delegate.mTitle.contains("起始页") ||
+                                delegate.mTitle.endsWith("Tab")
+                        )
+            ) {
+                event.isUp.data = true
+                event.countDownLatch.countDown()
+                return
+            }
+        }
+        inputHeightListener = event
+        val jsonObject = JSONObject()
+        jsonObject.put("type", "inputHeight")
+        port?.postMessage(jsonObject)
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onInputHeightCallback(event: InputHeightListenEvent) {
+        try {
+            Log.d("test", "onInputHeightCallback: " + event.isUp)
+            inputHeightListener?.isUp?.data = event.isUp
+            inputHeightListener?.countDownLatch?.countDown()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun browse(event: BrowseEvent) {
         searching(event.url)
@@ -804,7 +844,7 @@ class MainActivity : AppCompatActivity(), DetectorListener {
 
     private val onBackPress = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
-            if(bottomSheetBehavior?.state == BottomSheetBehavior.STATE_EXPANDED) {
+            if (bottomSheetBehavior?.state == BottomSheetBehavior.STATE_EXPANDED) {
                 bottomSheetBehavior?.state = BottomSheetBehavior.STATE_COLLAPSED
                 return
             }

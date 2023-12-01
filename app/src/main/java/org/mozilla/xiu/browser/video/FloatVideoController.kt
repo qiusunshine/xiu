@@ -15,6 +15,7 @@ import android.telephony.PhoneStateListener
 import android.telephony.TelephonyManager
 import android.view.LayoutInflater
 import android.view.MotionEvent
+import android.view.SurfaceView
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -342,6 +343,13 @@ class FloatVideoController(
         } catch (e: Exception) {
             e.printStackTrace()
         }
+        try {
+            if(pv.playerView.videoSurfaceView is SurfaceView) {
+                (pv.playerView.videoSurfaceView as SurfaceView).setBackgroundColor(context.getColor(R.color.black))
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun enterFullScreen(anchor: View?) {
@@ -444,6 +452,14 @@ class FloatVideoController(
             .setPlayUri(realUrl, HttpParser.getHeaders(url))
             .addVideoInfoListener(object : VideoInfoListener {
                 override fun onPlayReady(currPosition: Long) {
+                    try {
+                        if(playerView?.playerView?.videoSurfaceView is SurfaceView) {
+                            (playerView?.playerView?.videoSurfaceView as SurfaceView).background =
+                                null
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                     pauseWebDelay()
                     player?.let {
                         vaildTicket = System.currentTimeMillis()
@@ -655,63 +671,67 @@ class FloatVideoController(
      */
     fun destroy() {
         //必须先退出全屏，否则无法隐藏播放器界面
-        val mid = getMemoryId()
-        exitFullScreen()
-        showing = false
-        webUrl = ""
-        url = ""
-        position = 0
-        if (EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().unregister(this)
-        }
         try {
-            if (bluetoothBroadcastReceiver != null) {
-                context.unregisterReceiver(bluetoothBroadcastReceiver)
+            val mid = getMemoryId()
+            exitFullScreen()
+            showing = false
+            webUrl = ""
+            url = ""
+            position = 0
+            if (EventBus.getDefault().isRegistered(this)) {
+                EventBus.getDefault().unregister(this)
             }
-        } catch (e: java.lang.Exception) {
-            e.printStackTrace()
-        }
-        try {
-            if (audioFocusChangeListener != null) {
-                val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-                audioManager.abandonAudioFocus(audioFocusChangeListener)
-            }
-        } catch (e: Throwable) {
-            e.printStackTrace()
-        }
-        try {
-            if (phoneStateListener != null) {
-                (context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager).listen(
-                    phoneStateListener,
-                    PhoneStateListener.LISTEN_NONE
-                )
-            }
-        } catch (e: Throwable) {
-            e.printStackTrace()
-        }
-        if (holderView != null) {
-            container.removeView(holderView)
-            holderView = null
-        }
-        player?.let {
             try {
-                val p = it.currentPosition
-                player?.onDestroy()
-                player = null
-                if (p > 0) {
-                    addPlayerPosition(context, mid, p)
+                if (bluetoothBroadcastReceiver != null) {
+                    context.unregisterReceiver(bluetoothBroadcastReceiver)
                 }
+            } catch (e: java.lang.Exception) {
+                e.printStackTrace()
+            }
+            try {
+                if (audioFocusChangeListener != null) {
+                    val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                    audioManager.abandonAudioFocus(audioFocusChangeListener)
+                }
+            } catch (e: Throwable) {
+                e.printStackTrace()
+            }
+            try {
+                if (phoneStateListener != null) {
+                    (context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager).listen(
+                        phoneStateListener,
+                        PhoneStateListener.LISTEN_NONE
+                    )
+                }
+            } catch (e: Throwable) {
+                e.printStackTrace()
+            }
+            if (holderView != null) {
+                container.removeView(holderView)
+                holderView = null
+            }
+            player?.let {
+                try {
+                    val p = it.currentPosition
+                    player?.onDestroy()
+                    player = null
+                    if (p > 0) {
+                        addPlayerPosition(context, mid, p)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+            try {
+                playerView?.onDestroy()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-        }
-        try {
-            playerView?.onDestroy()
+            playerView = null
+            pauseWebView(false, true)
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        playerView = null
-        pauseWebView(false, true)
     }
 
 

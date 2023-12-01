@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "内置服务",
-  "version": "2.25",
+  "version": "5.2",
   "description": "内置请求监听，实现下载增强、开发调试、嗅探等功能",
   "icons": {
     "32": "images/icon.png",
@@ -13,6 +13,12 @@
       "js/background.js"
     ]
   },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["inject.js"]
+    }
+  ],
   "web_accessible_resources": ["js/eruda.js", "js/eruda1.js"],
   "permissions": [
     "tabs",
@@ -23,7 +29,12 @@
     "nativeMessaging",
     "nativeMessagingFromContent",
     "geckoViewAddons",
-    "webRequestBlocking"
+    "webRequestBlocking",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "*://*/*",
+    "<all_urls>"
   ],
   "browser_specific_settings": {
     "gecko": {

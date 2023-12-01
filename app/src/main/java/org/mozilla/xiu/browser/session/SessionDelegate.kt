@@ -11,6 +11,11 @@ import android.os.Build
 import android.os.Environment
 import android.util.Log
 import android.view.View
+import android.view.WindowManager
+import android.view.inputmethod.CursorAnchorInfo
+import android.view.inputmethod.ExtractedText
+import android.view.inputmethod.ExtractedTextRequest
+import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
@@ -32,11 +37,15 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.greenrobot.eventbus.EventBus
+import org.mozilla.gecko.InputMethods
+import org.mozilla.gecko.InputMethods.getInputMethodManager
+import org.mozilla.gecko.util.ThreadUtils
 import org.mozilla.geckoview.*
 import org.mozilla.geckoview.GeckoSession.HistoryDelegate
 import org.mozilla.geckoview.GeckoSession.NavigationDelegate
 import org.mozilla.geckoview.GeckoSession.ProgressDelegate
 import org.mozilla.geckoview.GeckoSession.PromptDelegate.*
+import org.mozilla.geckoview.GeckoSession.TextInputDelegate
 import org.mozilla.xiu.browser.App
 import org.mozilla.xiu.browser.BR
 import org.mozilla.xiu.browser.R
@@ -63,12 +72,15 @@ import org.mozilla.xiu.browser.utils.filePicker.getFileFromPicker
 import org.mozilla.xiu.browser.webextension.Detector
 import org.mozilla.xiu.browser.webextension.DetectorListener
 import org.mozilla.xiu.browser.webextension.EvalJSEvent
+import org.mozilla.xiu.browser.webextension.InputHeightListenPostEvent
 import org.mozilla.xiu.browser.webextension.TabRequest
 import org.mozilla.xiu.browser.webextension.WebExtensionRuntimeManager
 import org.mozilla.xiu.browser.webextension.WebextensionSession
 import org.mozilla.xiu.browser.webextension.addSessionTabDelegate
 import java.io.File
 import java.io.IOException
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 
 class SessionDelegate() : BaseObservable() {
@@ -259,7 +271,7 @@ class SessionDelegate() : BaseObservable() {
                 }
                 if (uri.endsWith("xpi")) {
                     WebextensionSession(mContext).install(uri)
-                    if(u == "about:blank" && mTitle == "" && !canBack && !canForward) {
+                    if (u == "about:blank" && mTitle == "" && !canBack && !canForward) {
                         RemoveTabLiveData.getInstance().Value(this@SessionDelegate)
                     }
                 } else {
@@ -273,8 +285,9 @@ class SessionDelegate() : BaseObservable() {
                                     .setOnClickListener {
                                         addDownloadTask(name, uri)
                                         dialog?.dismiss()
-                                        if(u == "about:blank" && mTitle == "" && !canBack && !canForward) {
-                                            RemoveTabLiveData.getInstance().Value(this@SessionDelegate)
+                                        if (u == "about:blank" && mTitle == "" && !canBack && !canForward) {
+                                            RemoveTabLiveData.getInstance()
+                                                .Value(this@SessionDelegate)
                                         }
                                     }
                                 v.findViewById<MaterialButton>(R.id.btnCancel)
@@ -341,7 +354,10 @@ class SessionDelegate() : BaseObservable() {
                 if (!privacy && u.startsWith("http")) {
                     val history = title?.let { History(u, it, 0) }
                     history?.let {
-                        historyViewModel.insertHistories(it)
+                        ThreadTool.async {
+                            historyViewModel.deleteHistory(u)
+                            historyViewModel.insertHistories(it)
+                        }
                     }
                     //historySync.sync(u)
                 }
@@ -434,11 +450,23 @@ class SessionDelegate() : BaseObservable() {
 //                }
                 notifyPropertyChanged(BR.y)
                 requests.clear()
+                try {
+                    if(softInputShowing) {
+                        val view = session.textInput.view
+                        val imm = getInputMethodManager(mContext)
+                        imm?.hideSoftInputFromWindow(view!!.windowToken, 0)
+                        mContext.window
+                            .setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+                        softInputShowing = false
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
 
             override fun onPageStop(session: GeckoSession, success: Boolean) {
                 pageFinish(session)
-                if(u.startsWith("https://microsoftedge.microsoft.com/addons")) {
+                if (u.startsWith("https://microsoftedge.microsoft.com/addons")) {
                     val js = FilesInAppUtil.getAssetsString(mContext, "edge.js")
                     EventBus.getDefault().post(EvalJSEvent(js))
                 }
@@ -765,6 +793,139 @@ class SessionDelegate() : BaseObservable() {
         }
         session.permissionDelegate = ExamplePermissionDelegate(mContext)
         addSessionTabDelegate(mContext, session, WebExtensionRuntimeManager.extensions)
+
+        session.textInput.setDelegate(object : TextInputDelegate {
+            private fun getInputMethodManager(view: View?): InputMethodManager? {
+                return if (view == null) {
+                    null
+                } else view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            }
+
+            override fun restartInput(session: GeckoSession, reason: Int) {
+                ThreadUtils.assertOnUiThread()
+                val view = session.textInput.view
+                val imm = getInputMethodManager(view) ?: return
+
+                // InputMethodManager has internal logic to detect if we are restarting input
+                // in an already focused View, which is the case here because all content text
+                // fields are inside one LayerView. When this happens, InputMethodManager will
+                // tell the input method to soft reset instead of hard reset. Stock latin IME
+                // on Android 4.2+ has a quirk that when it soft resets, it does not clear the
+                // composition. The following workaround tricks the IME into clearing the
+                // composition when soft resetting.
+                if (InputMethods.needsSoftResetWorkaround(
+                        InputMethods.getCurrentInputMethod(view!!.context)
+                    )
+                ) {
+                    // Fake a selection change, because the IME clears the composition when
+                    // the selection changes, even if soft-resetting. Offsets here must be
+                    // different from the previous selection offsets, and -1 seems to be a
+                    // reasonable, deterministic value
+                    imm.updateSelection(view, -1, -1, -1, -1)
+                }
+                try {
+                    imm.restartInput(view)
+                } catch (e: RuntimeException) {
+                    e.printStackTrace()
+                }
+            }
+
+            override fun showSoftInput(session: GeckoSession) {
+                ThreadUtils.assertOnUiThread()
+                val view = session.textInput.view
+                view?.let {
+                    Log.d("test", "showSoftInput: start")
+                    val now = System.currentTimeMillis()
+                    if(now - softOutputShowTime < 200) {
+                        //有的网站会同时调用多次，导致后面几次返回所需时间超过1秒
+                        return
+                    }
+                    if(softInputShowing && now - softOutputShowTime < 1000) {
+                        return
+                    }
+                    softOutputShowTime = now
+                    val imm = getInputMethodManager(view)
+                    if (imm != null) {
+                        if (view.hasFocus() && !imm.isActive(view)) {
+                            // Marshmallow workaround: The view has focus but it is not the active
+                            // view for the input method. (Bug 1211848)
+                            view.clearFocus()
+                            view.requestFocus()
+                        }
+                        val holder = VarHolder(false)
+                        ThreadTool.async {
+                            val countDownLatch = CountDownLatch(1)
+                            val event = InputHeightListenPostEvent(countDownLatch, holder)
+                            try {
+                                EventBus.getDefault().post(event)
+                                countDownLatch.await(1500, TimeUnit.MILLISECONDS)
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                            withContext(Dispatchers.Main) {
+                                if (holder.data) {
+                                    mContext.window
+                                        .setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
+                                } else {
+                                    mContext.window
+                                        .setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+                                }
+                                Log.d("test", "showSoftInput: " + holder.data)
+                                imm.showSoftInput(view, 0)
+                                softInputShowing = true
+                            }
+                        }
+                    }
+                }
+            }
+
+            override fun hideSoftInput(session: GeckoSession) {
+                try {
+                    ThreadUtils.assertOnUiThread()
+                    val view = session.textInput.view
+                    val imm = getInputMethodManager(view)
+                    imm?.hideSoftInputFromWindow(view!!.windowToken, 0)
+                    mContext.window
+                        .setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+                    softInputShowing = false
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+            override fun updateSelection(
+                session: GeckoSession,
+                selStart: Int,
+                selEnd: Int,
+                compositionStart: Int,
+                compositionEnd: Int
+            ) {
+                ThreadUtils.assertOnUiThread()
+                val view = session.textInput.view
+                val imm = getInputMethodManager(view)
+                imm?.updateSelection(view, selStart, selEnd, compositionStart, compositionEnd)
+            }
+
+            override fun updateExtractedText(
+                session: GeckoSession,
+                request: ExtractedTextRequest,
+                text: ExtractedText
+            ) {
+                ThreadUtils.assertOnUiThread()
+                val view = session.textInput.view
+                val imm = getInputMethodManager(view)
+                imm?.updateExtractedText(view, request.token, text)
+            }
+
+            override fun updateCursorAnchorInfo(
+                session: GeckoSession, info: CursorAnchorInfo
+            ) {
+                ThreadUtils.assertOnUiThread()
+                val view = session.textInput.view
+                val imm = getInputMethodManager(view)
+                imm?.updateCursorAnchorInfo(view, info)
+            }
+        })
     }
 
     fun getDefaultThemeColor(context: Context?): Int {
@@ -940,6 +1101,11 @@ class SessionDelegate() : BaseObservable() {
             }
         }
         return null
+    }
+
+    companion object {
+        var softInputShowing = false
+        var softOutputShowTime = 0L
     }
 }
 

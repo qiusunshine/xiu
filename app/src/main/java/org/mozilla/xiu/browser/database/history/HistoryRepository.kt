@@ -27,6 +27,10 @@ internal class HistoryRepository(context: Context) {
         DeleteAsyncTask(historyDao).execute(*histories)
     }
 
+    fun deleteHistory(url: String) {
+        historyDao?.deleteByUrl(url)
+    }
+
     fun deleteAllHistories() {
         DeleteAllAsyncTask(historyDao).execute()
     }
