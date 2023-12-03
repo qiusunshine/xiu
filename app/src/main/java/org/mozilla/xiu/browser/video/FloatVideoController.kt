@@ -57,6 +57,7 @@ import org.mozilla.xiu.browser.dlan.DlanListPop
 import org.mozilla.xiu.browser.dlan.DlanListPopUtil
 import org.mozilla.xiu.browser.dlan.MediaPlayActivity
 import org.mozilla.xiu.browser.download.UrlDetector
+import org.mozilla.xiu.browser.download.startDownload
 import org.mozilla.xiu.browser.utils.ClipboardUtil
 import org.mozilla.xiu.browser.utils.CollectionUtil
 import org.mozilla.xiu.browser.utils.DisplayUtil
@@ -92,6 +93,7 @@ class FloatVideoController(
 
     private var url: String = ""
     private var webUrl: String = ""
+    private var headersNow: Map<String, String>? = null
     private var title: String = ""
     private var position: Long = 0
     private var initPlayPos: Long = 0
@@ -234,8 +236,14 @@ class FloatVideoController(
             if (t.length > 85) {
                 t = t.substring(0, 85)
             }
-            ToastMgr.shortCenter(context, "暂不支持此功能")
-            //todo DownloadDialogUtil.showEditDialog(context, t, url)
+            val headers = HashMap<String, String?>()
+            headersNow?.let {
+                for (entry in it.entries) {
+                    headers[entry.key] = entry.value
+                }
+            }
+            startDownload(context, t, url.split(";")[0], headers)
+            //ToastMgr.shortCenter(context, "暂不支持此功能")
         }
         val networkNotify =
             PreferenceMgr.getBoolean(
@@ -427,6 +435,7 @@ class FloatVideoController(
         vaildTicket = System.currentTimeMillis()
         this.title = title
         this.webUrl = webUrl
+        this.headersNow = headers
         initView()
         if (player != null && url.isNotEmpty()) {
             addPlayerPosition(context, getMemoryId(), player!!.currentPosition)

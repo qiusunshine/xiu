@@ -228,6 +228,16 @@
     <string name="excute_success">Execution succeeded</string>
     <string name="update_records">Change Log</string>
     <string name="custom_downloader">Custom downloader</string>
+    <string name="downloader_default">Default</string>
+    <string name="downloader_idm">IDM+</string>
+    <string name="downloader_youtoo">嗅觉浏览器</string>
+    <string name="downloader_hiker">海阔视界</string>
+    <string name="downloader_adm">ADM</string>
+    <string name="downloader_start_failed">Start failed: %1$s</string>
+    <string name="add_download_task_success">Download task added</string>
+    <string name="cannot_download_m3u8">Detected that the file to be downloaded is suspected to be in M3U8 format. The current built-in downloader does not support downloading this format (you can switch to another downloader in the settings). Do you want to continue downloading?</string>
+    <string name="downloader_msg">Detected that you have not installed the corresponding app</string>
+    <string name="downloader_go_msg">Detected that you have customized the downloader to %1$s. Do you want to redirect to the corresponding software to view downloaded content</string>
     <string name="clear_bookmark_message">Note that this operation will delete all bookmarks and folders, please operate with caution, Are you sure to continue with the operation</string>
     <string name="delete_bookmark_dir_message">Please note that this operation will delete all bookmarks and folders under this folder. Please proceed with caution. Are you sure you want to continue deleting?</string>
     <string name="export_success">Export Success</string>

@@ -14,6 +14,13 @@
         <Preference
             android:key="float_video"
             android:title="@string/float_video" />
+        <ListPreference
+            android:entryValues="@array/custom_downloader_entries"
+            app:defaultValue="@string/downloader_default"
+            app:entries="@array/custom_downloader_entries"
+            app:key="customDownloader"
+            app:title="@string/custom_downloader"
+            app:useSimpleSummaryProvider="true" />
         <EditTextPreference
             android:defaultValue=""
             android:selectAllOnFocus="true"

@@ -43,4 +43,12 @@
         <item>allow_all</item>
         <item>deny_all</item>
     </string-array>
+
+    <string-array name="custom_downloader_entries">
+        <item>@string/downloader_default</item>
+        <item>@string/downloader_youtoo</item>
+        <item>@string/downloader_hiker</item>
+        <item>@string/downloader_idm</item>
+        <item>@string/downloader_adm</item>
+    </string-array>
 </resources>

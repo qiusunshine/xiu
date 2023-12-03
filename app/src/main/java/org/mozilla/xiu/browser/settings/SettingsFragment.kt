@@ -16,6 +16,9 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.greenrobot.eventbus.EventBus
 import org.mozilla.xiu.browser.MainActivity
 import org.mozilla.xiu.browser.R
+import org.mozilla.xiu.browser.download.DownloadChooser
+import org.mozilla.xiu.browser.download.DownloadTask
+import org.mozilla.xiu.browser.download.DownloadTaskLiveData
 import org.mozilla.xiu.browser.utils.PreferenceMgr
 import org.mozilla.xiu.browser.video.event.FloatVideoSwitchEvent
 import org.mozilla.xiu.browser.webextension.NewTabUrlChangeEvent
@@ -31,6 +34,46 @@ class SettingsFragment : PreferenceFragmentCompat() {
             when (key) {
                 "home_page_url" -> {
                     EventBus.getDefault().post(NewTabUrlChangeEvent())
+                }
+
+                "customDownloader" -> {
+                    val url: String? = when (sharedPreferences.getString(key, getString(R.string.downloader_default))) {
+                        getString(R.string.downloader_idm) -> DownloadChooser.checkAndGetIDMUrl(
+                            requireContext()
+                        )
+
+                        getString(R.string.downloader_adm) -> DownloadChooser.checkAndGetADMUrl(
+                            requireContext()
+                        )
+
+                        getString(R.string.downloader_youtoo) -> DownloadChooser.checkAndGetYoutooUrl(
+                            requireContext()
+                        )
+
+                        getString(R.string.downloader_hiker) -> DownloadChooser.checkAndGetHikerUrl(
+                            requireContext()
+                        )
+
+                        else -> null
+                    }
+                    if (url != null) {
+                        val c =
+                            if (url.isEmpty()) getString(R.string.confirm) else getString(R.string.download)
+                        MaterialAlertDialogBuilder(requireContext())
+                            .setTitle(ContextCompat.getString(requireContext(), R.string.notify))
+                            .setMessage(getString(R.string.downloader_msg))
+                            .setPositiveButton(c) { d, _ ->
+                                if (url.isNotEmpty()) {
+                                    val intent = Intent(requireContext(), MainActivity::class.java)
+                                    intent.data = Uri.parse(url)
+                                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+                                    startActivity(intent)
+                                }
+                                d.dismiss()
+                            }.setNegativeButton(getString(R.string.cancel)) { d, _ ->
+                                d.dismiss()
+                            }.show()
+                    }
                 }
             }
         }

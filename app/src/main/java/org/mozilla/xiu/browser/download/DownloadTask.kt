@@ -1,6 +1,7 @@
 package org.mozilla.xiu.browser.download
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -22,12 +23,15 @@ import androidx.databinding.BaseObservable
 import androidx.databinding.Bindable
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import org.mozilla.xiu.browser.BR
 import org.mozilla.xiu.browser.HolderActivity
 import org.mozilla.xiu.browser.R
 import org.mozilla.xiu.browser.utils.FileUtil
+import org.mozilla.xiu.browser.utils.PreferenceMgr2
+import org.mozilla.xiu.browser.utils.ToastMgr
 import rxhttp.RxHttpPlugins
 import rxhttp.toDownloadFlow
 import rxhttp.wrapper.param.RxHttp
@@ -187,6 +191,69 @@ class DownloadTask : BaseObservable {
             setAutoCancel(true)
         }.build()
     }
+}
 
+fun startDownload(
+    mContext: Activity,
+    name: String,
+    url: String,
+    headers: MutableMap<String, String?>?
+) {
+    val downloader = PreferenceMgr2.getString(
+        mContext,
+        "customDownloader",
+        mContext.getString(R.string.downloader_default)
+    )
+    when (downloader) {
+        mContext.getString(R.string.downloader_idm) -> {
+            DownloadChooser.startDownloadUseIDM(mContext, name, url)
+        }
 
+        mContext.getString(R.string.downloader_adm) -> {
+            DownloadChooser.startDownloadUseADM(mContext, name, url)
+        }
+
+        mContext.getString(R.string.downloader_youtoo) -> {
+            DownloadChooser.startDownloadUseYoutoo(mContext, name, url, headers)
+        }
+
+        mContext.getString(R.string.downloader_hiker) -> {
+            DownloadChooser.startDownloadUseHiker(mContext, name, url, headers)
+        }
+
+        else -> {
+            //默认下载器
+            if (url.contains(".m3u8")) {
+                MaterialAlertDialogBuilder(mContext)
+                    .setTitle(mContext.getString(R.string.notify))
+                    .setMessage(mContext.getString(R.string.cannot_download_m3u8))
+                    .setNegativeButton(mContext.getString(R.string.cancel)) { _, _ -> }
+                    .setPositiveButton(mContext.getString(R.string.confirm)) { dialog, which ->
+                        startDownload0(mContext, name, url, headers)
+                    }
+                    .show()
+            } else {
+                startDownload0(mContext, name, url, headers)
+            }
+        }
+    }
+}
+
+fun startDownload0(
+    mContext: Activity,
+    name: String,
+    url: String,
+    headers: MutableMap<String, String?>?
+) {
+    val downloadTask = DownloadTask(
+        mContext,
+        url,
+        name,
+        headers
+    )
+    downloadTask.open()
+    val tasks = ArrayList(DownloadTaskLiveData.getInstance().value ?: arrayListOf())
+    tasks.add(downloadTask)
+    DownloadTaskLiveData.getInstance().Value(tasks)
+    ToastMgr.shortBottomCenter(mContext, mContext.getString(R.string.add_download_task_success))
 }

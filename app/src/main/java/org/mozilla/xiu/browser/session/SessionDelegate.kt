@@ -55,10 +55,10 @@ import org.mozilla.xiu.browser.componets.popup.IntentPopup
 import org.mozilla.xiu.browser.database.history.History
 import org.mozilla.xiu.browser.database.history.HistoryViewModel
 import org.mozilla.xiu.browser.download.DownloadTask
-import org.mozilla.xiu.browser.download.DownloadTaskLiveData
 import org.mozilla.xiu.browser.download.downloadBlob
 import org.mozilla.xiu.browser.download.getUri
 import org.mozilla.xiu.browser.download.openUriBeforePop
+import org.mozilla.xiu.browser.download.startDownload
 import org.mozilla.xiu.browser.tab.RemoveTabLiveData
 import org.mozilla.xiu.browser.utils.FilesInAppUtil
 import org.mozilla.xiu.browser.utils.PreferenceMgr
@@ -1063,16 +1063,7 @@ class SessionDelegate() : BaseObservable() {
             "addDownloadTask0: " + url + ", headers: " + JSON.toJSONString(headers)
         )
         mContext.lifecycleScope.launch {
-            val downloadTask = DownloadTask(
-                mContext,
-                url,
-                name,
-                headers
-            )
-            downloadTask.open()
-            val tasks = ArrayList(DownloadTaskLiveData.getInstance().value ?: arrayListOf())
-            tasks.add(downloadTask)
-            DownloadTaskLiveData.getInstance().Value(tasks)
+            startDownload(mContext, name, url, headers)
         }
     }
 

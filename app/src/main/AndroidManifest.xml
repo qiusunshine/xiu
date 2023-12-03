@@ -1,6 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+    <queries>
+        <!--Web Video Caster-->
+        <package android:name="com.instantbits.cast.webvideo" />
+        <!--QQ浏览器-->
+        <package android:name="com.tencent.mtt" />
+        <!--VLC-->
+        <package android:name="org.videolan.vlc" />
+        <!--XPlayer-->
+        <package android:name="video.player.videoplayer" />
+        <!--UC国际版-->
+        <package android:name="com.UCMobile.intl" />
+        <!--UC浏览器-->
+        <package android:name="com.UCMobile" />
+        <!--Kodi-->
+        <package android:name="org.xbmc.kodi" />
+        <!--kmplayer-->
+        <package android:name="com.kmplayer" />
+        <!--kmplayer-->
+        <package android:name="com.kmplayerpro" />
+        <!--MoboPlayer-->
+        <package android:name="com.clov4r.android.nil" />
+        <!--MXPlayer-->
+        <package android:name="com.mxtech.videoplayer.pro" />
+        <!--MXPlayer-->
+        <package android:name="com.mxtech.videoplayer.ad" />
+        <!--弹弹Play-->
+        <package android:name="com.xyoye.dandanplay" />
+        <!--Lua Player-->
+        <package android:name="ms.dev.luaplayer_pro" />
+        <!--nPlayer-->
+        <package android:name="com.newin.nplayer.pro" />
+
+        <!--全能下载器-->
+        <package android:name="com.nick.download" />
+        <!--IDM-->
+        <package android:name="idm.internet.download.manager.plus" />
+        <!--闪电下载器-->
+        <package android:name="com.flash.download" />
+        <!--m3u8loader-->
+        <package android:name="ru.yourok.m3u8loader" />
+        <!--ADM-->
+        <package android:name="com.dv.adm" />
+        <!--ADM-->
+        <package android:name="com.dv.adm.pay" />
+        <!--FDM-->
+        <package android:name="org.freedownloadmanager.fdm" />
+        <!--Reex-->
+        <package android:name="xyz.re.player.ex" />
+        <!--波澜工具箱-->
+        <package android:name="com.hiker.bolanassist" />
+        <!--阿里云盘-->
+        <package android:name="com.alicloud.databox" />
+        <!--嗅觉浏览器-->
+        <package android:name="com.hiker.youtoo" />
+        <!--海阔视界-->
+        <package android:name="com.example.hikerview" />
+        <package android:name="com.example.hikerview.dev" />
+        <!--TTS-->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
 
     <uses-permission android:name="android.permission.INTERNET" /> <!-- 允许访问网络状态的权限 -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!-- 允许访问wifi状态的权限 -->

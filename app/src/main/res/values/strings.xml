@@ -232,6 +232,16 @@
     <string name="excute_success">执行成功</string>
     <string name="update_records">更新日志</string>
     <string name="custom_downloader">自定义下载器</string>
+    <string name="downloader_default">内置下载器</string>
+    <string name="downloader_idm">IDM+</string>
+    <string name="downloader_youtoo">嗅觉浏览器</string>
+    <string name="downloader_hiker">海阔视界</string>
+    <string name="downloader_adm">ADM</string>
+    <string name="downloader_msg">检测到你没有安装对应APP，未安装将无法唤起下载</string>
+    <string name="downloader_go_msg">检测到你自定义了下载器为%1$s，是否跳转对应软件查看已下载内容</string>
+    <string name="downloader_start_failed">唤起软件失败：%1$s</string>
+    <string name="add_download_task_success">已添加下载任务</string>
+    <string name="cannot_download_m3u8">检测到即将下载的文件疑似是M3U8格式，当前内置下载器不支持下载此格式（可在设置中切换为其它下载器），确定继续下载？</string>
     <string name="clear_bookmark_message">注意此操作会删除所有书签和文件夹，请谨慎操作，确定继续删除吗？</string>
     <string name="delete_bookmark_dir_message">注意此操作会删除该文件夹下所有书签和文件夹，请谨慎操作，确定继续删除吗？</string>
     <string name="export_success">导出成功，请选择操作，点击转存会保存到Download目录，可在文件管理器管理，卸载软件也不会丢失，分享则可以发送到微信、QQ、云盘保存</string>
