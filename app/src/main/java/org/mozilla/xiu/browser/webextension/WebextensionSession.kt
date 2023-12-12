@@ -2,6 +2,7 @@ package org.mozilla.xiu.browser.webextension
 
 import android.app.Activity
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import com.alibaba.fastjson.JSON
@@ -308,6 +309,17 @@ class WebextensionSession {
                 Toast.makeText(context, it.metaData.name + "安装成功", Toast.LENGTH_LONG).show()
                 EventBus.getDefault().post(WebExtensionsRefreshEvent())
                 WebExtensionRuntimeManager.refresh()
+                if(it.metaData.name?.contains("Bitwarden") == true) {
+                    MaterialAlertDialogBuilder(context)
+                        .setTitle(ContextCompat.getString(context, R.string.notify))
+                        .setMessage(ContextCompat.getString(context, R.string.bitwarden_ext_msg))
+                        .setPositiveButton(ContextCompat.getString(context, R.string.confirm)) { d, _ ->
+                            EventBus.getDefault().post(BrowseEvent("about:config"))
+                            d.dismiss()
+                        }.setNegativeButton(ContextCompat.getString(context, R.string.cancel)) { d, _ ->
+                            d.dismiss()
+                        }.show()
+                }
             } else {
                 Toast.makeText(context, "安装失败", Toast.LENGTH_LONG).show()
             }
@@ -465,6 +477,8 @@ fun WebExtension.addDelegate(context: Activity) {
                 val json = message
                 if ("xiu" == json.optString("type")) {
                     EventBus.getDefault().post(TabRequestEvent(json))
+                } else if ("favicon" == json.optString("type")) {
+                    EventBus.getDefault().post(FaviconEvent(json))
                 } else if ("input" == json.optString("type")) {
                     EventBus.getDefault().post(InputHeightListenEvent(json.optBoolean("isUp")))
                 }

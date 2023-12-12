@@ -44,6 +44,9 @@
             android:defaultValue="false"
             android:key="switch_extension_process"
             android:title="@string/ExtensionProcess" />
+        <Preference
+            android:key="about_config"
+            android:title="@string/about_config" />
     </PreferenceCategory>
     <PreferenceCategory
         android:title="@string/private_safety"

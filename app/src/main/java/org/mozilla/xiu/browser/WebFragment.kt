@@ -200,6 +200,7 @@ class WebFragment(
                 binding.root
             )
             sessiondelegate = it
+            hideErrorPage()
         }
         binding.geckoview.activityContextDelegate = GeckoView.ActivityContextDelegate { activity }
 
@@ -275,7 +276,7 @@ class WebFragment(
             }
             sessionDelegate.pageError = object : SessionDelegate.PageError {
                 override fun onPageChange() {
-                    binding.errorpage.visibility = View.GONE
+                    hideErrorPage()
                 }
 
                 override fun onPageError(
@@ -336,6 +337,10 @@ class WebFragment(
             )
         )
         //binding.geckoview.setSession(session)
+    }
+
+    private fun hideErrorPage() {
+        binding.errorpage.visibility = View.GONE
     }
 
     private fun getErrorMessage(code: Int): String {

@@ -80,8 +80,10 @@ class ShortcutAdapter(
                 }
 
                 else -> {
-                    val uri = URI.create(bean.url)
-                    val faviconUrl = uri.scheme + "://" + uri.host + "/favicon.ico"
+                    val faviconUrl = bean.icon.ifEmpty {
+                        val uri = URI.create(bean.url)
+                        uri.scheme + "://" + uri.host + "/favicon.ico"
+                    }
                     Glide.with(mContext)
                         .load(faviconUrl)
                         .apply(

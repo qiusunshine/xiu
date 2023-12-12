@@ -12,8 +12,8 @@ plugins {
 }
 // Optionally, set any parameters to send to the plugin.
 
-def versionCodeNew = 99
-def versionNameNew = "2.4"
+def versionCodeNew = 101
+def versionNameNew = "2.5"
 def appName = "Xiu"
 
 kapt {
@@ -141,7 +141,7 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2'
 
 
-    def gecko_version = "120.0.20231127143053"
+    def gecko_version = "120.0.20231129155202"
     def mozilla_version = "120.0b8"
     implementation ("org.mozilla.geckoview:geckoview:$gecko_version")
     implementation ("org.mozilla.components:browser-storage-sync:$mozilla_version")

@@ -2,9 +2,13 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/settings"
-        android:icon="@drawable/gear_fill"
-        android:title="@string/settings" />
+        android:id="@+id/bookmark"
+        android:icon="@drawable/bookmarks"
+        android:title="@string/bookmark" />
+    <item
+        android:id="@+id/history"
+        android:icon="@drawable/hourglass_split"
+        android:title="@string/history" />
     <item
         android:id="@+id/download"
         android:icon="@drawable/download"
@@ -14,11 +18,7 @@
         android:icon="@drawable/extension_puzzle"
         android:title="@string/addons" />
     <item
-        android:id="@+id/bookmark"
-        android:icon="@drawable/bookmarks"
-        android:title="@string/bookmark" />
-    <item
-        android:id="@+id/history"
-        android:icon="@drawable/hourglass_split"
-        android:title="@string/history" />
+        android:id="@+id/settings"
+        android:icon="@drawable/gear_fill"
+        android:title="@string/settings" />
 </menu>

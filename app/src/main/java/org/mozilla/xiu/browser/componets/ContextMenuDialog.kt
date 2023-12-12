@@ -1,5 +1,6 @@
 package org.mozilla.xiu.browser.componets
 
+import android.animation.Animator
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
@@ -115,6 +116,40 @@ class ContextMenuDialog(
                 val uri = Uri.parse(link)
                 intent.setDataAndType(uri, type)
                 context.startActivity(intent)
+            }
+        }
+        if(element.textContent.isNullOrEmpty()) {
+            binding.copyTextButton.visibility = View.GONE
+        } else {
+            binding.copyTextButton.visibility = View.VISIBLE
+            binding.copyTextButton.setOnClickListener {
+                binding.diaContextmenuNewTabButton.animate().alpha(0f).setListener(object : Animator.AnimatorListener {
+                    override fun onAnimationStart(animation: Animator) {
+
+                    }
+
+                    override fun onAnimationEnd(animation: Animator) {
+                        binding.textContentView.visibility = View.VISIBLE
+                        binding.textContentView.text = element.textContent
+                        binding.textContentView.animate().alpha(1f).start()
+                        binding.diaContextmenuNewTabButton.visibility = View.GONE
+                        binding.copyTextButton.visibility = View.GONE
+                        binding.diaContextmenuCopyButton.visibility = View.GONE
+                        binding.diaContextmenuOpenButton.visibility = View.GONE
+                    }
+
+                    override fun onAnimationCancel(animation: Animator) {
+
+                    }
+
+                    override fun onAnimationRepeat(animation: Animator) {
+
+                    }
+
+                }).start()
+                binding.copyTextButton.animate().alpha(0f).start()
+                binding.diaContextmenuCopyButton.animate().alpha(0f).start()
+                binding.diaContextmenuOpenButton.animate().alpha(0f).start()
             }
         }
         setView(binding.root)

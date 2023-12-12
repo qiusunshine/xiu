@@ -38,9 +38,12 @@ import org.mozilla.geckoview.WebRequest
 import org.mozilla.geckoview.WebResponse
 import org.mozilla.xiu.browser.App
 import org.mozilla.xiu.browser.R
+import org.mozilla.xiu.browser.utils.ScreenUtil
 import org.mozilla.xiu.browser.utils.ThreadTool
 import org.mozilla.xiu.browser.utils.ToastMgr
 import org.mozilla.xiu.browser.utils.getSizeName
+
+const val DESKTOP_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/120.0"
 
 class SeRuSettings {
     private var geckoSessionSettings: GeckoSessionSettings
@@ -55,14 +58,14 @@ class SeRuSettings {
         this.geckoSessionSettings = geckoSessionSettings
         this.activity = activity
         geckoRuntimeSettings = GeckoRuntime.getDefault(activity).settings
-        if (getSizeName(activity) == "large") {
-            geckoSessionSettings.userAgentOverride =
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:83.0) Gecko/20100101 Firefox/83.0"
+        if ((getSizeName(activity) == "large" && ScreenUtil.isOrientationLand(activity)) || desktopMode) {
+            //geckoSessionSettings.userAgentOverride = DESKTOP_UA
+            geckoSessionSettings.viewportMode = GeckoSessionSettings.VIEWPORT_MODE_DESKTOP
             geckoSessionSettings.viewportMode = GeckoSessionSettings.VIEWPORT_MODE_DESKTOP
             geckoSessionSettings.displayMode = GeckoSessionSettings.DISPLAY_MODE_BROWSER
         } else {
             geckoSessionSettings.userAgentMode = GeckoSessionSettings.USER_AGENT_MODE_MOBILE
-
+            geckoSessionSettings.viewportMode = GeckoSessionSettings.VIEWPORT_MODE_MOBILE
         }
         val sharedPreferences =
             PreferenceManager.getDefaultSharedPreferences(activity /* Activity context */)
@@ -275,6 +278,7 @@ class SeRuSettings {
     companion object {
         private var inited: Boolean = false
         private var mLastID = 100
+        var desktopMode = false
         var mKillProcessOnDestroy = false
         val mPendingActivityResult = java.util.HashMap<Int, GeckoResult<Intent>>()
 

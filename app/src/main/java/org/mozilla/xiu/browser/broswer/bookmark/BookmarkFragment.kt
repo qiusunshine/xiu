@@ -149,7 +149,7 @@ class BookmarkFragment(
                                 oldBookmark = bean
                             ).show()
                         } else {
-                            BookmarkDialog(requireActivity(), bean.title, bean.url, bean).open()
+                            BookmarkDialog(requireActivity(), bean.title, bean.url, bean.icon, bean).open()
                         }
                     }
 
@@ -184,7 +184,8 @@ class BookmarkFragment(
                                 Shortcut(
                                     bean.url,
                                     bean.title,
-                                    System.currentTimeMillis().toInt()
+                                    System.currentTimeMillis().toInt(),
+                                    bean.icon
                                 )
                             )
                         }

@@ -33,6 +33,8 @@
     <string name="bookmark">书签</string>
     <string name="history">历史</string>
     <string name="desktop">桌面模式</string>
+    <string name="desktop_opened">已开启桌面模式</string>
+    <string name="desktop_closed">已关闭桌面模式</string>
     <string name="forward">前进</string>
     <string name="Baidu">百度</string>
     <string name="Google">谷歌</string>
@@ -188,6 +190,7 @@
     <string name="dev_mode">开发调试</string>
     <string name="tools">工具箱</string>
     <string name="float_video">悬浮嗅探</string>
+    <string name="about_config">内核参数定制</string>
     <string name="float_video_message">当前%1$s悬浮视频嗅探功能，开启后软件会自动嗅探检索网页中的视频资源悬浮播放，支持流畅播放、投屏等加强功能</string>
     <string name="float_video_opened">已开启</string>
     <string name="float_video_closed">未开启</string>
@@ -211,6 +214,7 @@
     <string name="browse">访问链接</string>
     <string name="float_play">悬浮播放</string>
     <string name="copy_url">复制链接</string>
+    <string name="custom_copy">自由复制</string>
     <string name="import_bookmark">从HTML导入</string>
     <string name="export_bookmark">导出为HTML</string>
     <string name="create_dir">创建文件夹</string>
@@ -245,5 +249,5 @@
     <string name="clear_bookmark_message">注意此操作会删除所有书签和文件夹，请谨慎操作，确定继续删除吗？</string>
     <string name="delete_bookmark_dir_message">注意此操作会删除该文件夹下所有书签和文件夹，请谨慎操作，确定继续删除吗？</string>
     <string name="export_success">导出成功，请选择操作，点击转存会保存到Download目录，可在文件管理器管理，卸载软件也不会丢失，分享则可以发送到微信、QQ、云盘保存</string>
-
+    <string name="bitwarden_ext_msg">检测到您安装了Bitwarden扩展程序，因为火狐内核和Bitwarden扩展之间的不完全兼容性，需要您在about:config页面找到extensions.webextensions.remote选项改成true，然后重启软件才能在注册/登录Bitwarden时正确显示验证码窗口，点击下方确定按钮将进入about:config页面，您可以搜索关键词webextensions.remote快速定位。或者您可以在Bitwarden网页上注册登录，然后在Bitwarden扩展程序窗口登录，这样就无需验证码</string>
 </resources>

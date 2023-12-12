@@ -95,6 +95,7 @@ import org.mozilla.xiu.browser.view.toast.make
 import org.mozilla.xiu.browser.webextension.BrowseEvent
 import org.mozilla.xiu.browser.webextension.DetectorListener
 import org.mozilla.xiu.browser.webextension.EvalJSEvent
+import org.mozilla.xiu.browser.webextension.FaviconEvent
 import org.mozilla.xiu.browser.webextension.InputHeightListenEvent
 import org.mozilla.xiu.browser.webextension.InputHeightListenPostEvent
 import org.mozilla.xiu.browser.webextension.TabRequest
@@ -376,7 +377,7 @@ class MainActivity : AppCompatActivity(), DetectorListener {
         }
         binding.addonsButton?.setOnClickListener {
             if (!isHome)
-                BookmarkDialog(this, binding.user!!.mTitle, binding.user!!.u).show()
+                BookmarkDialog(this, binding.user!!.mTitle, binding.user!!.u, binding.user!!.icon).show()
         }
         binding.content.viewPager.registerOnPageChangeCallback(object :
             ViewPager2.OnPageChangeCallback() {
@@ -763,6 +764,31 @@ class MainActivity : AppCompatActivity(), DetectorListener {
         for (sessionDelegate in sessionDelegates) {
             if (StringUtils.equals(request.documentUrl, sessionDelegate.u)) {
                 sessionDelegate.onRequest(request)
+                return
+            }
+        }
+    }
+    @Subscribe
+    fun onFaviconReceived(event: FaviconEvent) {
+        val icon = event.json.optString("icon")
+        if(icon.isNullOrEmpty() || !icon.startsWith("http")) {
+            return
+        }
+        val fragment = getWebFragment()
+        val documentUrl = event.json.optString("documentUrl")
+        fragment?.let { webFragment ->
+            if (StringUtils.equals(
+                    documentUrl,
+                    webFragment.sessiondelegate.u
+                ) || StringUtil.isEmpty(documentUrl) || "null" == documentUrl
+            ) {
+                webFragment.sessiondelegate.updateIcon(icon)
+                return
+            }
+        }
+        for (sessionDelegate in sessionDelegates) {
+            if (StringUtils.equals(documentUrl, sessionDelegate.u)) {
+                sessionDelegate.updateIcon(icon)
                 return
             }
         }

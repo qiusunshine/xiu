@@ -5,6 +5,10 @@ import android.content.Context
 import android.content.ContextWrapper
 import androidx.activity.OnBackPressedCallback
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /**
  * 作者：By 15968
@@ -52,7 +56,8 @@ fun androidx.activity.ComponentActivity.addOnBackPressed(onBackPressed: () -> Bo
         onBackPressedDispatcher.addCallback(it)
     }
 }
-private fun androidx.activity.ComponentActivity.backPressedCallback(onBackPressed: () -> Boolean):OnBackPressedCallback{
+
+private fun androidx.activity.ComponentActivity.backPressedCallback(onBackPressed: () -> Boolean): OnBackPressedCallback {
     return object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
             if (!onBackPressed()) {
@@ -82,7 +87,7 @@ fun androidx.activity.ComponentDialog.addOnBackPressed(onBackPressed: () -> Bool
     }
 }
 
-private fun androidx.activity.ComponentDialog.backPressedCallback(onBackPressed: () -> Boolean):OnBackPressedCallback{
+private fun androidx.activity.ComponentDialog.backPressedCallback(onBackPressed: () -> Boolean): OnBackPressedCallback {
     return object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
             if (!onBackPressed()) {
@@ -92,4 +97,12 @@ private fun androidx.activity.ComponentDialog.backPressedCallback(onBackPressed:
             }
         }
     }
+}
+
+fun LifecycleOwner.async(block: suspend CoroutineScope.() -> Unit) {
+    lifecycleScope.launch(Dispatchers.IO, block = block)
+}
+
+fun LifecycleOwner.runOnUI(block: suspend CoroutineScope.() -> Unit) {
+    lifecycleScope.launch(Dispatchers.Main, block = block)
 }

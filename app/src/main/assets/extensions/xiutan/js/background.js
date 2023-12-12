@@ -134,6 +134,15 @@ browser.runtime.onMessage.addListener((message) => {
             isUp: message.isUp
         };
         browser.runtime.sendNativeMessage("browser", msg);
+  } else if (message.type == "favicon") {
+        if(message.faviconUrl) {
+            let msg = {
+                type: "favicon",
+                icon: message.faviconUrl,
+                documentUrl: message.url
+            };
+            browser.runtime.sendNativeMessage("browser", msg);
+        }
   }
 });
 let port = browser.runtime.connectNative("browser");

@@ -29,6 +29,7 @@ class BookmarkDialog(
     private var context1: Activity,
     title: String?,
     url: String?,
+    icon: String?,
     oldBookmark: Bookmark? = null
 ) :
     MyDialog(context1) {
@@ -115,7 +116,8 @@ class BookmarkDialog(
                     val shortcut = Shortcut(
                         diaBookmarkBinding.diaBookmarkUrl.text.toString(),
                         diaBookmarkBinding.diaBookmarkTitle.text.toString(),
-                        0
+                        0,
+                        oldBookmark.icon
                     )
                     if (diaBookmarkBinding.radioButton.isChecked) {
                         val exist = shortcutViewModel.findShortcutWithUrl(shortcut.url)
@@ -144,7 +146,8 @@ class BookmarkDialog(
                         diaBookmarkBinding.diaBookmarkUrl.text.toString(),
                         diaBookmarkBinding.diaBookmarkTitle.text.toString(),
                         "默认",
-                        isCheckSelected
+                        isCheckSelected,
+                        icon = icon ?: ""
                     )
                     if (group1.isNotEmpty()) {
                         if (all == null) {
@@ -158,7 +161,8 @@ class BookmarkDialog(
                     val shortcut = Shortcut(
                         diaBookmarkBinding.diaBookmarkUrl.text.toString(),
                         diaBookmarkBinding.diaBookmarkTitle.text.toString(),
-                        0
+                        0,
+                        icon ?: ""
                     )
                     if (diaBookmarkBinding.radioButton.isChecked) {
                         val exist = shortcutViewModel.findShortcutWithUrl(shortcut.url)

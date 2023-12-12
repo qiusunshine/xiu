@@ -26,6 +26,7 @@ import org.mozilla.xiu.browser.database.bookmark.BookmarkViewModel
 import org.mozilla.xiu.browser.databinding.PopupMenuBinding
 import org.mozilla.xiu.browser.session.DelegateLivedata
 import org.mozilla.xiu.browser.session.PrivacyModeLivedata
+import org.mozilla.xiu.browser.session.SeRuSettings
 import org.mozilla.xiu.browser.session.SessionDelegate
 import org.mozilla.xiu.browser.utils.PreferenceMgr
 import org.mozilla.xiu.browser.utils.ShareUtil
@@ -67,7 +68,7 @@ class MenuPopup {
         }
         binding.starButton.setOnClickListener {
             if (sessionDelegate != null) {
-                BookmarkDialog(context, sessionDelegate!!.mTitle, sessionDelegate!!.u).show()
+                BookmarkDialog(context, sessionDelegate!!.mTitle, sessionDelegate!!.u, sessionDelegate!!.icon).show()
             }
         }
         bookmarkObserver = Observer {
@@ -92,7 +93,8 @@ class MenuPopup {
                         BookmarkDialog(
                             context,
                             sessionDelegate!!.mTitle,
-                            sessionDelegate!!.u
+                            sessionDelegate!!.u,
+                            sessionDelegate!!.icon,
                         ).show()
                     }
                 }
@@ -212,18 +214,27 @@ class MenuPopup {
         }
         binding.modeBotton.setOnClickListener {
             if (!isHome) {
-                if (sessionDelegate?.session?.settings?.userAgentMode == GeckoSessionSettings.USER_AGENT_MODE_DESKTOP) {
+                if (SeRuSettings.desktopMode) {
+                    SeRuSettings.desktopMode = false
+                    //sessionDelegate!!.session.settings.userAgentOverride = null
                     sessionDelegate!!.session.settings.userAgentMode =
                         GeckoSessionSettings.USER_AGENT_MODE_MOBILE
+                    sessionDelegate!!.session.settings.viewportMode =
+                        GeckoSessionSettings.VIEWPORT_MODE_MOBILE
                     sessionDelegate!!.session.reload()
+                    ToastMgr.shortBottomCenter(context, context.getString(R.string.desktop_closed))
                 } else {
+                    SeRuSettings.desktopMode = true
+                    //sessionDelegate!!.session.settings.userAgentOverride = DESKTOP_UA
                     sessionDelegate!!.session.settings.userAgentMode =
                         GeckoSessionSettings.USER_AGENT_MODE_DESKTOP
+                    sessionDelegate!!.session.settings.viewportMode =
+                        GeckoSessionSettings.VIEWPORT_MODE_DESKTOP
                     sessionDelegate!!.session.reload()
+                    ToastMgr.shortBottomCenter(context, context.getString(R.string.desktop_opened))
                 }
             }
             bottomSheetDialog.dismiss()
-
         }
 
         val adapter = MenuAddonsAdapater {

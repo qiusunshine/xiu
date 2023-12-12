@@ -44,14 +44,45 @@
             app:layout_constraintTop_toBottomOf="@+id/imageView19" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/copyTextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="@string/custom_copy"
+            app:icon="@drawable/clipboard_fill"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/diaContextmenuNewTabButton" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/textContentView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:clickable="true"
+            android:ellipsize="end"
+            android:enabled="true"
+            android:focusable="true"
+            android:lineSpacingExtra="10dp"
+            android:longClickable="true"
+            android:textIsSelectable="true"
+            android:textSize="16sp"
+            android:minHeight="80dp"
+            android:gravity="center_vertical"
+            android:alpha="0"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/imageView19"
+            android:paddingBottom="16dp"/>
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/diaContextmenuCopyButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:text="@string/copy"
+            android:text="@string/copy_url"
             app:icon="@drawable/clipboard_fill"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/diaContextmenuNewTabButton" />
+            app:layout_constraintTop_toBottomOf="@+id/copyTextButton" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/diaContextmenuOpenButton"

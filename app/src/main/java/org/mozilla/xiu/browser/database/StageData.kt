@@ -14,9 +14,9 @@ import org.mozilla.xiu.browser.database.shortcut.ShortcutDao
 
 @Database(
     entities = [Bookmark::class, History::class, Shortcut::class],
-    version = 2,
+    version = 3,
     exportSchema = true,
-    autoMigrations = [AutoMigration(1, 2)]
+    autoMigrations = [AutoMigration(1, 2), AutoMigration(2, 3)]
 )
 abstract class StageData : RoomDatabase() {
     abstract val historyDao: HistoryDao?

@@ -17,8 +17,6 @@ import org.greenrobot.eventbus.EventBus
 import org.mozilla.xiu.browser.MainActivity
 import org.mozilla.xiu.browser.R
 import org.mozilla.xiu.browser.download.DownloadChooser
-import org.mozilla.xiu.browser.download.DownloadTask
-import org.mozilla.xiu.browser.download.DownloadTaskLiveData
 import org.mozilla.xiu.browser.utils.PreferenceMgr
 import org.mozilla.xiu.browser.video.event.FloatVideoSwitchEvent
 import org.mozilla.xiu.browser.webextension.NewTabUrlChangeEvent
@@ -116,15 +114,22 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 }.setNegativeButton(getString(R.string.cancel)) { d, _ ->
                     d.dismiss()
                 }.show()
-            false
+            true
+        }
+        findPreference<Preference>("about_config")?.setOnPreferenceClickListener {
+            val intent = Intent(requireContext(), MainActivity::class.java)
+            intent.data = Uri.parse("about:config")
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+            startActivity(intent)
+            true
         }
         findPreference<Preference>("addons")?.setOnPreferenceClickListener {
             findNavController().navigate(R.id.action_settingsFragment_to_addonsManagerFragment)
-            false
+            true
         }
         findPreference<Preference>("privacyAndService")?.setOnPreferenceClickListener {
             findNavController().navigate(R.id.action_settingsFragment_to_privacyAndServiceFragment)
-            false
+            true
         }
         findPreference<Preference>("home_page_url")?.summaryProvider =
             SummaryProvider<EditTextPreference> { preference ->

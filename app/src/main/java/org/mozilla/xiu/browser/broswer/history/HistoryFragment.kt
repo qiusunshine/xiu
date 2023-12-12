@@ -90,7 +90,8 @@ class HistoryFragment : Fragment() {
                             Shortcut(
                                 bean.url,
                                 bean.title,
-                                System.currentTimeMillis().toInt()
+                                System.currentTimeMillis().toInt(),
+                                bean.icon
                             )
                         )
                         ToastMgr.shortBottomCenter(context, getString(R.string.excute_success))
@@ -101,6 +102,7 @@ class HistoryFragment : Fragment() {
                             requireActivity(),
                             bean.title,
                             bean.url,
+                            bean.icon,
                             oldBookmark = null
                         ).show()
                     }

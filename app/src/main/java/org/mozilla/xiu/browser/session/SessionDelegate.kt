@@ -37,6 +37,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.greenrobot.eventbus.EventBus
+import org.json.JSONObject
 import org.mozilla.gecko.InputMethods
 import org.mozilla.gecko.InputMethods.getInputMethodManager
 import org.mozilla.gecko.util.ThreadUtils
@@ -50,6 +51,7 @@ import org.mozilla.xiu.browser.App
 import org.mozilla.xiu.browser.BR
 import org.mozilla.xiu.browser.R
 import org.mozilla.xiu.browser.base.VarHolder
+import org.mozilla.xiu.browser.base.async
 import org.mozilla.xiu.browser.componets.ContextMenuDialog
 import org.mozilla.xiu.browser.componets.popup.IntentPopup
 import org.mozilla.xiu.browser.database.history.History
@@ -95,6 +97,9 @@ class SessionDelegate() : BaseObservable() {
 
     @get:Bindable
     var u: String = ""
+
+    @get:Bindable
+    var icon: String = ""
 
     @get:Bindable
     lateinit var bitmap: Bitmap
@@ -342,6 +347,19 @@ class SessionDelegate() : BaseObservable() {
                 }
             }
 
+            override fun onWebAppManifest(session: GeckoSession, manifest: JSONObject) {
+                super.onWebAppManifest(session, manifest)
+                try {
+                    val array = manifest.optJSONArray("icons")
+                    if (array != null) {
+                        val iconObj = array.getJSONObject(array.length() - 1)
+                        icon = iconObj.optString("src")
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
             override fun onFirstComposite(session: GeckoSession) {
                 setpic.onSetPic()
                 notifyPropertyChanged(BR.bitmap)
@@ -351,16 +369,7 @@ class SessionDelegate() : BaseObservable() {
                 if (title != null) {
                     mTitle = title
                 }
-                if (!privacy && u.startsWith("http")) {
-                    val history = title?.let { History(u, it, 0) }
-                    history?.let {
-                        ThreadTool.async {
-                            historyViewModel.deleteHistory(u)
-                            historyViewModel.insertHistories(it)
-                        }
-                    }
-                    //historySync.sync(u)
-                }
+                addHistory()
                 notifyPropertyChanged(BR.mTitle)
             }
 
@@ -451,7 +460,7 @@ class SessionDelegate() : BaseObservable() {
                 notifyPropertyChanged(BR.y)
                 requests.clear()
                 try {
-                    if(softInputShowing) {
+                    if (softInputShowing) {
                         val view = session.textInput.view
                         val imm = getInputMethodManager(mContext)
                         imm?.hideSoftInputFromWindow(view!!.windowToken, 0)
@@ -836,11 +845,11 @@ class SessionDelegate() : BaseObservable() {
                 view?.let {
                     Log.d("test", "showSoftInput: start")
                     val now = System.currentTimeMillis()
-                    if(now - softOutputShowTime < 200) {
+                    if (now - softOutputShowTime < 200) {
                         //有的网站会同时调用多次，导致后面几次返回所需时间超过1秒
                         return
                     }
-                    if(softInputShowing && now - softOutputShowTime < 1000) {
+                    if (softInputShowing && now - softOutputShowTime < 1000) {
                         return
                     }
                     softOutputShowTime = now
@@ -1092,6 +1101,22 @@ class SessionDelegate() : BaseObservable() {
             }
         }
         return null
+    }
+
+    private fun addHistory() {
+        if (!privacy && u.startsWith("http") && mTitle.isNotEmpty()) {
+            val url = u
+            val history = History(url, mTitle, 0, icon)
+            mContext.async {
+                historyViewModel.deleteHistory(url)
+                historyViewModel.insertHistories(history)
+            }
+        }
+    }
+
+    fun updateIcon(ic: String) {
+        icon = ic
+        addHistory()
     }
 
     companion object {

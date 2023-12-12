@@ -16,9 +16,9 @@
         }
       ],
       "attributes": [],
-      "versionCode": 99,
-      "versionName": "2.4",
-      "outputFile": "Xiu_V2.4_C99-32位.apk"
+      "versionCode": 101,
+      "versionName": "2.5",
+      "outputFile": "Xiu_V2.5_C101-32位.apk"
     },
     {
       "type": "ONE_OF_MANY",
@@ -29,9 +29,9 @@
         }
       ],
       "attributes": [],
-      "versionCode": 99,
-      "versionName": "2.4",
-      "outputFile": "Xiu_V2.4_C99-64位.apk"
+      "versionCode": 101,
+      "versionName": "2.5",
+      "outputFile": "Xiu_V2.5_C101-64位.apk"
     }
   ],
   "elementType": "File"

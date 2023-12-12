@@ -483,7 +483,8 @@
                         android:layout_marginTop="16dp"
                         android:maxWidth="32dp"
                         android:maxHeight="32dp"
-                        app:iconUri="@{user.u}"
+                        app:currentUri="@{user.u}"
+                        app:iconUri="@{user.icon}"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:srcCompat="@drawable/globe" />

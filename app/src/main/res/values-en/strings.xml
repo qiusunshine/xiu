@@ -33,7 +33,9 @@
     <string name="reload">Reload</string>
     <string name="bookmark">Bookmark</string>
     <string name="history">History</string>
-    <string name="desktop">Desktop site</string>
+    <string name="desktop">Desktop mode</string>
+    <string name="desktop_opened">Desktop mode opened</string>
+    <string name="desktop_closed">Desktop mode closed</string>
     <string name="forward">Forward</string>
     <string name="result_qr">Result</string>
     <string name="Baidu">Baidu</string>
@@ -185,6 +187,7 @@
     <string name="dev_mode">DevMode</string>
     <string name="tools">Tools</string>
     <string name="float_video">Float Video</string>
+    <string name="about_config">About Config</string>
     <string name="float_video_message">Float Video %1$s</string>
     <string name="float_video_opened">Opened</string>
     <string name="float_video_closed">Closed</string>
@@ -207,6 +210,7 @@
     <string name="browse">Browse Url</string>
     <string name="float_play">Float Play</string>
     <string name="copy_url">Copy Url</string>
+    <string name="custom_copy">Free Copy</string>
     <string name="import_bookmark">Import from html</string>
     <string name="export_bookmark">Export to html</string>
     <string name="create_dir">Create directory</string>
@@ -241,5 +245,5 @@
     <string name="clear_bookmark_message">Note that this operation will delete all bookmarks and folders, please operate with caution, Are you sure to continue with the operation</string>
     <string name="delete_bookmark_dir_message">Please note that this operation will delete all bookmarks and folders under this folder. Please proceed with caution. Are you sure you want to continue deleting?</string>
     <string name="export_success">Export Success</string>
-
+    <string name="bitwarden_ext_msg">We have detected that you have installed the Bitharden extension program. Due to incomplete compatibility between the Firefox kernel and Bitharden extensions, you need to find the extensions.webextensions.remote option on the about: config page and change it to true. Then, restart the software to correctly display the verification code window when registering/logging into Bitharden. Click the OK button below to enter the about: config page, You can search for keywords to locate extensions. webextensions. remote. Alternatively, you can register and log in on the Bitgarden webpage, and then log in from the Bitgarden extension window, without the need for a verification code</string>
 </resources>
