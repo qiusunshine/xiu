@@ -3,6 +3,7 @@ package org.mozilla.xiu.browser.componets
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ListAdapter
@@ -13,6 +14,7 @@ import kotlinx.coroutines.withContext
 import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.WebExtension
+import org.mozilla.xiu.browser.R
 import org.mozilla.xiu.browser.componets.popup.AddonsPopup
 import org.mozilla.xiu.browser.componets.popup.NetworkPopup
 import org.mozilla.xiu.browser.databinding.ItemMenuAddonsBinding
@@ -70,10 +72,12 @@ class MenuAddonsAdapater(
                 }
             })
             if (bean.id == "xiutan@xiu.com") {
+                binding.addonsIcon.setImageDrawable(ContextCompat.getDrawable(mContext, R.drawable.icon_network))
                 binding.addonsIcon.setOnClickListener {
                     dismissCall()
                     DelegateLivedata.getInstance().value?.let {
                         NetworkPopup(mContext, it).show()
+                        //EventBus.getDefault().post(TranslateEvent(!it.mTranslateRestore))
                     }
                 }
             }

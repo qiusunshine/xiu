@@ -161,6 +161,10 @@ class SessionDelegate() : BaseObservable() {
 
     var activeMediaSession: MediaSession? = null
 
+    var mExpectedTranslate = false
+    var mTranslateRestore = false
+    var mDetectedLanguage: String? = null
+
     constructor(
         mContext: FragmentActivity,
         session: GeckoSession,
@@ -457,6 +461,8 @@ class SessionDelegate() : BaseObservable() {
 //                        login.onLogin(code, state, action)
 //                    }
 //                }
+                mTranslateRestore = false
+                mExpectedTranslate = false
                 notifyPropertyChanged(BR.y)
                 requests.clear()
                 try {
@@ -935,6 +941,7 @@ class SessionDelegate() : BaseObservable() {
                 imm?.updateCursorAnchorInfo(view, info)
             }
         })
+        session.translationsSessionDelegate = ExampleTranslationsSessionDelegate()
     }
 
     fun getDefaultThemeColor(context: Context?): Int {
@@ -1117,6 +1124,27 @@ class SessionDelegate() : BaseObservable() {
     fun updateIcon(ic: String) {
         icon = ic
         addHistory()
+    }
+
+    private inner class ExampleTranslationsSessionDelegate : TranslationsController.SessionTranslation.Delegate {
+        override fun onOfferTranslate(session: GeckoSession) {
+            Log.i("test", "onOfferTranslate")
+        }
+
+        override fun onExpectedTranslate(session: GeckoSession) {
+            Log.i("test", "onExpectedTranslate")
+            mExpectedTranslate = true
+        }
+
+        override fun onTranslationStateChange(
+            session: GeckoSession,
+            translationState: TranslationsController.SessionTranslation.TranslationState?
+        ) {
+            Log.i("test", "onTranslationStateChange")
+            if (translationState!!.detectedLanguages != null) {
+                mDetectedLanguage = translationState.detectedLanguages!!.docLangTag
+            }
+        }
     }
 
     companion object {

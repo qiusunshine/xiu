@@ -237,7 +237,7 @@ class MainActivity : AppCompatActivity(), DetectorListener {
                 window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
                 binding.bottomMotionLayout?.transitionToEnd()
                 binding.constraintLayout10?.visibility = View.VISIBLE
-                if(binding.SearchText?.text?.toString() == "about:blank") {
+                if (binding.SearchText?.text?.toString() == "about:blank") {
                     binding.SearchText?.setText("")
                 }
                 when (org.mozilla.xiu.browser.broswer.SearchEngine(this)) {
@@ -377,7 +377,12 @@ class MainActivity : AppCompatActivity(), DetectorListener {
         }
         binding.addonsButton?.setOnClickListener {
             if (!isHome)
-                BookmarkDialog(this, binding.user!!.mTitle, binding.user!!.u, binding.user!!.icon).show()
+                BookmarkDialog(
+                    this,
+                    binding.user!!.mTitle,
+                    binding.user!!.u,
+                    binding.user!!.icon
+                ).show()
         }
         binding.content.viewPager.registerOnPageChangeCallback(object :
             ViewPager2.OnPageChangeCallback() {
@@ -768,10 +773,11 @@ class MainActivity : AppCompatActivity(), DetectorListener {
             }
         }
     }
+
     @Subscribe
     fun onFaviconReceived(event: FaviconEvent) {
         val icon = event.json.optString("icon")
-        if(icon.isNullOrEmpty() || !icon.startsWith("http")) {
+        if (icon.isNullOrEmpty() || !icon.startsWith("http")) {
             return
         }
         val fragment = getWebFragment()
@@ -1083,5 +1089,10 @@ class MainActivity : AppCompatActivity(), DetectorListener {
             val permission = binding.user?.session?.permissionDelegate as ExamplePermissionDelegate?
             permission?.onRequestPermissionsResult(permissions, grantResults)
         }
+    }
+
+    @Subscribe
+    fun onTranslation(event: TranslateEvent) {
+        getWebFragment()?.translate(event)
     }
 }

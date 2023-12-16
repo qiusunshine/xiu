@@ -72,12 +72,12 @@ class WebextensionSession {
                 return GeckoResult.allow()
             }
         }
-//        webExtensionController.setAddonManagerDelegate(object :
-//            WebExtensionController.AddonManagerDelegate {
-//            override fun onReady(extension: WebExtension) {
-//                WebExtensionRuntimeManager.onReady(extension)
-//            }
-//        })
+        webExtensionController.setAddonManagerDelegate(object :
+            WebExtensionController.AddonManagerDelegate {
+            override fun onReady(extension: WebExtension) {
+                WebExtensionRuntimeManager.onReady(extension)
+            }
+        })
         webExtensionController.list().accept {
             if (it != null) {
                 for (i in it)

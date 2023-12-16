@@ -246,4 +246,16 @@
     <string name="delete_bookmark_dir_message">Please note that this operation will delete all bookmarks and folders under this folder. Please proceed with caution. Are you sure you want to continue deleting?</string>
     <string name="export_success">Export Success</string>
     <string name="bitwarden_ext_msg">We have detected that you have installed the Bitharden extension program. Due to incomplete compatibility between the Firefox kernel and Bitharden extensions, you need to find the extensions.webextensions.remote option on the about: config page and change it to true. Then, restart the software to correctly display the verification code window when registering/logging into Bitharden. Click the OK button below to enter the about: config page, You can search for keywords to locate extensions. webextensions. remote. Alternatively, you can register and log in on the Bitgarden webpage, and then log in from the Bitgarden extension window, without the need for a verification code</string>
+
+    <string name="translate">Translate</string>
+    <string name="translate_restore">Restore to Original</string>
+    <string name="translate_language_from_hint">From Language</string>
+    <string name="translate_language_to_hint">To Language</string>
+    <string name="translate_action">Translate</string>
+    <string name="translate_manage">Manage Translate</string>
+    <string name="translate_manage_languages">Languages</string>
+    <string name="translate_manage_operations">Operations</string>
+    <string name="translate_display_hint">See Logcat for State</string>
+    <string name="translate_manage_action">Update</string>
+
 </resources>

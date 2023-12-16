@@ -27,7 +27,7 @@ fun loadImage(view: ImageView, bitmap: Bitmap) {
         .apply(
             RequestOptions().transform(
                 CenterCrop(), RoundedCornersTransform(
-                    view.context, 16f
+                    view.context, 25f
                 )
             )
         )

@@ -12,8 +12,8 @@ plugins {
 }
 // Optionally, set any parameters to send to the plugin.
 
-def versionCodeNew = 101
-def versionNameNew = "2.5"
+def versionCodeNew = 105
+def versionNameNew = "2.6"
 def appName = "Xiu"
 
 kapt {
@@ -74,6 +74,7 @@ android {
             include 'arm64-v8a', 'armeabi-v7a'
         }
     }
+    buildToolsVersion '30.0.3'
 
     applicationVariants.all { variant ->
         variant.outputs.all {
@@ -141,7 +142,7 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2'
 
 
-    def gecko_version = "120.0.20231129155202"
+    def gecko_version = "121.0.20231214155439"
     def mozilla_version = "120.0b8"
     implementation ("org.mozilla.geckoview:geckoview:$gecko_version")
     implementation ("org.mozilla.components:browser-storage-sync:$mozilla_version")
@@ -230,5 +231,8 @@ dependencies {
     implementation "com.github.luqiming666:SwipeRecyclerView:1.4.8"
 
     implementation 'org.jsoup:jsoup:1.14.3'
+    implementation("jp.wasabeef:glide-transformations:4.3.0") { exclude group: 'com.github.bumptech.glide' }
+    // If you want to use the GPU Filters
+    implementation 'jp.co.cyberagent.android:gpuimage:2.1.0'
 }
 

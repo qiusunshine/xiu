@@ -56,7 +56,8 @@
                     android:layout_height="@dimen/dim0"
                     android:layout_marginStart="8dp"
                     android:contentDescription="@string/about"
-                    app:iconUri="@{user.u}"
+                    app:currentUri="@{user.u}"
+                    app:iconUri="@{user.icon}"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />

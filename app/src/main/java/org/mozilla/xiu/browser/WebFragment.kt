@@ -1,25 +1,42 @@
 package org.mozilla.xiu.browser
 
 import android.annotation.SuppressLint
+import android.content.DialogInterface
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
+import android.renderscript.RSRuntimeException
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.LinearLayout
+import android.widget.RelativeLayout
+import android.widget.Spinner
+import android.widget.TextView
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.ActivityResultLauncher
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import jp.wasabeef.glide.transformations.internal.FastBlur
+import jp.wasabeef.glide.transformations.internal.RSBlur
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.mozilla.geckoview.GeckoResult
+import org.mozilla.geckoview.GeckoResult.OnValueListener
 import org.mozilla.geckoview.GeckoRuntime
 import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.GeckoView
+import org.mozilla.geckoview.TranslationsController
+import org.mozilla.geckoview.TranslationsController.RuntimeTranslation.LanguageModel
+import org.mozilla.geckoview.TranslationsController.RuntimeTranslation.ModelManagementOptions
+import org.mozilla.geckoview.TranslationsController.RuntimeTranslation.TranslationSupport
 import org.mozilla.geckoview.WebExtension
 import org.mozilla.geckoview.WebRequestError
 import org.mozilla.geckoview.WebRequestError.ERROR_BAD_HSTS_CERT
@@ -33,6 +50,7 @@ import org.mozilla.xiu.browser.databinding.FragmentSecondBinding
 import org.mozilla.xiu.browser.session.DelegateLivedata
 import org.mozilla.xiu.browser.session.GeckoViewModel
 import org.mozilla.xiu.browser.session.SessionDelegate
+import org.mozilla.xiu.browser.session.TranslateEvent
 import org.mozilla.xiu.browser.tab.AddTabLiveData
 import org.mozilla.xiu.browser.tab.DelegateListLiveData
 import org.mozilla.xiu.browser.tab.RemoveTabLiveData
@@ -45,6 +63,7 @@ import org.mozilla.xiu.browser.webextension.DetectorListener
 import org.mozilla.xiu.browser.webextension.WebExtensionRuntimeManager
 import org.mozilla.xiu.browser.webextension.WebExtensionsEnableEvent
 import java.io.File
+import java.util.Arrays
 
 
 /**
@@ -61,7 +80,6 @@ class WebFragment(
     constructor() : this({ full -> })
 
     private var _binding: FragmentSecondBinding? = null
-    lateinit var session: GeckoSession
     lateinit var geckoViewModel: GeckoViewModel
     lateinit var delegate: ArrayList<SessionDelegate>
     lateinit var uri: Uri
@@ -260,12 +278,28 @@ class WebFragment(
                     try {
                         binding.geckoview.capturePixels().accept {
                             if (it != null) {
-                                if (sessionDelegate.privacy)
-                                    sessionDelegate.bitmap =
-                                        requireActivity().getDrawable(R.drawable.close_outline)
-                                            ?.toBitmap()!!
-                                else
+                                if (sessionDelegate.privacy) {
+                                    //默认缩小为1/4
+                                    val scaledBitmap = Bitmap.createScaledBitmap(
+                                        it,
+                                        it.width / 4,
+                                        it.height / 4,
+                                        false
+                                    )
+                                    val bitmap = try {
+                                        RSBlur.blur(context, scaledBitmap, 25)
+                                    } catch (e: RSRuntimeException) {
+                                        FastBlur.blur(scaledBitmap, 25, true)
+                                    } catch (e: Exception) {
+                                        ContextCompat.getDrawable(
+                                            requireContext(),
+                                            R.drawable.close_outline
+                                        )?.toBitmap()!!
+                                    }
+                                    sessionDelegate.bitmap = bitmap
+                                } else {
                                     sessionDelegate.bitmap = it
+                                }
                             }
                         }
                     } catch (e: Exception) {
@@ -373,5 +407,257 @@ class WebFragment(
 
     fun getCoordinatorLayout(): View {
         return binding.coordinatorLayout
+    }
+
+    fun translate(event: TranslateEvent) {
+        if (event.translate) {
+            translate(sessiondelegate.session)
+        } else {
+            translateRestore(sessiondelegate.session)
+        }
+    }
+
+    private fun translate(session: GeckoSession) {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle(R.string.translate)
+        val fromSelect = Spinner(requireContext())
+        val toSelect = Spinner(requireContext())
+        // Set spinners with data
+        TranslationsController.RuntimeTranslation.listSupportedLanguages()
+            .then<Any> { supportedLanguages: TranslationSupport? ->
+                // Just a check if sorting is working on the Language object by reversing, Languages
+                // should generally come from the API in the display order.
+                if (supportedLanguages?.fromLanguages == null || supportedLanguages.toLanguages == null) {
+                    return@then null
+                }
+                supportedLanguages.fromLanguages?.reverse()
+                val fromData =
+                    ArrayAdapter(
+                        requireContext(),
+                        android.R.layout.simple_spinner_item,
+                        supportedLanguages.fromLanguages!!
+                    )
+                fromSelect.adapter = fromData
+                // Set detected language
+                val index = fromData.getPosition(
+                    TranslationsController.Language(sessiondelegate.mDetectedLanguage ?: "en", null)
+                )
+                fromSelect.setSelection(index)
+                val toData =
+                    ArrayAdapter(
+                        requireContext(),
+                        android.R.layout.simple_spinner_item,
+                        supportedLanguages.toLanguages!!
+                    )
+                toSelect.adapter = toData
+                // Set preferred language
+                TranslationsController.RuntimeTranslation.preferredLanguages()
+                    .then<Any> { preferredList: MutableList<String>? ->
+                        Log.d(
+                            "test",
+                            "Preferred Translation Languages: $preferredList"
+                        )
+                        if (preferredList == null) {
+                            return@then null
+                        }
+                        // Reorder dropdown listing based on preferences
+                        for (i in preferredList.indices.reversed()) {
+                            val langIndex = toData.getPosition(
+                                TranslationsController.Language(preferredList.get(i)!!, null)
+                            )
+                            if (langIndex >= 0) {
+                                val displayLanguage =
+                                    toData.getItem(langIndex)
+                                toData.remove(displayLanguage)
+                                toData.insert(displayLanguage, 0)
+                            }
+                            if (i == 0) {
+                                toSelect.setSelection(0)
+                            }
+                        }
+                        null
+                    }
+                null
+            }
+        builder.setView(
+            translateLayout(
+                fromSelect,
+                R.string.translate_language_from_hint,
+                toSelect,
+                R.string.translate_language_to_hint,
+                -1
+            )
+        )
+        builder.setPositiveButton(
+            R.string.translate_action
+        ) { dialog, which ->
+            val fromLang =
+                fromSelect.selectedItem as TranslationsController.Language
+            val toLang =
+                toSelect.selectedItem as TranslationsController.Language
+            session.sessionTranslation!!.translate(fromLang.code, toLang.code, null)
+                .exceptionally<Any> {
+                    sessiondelegate.mTranslateRestore = false
+                    Log.e("test", "translate: " + it.toString(), it)
+                    null
+                }
+            sessiondelegate.mTranslateRestore = true
+        }
+        builder.setNegativeButton(
+            R.string.cancel
+        ) { dialog: DialogInterface?, which: Int -> }
+        builder.setNeutralButton(
+            R.string.translate_manage
+        ) { dialog: DialogInterface?, which: Int ->
+            translateManage()
+        }
+        builder.show()
+    }
+
+    private fun translateRestore(session: GeckoSession) {
+        sessiondelegate.mTranslateRestore = false
+        session
+            .sessionTranslation?.restoreOriginalPage()?.then<Any> {
+                sessiondelegate.mTranslateRestore = false
+                null
+            }
+    }
+
+    private fun translateManage() {
+        val languageSelect = Spinner(context)
+        val operationSelect = Spinner(context)
+        // Should match ModelOperation choices
+        val operationChoices: List<String> = ArrayList(
+            Arrays.asList(
+                *arrayOf(
+                    TranslationsController.RuntimeTranslation.DELETE,
+                    TranslationsController.RuntimeTranslation.DOWNLOAD
+                )
+            )
+        )
+        val operationData = ArrayAdapter<String>(
+            requireContext(), android.R.layout.simple_spinner_item, operationChoices
+        )
+        operationSelect.adapter = operationData
+
+        // Get current model states
+        val currentStates = TranslationsController.RuntimeTranslation.listModelDownloadStates()
+        currentStates.then(
+            object : OnValueListener<List<LanguageModel>, Any> {
+                override fun onValue(models: List<LanguageModel>?): GeckoResult<Any>? {
+                    if (models == null) return null
+                    val languages: MutableList<TranslationsController.Language?> =
+                        ArrayList()
+                    // Pseudo container of "all" just to simplify spinner for GVE
+                    languages.add(TranslationsController.Language("all", "All Models"))
+                    for (model in models) {
+                        Log.i("test", "Translate Model State: $model")
+                        languages.add(model.language)
+                    }
+                    val languageData =
+                        ArrayAdapter<TranslationsController.Language?>(
+                            requireContext(), android.R.layout.simple_spinner_item, languages
+                        )
+                    languageSelect.adapter = languageData
+                    return null
+                }
+            })
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle(R.string.translate_manage)
+        builder.setView(
+            translateLayout(
+                languageSelect,
+                R.string.translate_manage_languages,
+                operationSelect,
+                R.string.translate_manage_operations,
+                R.string.translate_display_hint
+            )
+        )
+        builder.setPositiveButton(
+            R.string.translate_manage_action
+        ) { dialog, which ->
+            val selectedLanguage =
+                languageSelect.selectedItem as TranslationsController.Language
+            val operation = operationSelect.selectedItem as String
+            var operationLevel = TranslationsController.RuntimeTranslation.LANGUAGE
+            // Pseudo option for ease of GVE
+            if (selectedLanguage.code == "all") {
+                operationLevel = TranslationsController.RuntimeTranslation.ALL
+            }
+            val options = ModelManagementOptions.Builder()
+                .languageToManage(selectedLanguage.code)
+                .operation(operation)
+                .operationLevel(operationLevel)
+                .build()
+
+            // Complete Operation
+            val requestOperation =
+                TranslationsController.RuntimeTranslation.manageLanguageModel(options)
+            requestOperation.then<Any> { opt: Void? ->
+                // Log Changes
+                val reportChanges =
+                    TranslationsController.RuntimeTranslation.listModelDownloadStates()
+                reportChanges.then<Any> { models ->
+                    models?.let {
+                        for (model in models) {
+                            Log.i("test", "Translate Model State: $model")
+                        }
+                    }
+                    null
+                }
+                null
+            }
+        }
+        builder.setNegativeButton(
+            R.string.cancel
+        ) { dialog, which -> }
+        builder.show()
+    }
+
+    private fun translateLayout(
+        spinnerA: Spinner, labelA: Int, spinnerB: Spinner, labelB: Int, labelInfo: Int
+    ): RelativeLayout {
+        // From fields
+        val fromLangLabel = TextView(requireContext())
+        fromLangLabel.setText(labelA)
+        val from = LinearLayout(requireContext())
+        from.id = View.generateViewId()
+        from.addView(fromLangLabel)
+        from.addView(spinnerA)
+        val fromParams = RelativeLayout.LayoutParams(
+            RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT
+        )
+        fromParams.marginStart = 30
+
+        // To fields
+        val toLangLabel = TextView(context)
+        toLangLabel.setText(labelB)
+        val to = LinearLayout(context)
+        to.id = View.generateViewId()
+        to.addView(toLangLabel)
+        to.addView(spinnerB)
+        val toParams = RelativeLayout.LayoutParams(
+            RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT
+        )
+        toParams.marginStart = 30
+        toParams.addRule(RelativeLayout.BELOW, from.id)
+
+        // Layout
+        val layout = RelativeLayout(context)
+        layout.addView(from, fromParams)
+        layout.addView(to, toParams)
+
+        // Hint
+        val info = TextView(context)
+        if (labelInfo != -1) {
+            val infoParams = RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT
+            )
+            infoParams.marginStart = 30
+            infoParams.addRule(RelativeLayout.BELOW, to.id)
+            info.setText(labelInfo)
+            layout.addView(info, infoParams)
+        }
+        return layout
     }
 }
