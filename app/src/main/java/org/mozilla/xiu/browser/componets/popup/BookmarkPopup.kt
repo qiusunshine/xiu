@@ -9,7 +9,7 @@ import org.mozilla.xiu.browser.MainActivity
 import org.mozilla.xiu.browser.R
 import org.mozilla.xiu.browser.base.addOnBackPressed
 import org.mozilla.xiu.browser.broswer.bookmark.BookmarkFragment
-import org.mozilla.xiu.browser.broswer.history.HistoryFragment
+import org.mozilla.xiu.browser.broswer.bookmark.sync.SyncBookmarkFolderFragment
 import org.mozilla.xiu.browser.componets.CollectionAdapter
 import org.mozilla.xiu.browser.componets.HomeLivedata
 import org.mozilla.xiu.browser.databinding.PopupBookmarkBinding
@@ -27,7 +27,7 @@ class BookmarkPopup {
     ) {
         this.context = context
         val bookmarkFragment = BookmarkFragment(context)
-        fragments = listOf(bookmarkFragment, HistoryFragment())
+        fragments = listOf(bookmarkFragment, SyncBookmarkFolderFragment())
         bottomSheetDialog = BottomSheetDialog(context, R.style.BottomSheetDialog)
         val onBackPressedCallback = bottomSheetDialog.addOnBackPressed {
             binding.bookmarkViewPager.currentItem == 0 && bookmarkFragment.onBackPressed()
@@ -38,7 +38,7 @@ class BookmarkPopup {
         TabLayoutMediator(binding.tabLayout, binding.bookmarkViewPager) { tab, position ->
             when (position) {
                 0 -> tab.setIcon(R.drawable.bookmarks)
-                1 -> tab.setIcon(R.drawable.hourglass_split)
+                1 -> tab.setIcon(R.drawable.ic_cloud)
             }
         }.attach()
         observer = Observer {

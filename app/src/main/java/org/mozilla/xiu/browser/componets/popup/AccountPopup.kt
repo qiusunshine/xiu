@@ -30,34 +30,38 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import kotlinx.coroutines.launch
+import mozilla.components.service.fxa.manager.FxaAccountManager
+import mozilla.components.service.fxa.sync.SyncReason
+import org.greenrobot.eventbus.EventBus
 import org.mozilla.xiu.browser.R
 import org.mozilla.xiu.browser.componets.TabBottomSheetDialog.Companion.TAG
 import org.mozilla.xiu.browser.fxa.AccountManagerCollection
 import org.mozilla.xiu.browser.fxa.AccountProfile
 import org.mozilla.xiu.browser.fxa.AccountProfileViewModel
 import org.mozilla.xiu.browser.fxa.AccountStateViewModel
+import org.mozilla.xiu.browser.utils.ToastMgr
 import org.mozilla.xiu.browser.utils.Utils.requireColor
-import kotlinx.coroutines.launch
-import mozilla.components.service.fxa.manager.FxaAccountManager
-import mozilla.components.service.fxa.sync.SyncReason
+import org.mozilla.xiu.browser.webextension.BrowseEvent
 
 class AccountPopup : BottomSheetDialogFragment() {
-    private lateinit var fxaViewModel :AccountProfileViewModel
+    private lateinit var fxaViewModel: AccountProfileViewModel
     private lateinit var accountManagerCollection: AccountManagerCollection
     private lateinit var accountStateViewModel: AccountStateViewModel
     private lateinit var accountManager: FxaAccountManager
-
 
 
     @OptIn(ExperimentalGlideComposeApi::class)
@@ -68,48 +72,50 @@ class AccountPopup : BottomSheetDialogFragment() {
     ): View = ComposeView(requireContext()).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         fxaViewModel = ViewModelProvider(requireActivity())[AccountProfileViewModel::class.java]
-        accountManagerCollection = ViewModelProvider(requireActivity())[AccountManagerCollection::class.java]
-        accountStateViewModel = ViewModelProvider(requireActivity())[AccountStateViewModel::class.java]
+        accountManagerCollection =
+            ViewModelProvider(requireActivity())[AccountManagerCollection::class.java]
+        accountStateViewModel =
+            ViewModelProvider(requireActivity())[AccountStateViewModel::class.java]
         lifecycleScope.launch {
-            accountManagerCollection.data.collect(){
+            accountManagerCollection.data.collect() {
                 accountManager = it
 
-        }
+            }
         }
 
         setContent {
             MaterialTheme {
                 val profile by fxaViewModel.data.collectAsState()
                 val panelOption = remember {
-                    arrayListOf("立即同步","接受标签","退出账户")
+                    arrayListOf("立即同步", "接受标签", "退出账户")
                 }
                 ConstraintLayout(modifier = Modifier.fillMaxSize()) {
-                    val (avatar,panel,background,lottie) = createRefs()
+                    val (avatar, panel, background, lottie) = createRefs()
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    GlideImage(
-                        model = profile.avatar,
-                        contentDescription = "",
-                        modifier = Modifier
-                            .width(1024.dp)
-                            .height(1024.dp)
-                            .constrainAs(background) {
-                                width = Dimension.fillToConstraints
-                                height = Dimension.fillToConstraints
-                                top.linkTo(parent.top)
-                                start.linkTo(parent.start)
-                                end.linkTo(parent.end)
-                                bottom.linkTo(parent.bottom)
-                            }
-                            .blur(256.dp)
-                    )
+                        GlideImage(
+                            model = profile.avatar,
+                            contentDescription = "",
+                            modifier = Modifier
+                                .width(1024.dp)
+                                .height(1024.dp)
+                                .constrainAs(background) {
+                                    width = Dimension.fillToConstraints
+                                    height = Dimension.fillToConstraints
+                                    top.linkTo(parent.top)
+                                    start.linkTo(parent.start)
+                                    end.linkTo(parent.end)
+                                    bottom.linkTo(parent.bottom)
+                                }
+                                .blur(256.dp)
+                        )
                     }
 
-                    avatar(modifier = Modifier.constrainAs(avatar){
+                    avatar(modifier = Modifier.constrainAs(avatar) {
                         top.linkTo(parent.top)
                         start.linkTo(parent.start)
                         //bottom.linkTo(parent.bottom)
-                    } ,profile)
+                    }, profile)
                     operationPanel(modifier = Modifier
                         .height(256.dp)
                         .constrainAs(panel) {
@@ -118,23 +124,21 @@ class AccountPopup : BottomSheetDialogFragment() {
                             start.linkTo(parent.start, 16.dp)
                             end.linkTo(parent.end, 16.dp)
                             //bottom.linkTo(parent.bottom,16.dp)
-                        },panelOption)
-
+                        }, panelOption
+                    )
                 }
-
-
-
-
             }
         }
     }
+
     @OptIn(ExperimentalGlideComposeApi::class)
     @Composable
-    fun avatar(modifier: Modifier,profile: AccountProfile){
-
-
-        ConstraintLayout(modifier = modifier) {
-            val (avatar,name,email) = createRefs()
+    fun avatar(modifier: Modifier, profile: AccountProfile) {
+        ConstraintLayout(modifier = modifier.clickable {
+            EventBus.getDefault().post(BrowseEvent("https://accounts.firefox.com/"))
+            dismiss()
+        }) {
+            val (avatar, name, email) = createRefs()
             GlideImage(
                 model = profile.avatar,
                 contentDescription = "",
@@ -146,41 +150,36 @@ class AccountPopup : BottomSheetDialogFragment() {
                         start.linkTo(parent.start, 16.dp)
 
                     }
-            ){
+            ) {
                 it.circleCrop()
             }
 
 
-                Text(text =profile.displayName.toString(),
-                    modifier = Modifier.constrainAs(name){
-                        top.linkTo(avatar.top)
-                        start.linkTo(avatar.end, 16.dp)
-            }
-                    ,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = R.color.components.requireColor(requireContext())
-                )
-            Text(text =profile.email.toString(),
-                modifier = Modifier.constrainAs(email){
+            Text(text = profile.displayName.toString(),
+                modifier = Modifier.constrainAs(name) {
+                    top.linkTo(avatar.top)
                     start.linkTo(avatar.end, 16.dp)
-                    bottom.linkTo(avatar.bottom)
-                }
-                , fontSize = 14.sp,
+                },
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
                 color = R.color.components.requireColor(requireContext())
             )
-
-
-
-
+            Text(text = profile.email.toString(),
+                modifier = Modifier.constrainAs(email) {
+                    start.linkTo(avatar.end, 16.dp)
+                    bottom.linkTo(avatar.bottom)
+                }, fontSize = 14.sp,
+                color = R.color.components.requireColor(requireContext())
+            )
         }
-
     }
+
     @Composable
-    fun operationPanel(modifier: Modifier,panelOption:ArrayList<String>){
+    fun operationPanel(modifier: Modifier, panelOption: ArrayList<String>) {
+        val ctx = LocalContext.current
         ConstraintLayout(modifier = modifier) {
-            var (background,option) = createRefs()
-            Canvas( modifier = Modifier
+            var (background, option) = createRefs()
+            Canvas(modifier = Modifier
                 .alpha(0.5f)
                 .fillMaxSize()
                 .constrainAs(background)
@@ -192,75 +191,81 @@ class AccountPopup : BottomSheetDialogFragment() {
                 }, onDraw = {
                 val canvasWidth = size.width
                 val canvasHeight = size.height
-                drawRoundRect(Color(requireActivity().getColor(R.color.onSurface)), size = Size(width = canvasWidth, height = canvasHeight),cornerRadius = CornerRadius(64F,64F))
+                drawRoundRect(
+                    Color(requireActivity().getColor(R.color.onSurface)),
+                    size = Size(width = canvasWidth, height = canvasHeight),
+                    cornerRadius = CornerRadius(64F, 64F)
+                )
             })
 
             LazyColumn(content = {
-                items (panelOption.size)
+                items(panelOption.size)
                 {
-                  Column(modifier = Modifier
-                      .fillMaxSize()
-                      .clickable {
-                          when (it) {
-                              0 -> {
-                                  lifecycleScope.launch {
-                                      accountManager.syncNow(SyncReason.User)
-                                      accountManager
-                                          .authenticatedAccount()
-                                          ?.deviceConstellation()
-                                          ?.pollForCommands()
-
-                                  }
-
-                              }
-
-                              1 -> {
-                                  ReceivedTabPopup().show(parentFragmentManager,TAG)
-                                  dismiss()
-                              }
-                              2 -> {
-                                  lifecycleScope.launch {
-                                      accountManager.logout()
-                                  }
-                                  dismiss()
-                              }
-                          }
-                      }
-                      .height(64.dp),
-                      verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                      Text(text = panelOption[it],modifier = Modifier, color = R.color.components.requireColor(requireContext()))
-                     // Divider()
-                  }
+                    Column(modifier = Modifier
+                        .fillMaxSize()
+                        .clickable {
+                            when (it) {
+                                0 -> {
+                                    lifecycleScope.launch {
+                                        accountManager.syncNow(SyncReason.User)
+                                        val success = accountManager
+                                            .authenticatedAccount()
+                                            ?.deviceConstellation()
+                                            ?.pollForCommands()
+                                        ToastMgr.shortBottomCenter(
+                                            ctx,
+                                            ContextCompat.getString(
+                                                requireContext(),
+                                                if (success == true) R.string.sync_success else R.string.sync_failed
+                                            )
+                                        )
+                                    }
+                                }
+                                1 -> {
+                                    ReceivedTabPopup().show(parentFragmentManager, TAG)
+                                    dismiss()
+                                }
+                                2 -> {
+                                    lifecycleScope.launch {
+                                        accountManager.logout()
+                                    }
+                                    dismiss()
+                                }
+                            }
+                        }
+                        .height(64.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = panelOption[it],
+                            modifier = Modifier,
+                            color = R.color.components.requireColor(requireContext())
+                        )
+                        // Divider()
+                    }
                 }
-
             },
                 modifier = Modifier
                     .constrainAs(option)
-            {
-                width = Dimension.fillToConstraints
-                top.linkTo(background.top)
-                bottom.linkTo(background.bottom)
-                start.linkTo(background.start)
-                end.linkTo(background.end)
-            }
+                    {
+                        width = Dimension.fillToConstraints
+                        top.linkTo(background.top)
+                        bottom.linkTo(background.bottom)
+                        start.linkTo(background.start)
+                        end.linkTo(background.end)
+                    }
             )
-
-
-
-
-
-
         }
     }
+
     @Composable
-    fun operationItem(modifier: Modifier,text:String){
-        Button(onClick = { /*TODO*/ }, modifier = modifier
-            .padding(16.dp)
-            .height(72.dp), shape = ButtonDefaults.textShape) {
+    fun operationItem(modifier: Modifier, text: String) {
+        Button(
+            onClick = { /*TODO*/ }, modifier = modifier
+                .padding(16.dp)
+                .height(72.dp), shape = ButtonDefaults.textShape
+        ) {
             Text(text = text)
         }
-
     }
-
-
 }

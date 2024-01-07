@@ -2,6 +2,8 @@ package org.mozilla.xiu.browser
 
 import android.app.Activity
 import android.app.Application
+import android.content.Context
+import android.content.MutableContextWrapper
 import android.os.Bundle
 import java.util.*
 
@@ -28,6 +30,12 @@ class ActivityManager private constructor() : Application.ActivityLifecycleCallb
      */
     fun addActivity(activity: Activity) {
         activityStack.add(activity)
+        try {
+            mutableContext?.baseContext = currentActivity
+        } catch (e: Exception) {
+            e.printStackTrace()
+            mutableContext?.baseContext = null
+        }
     }
 
     /**
@@ -37,6 +45,12 @@ class ActivityManager private constructor() : Application.ActivityLifecycleCallb
     fun removeActivity(activity: Activity?) {
         if (activity != null) {
             activityStack.remove(activity)
+            try {
+                mutableContext?.baseContext = currentActivity
+            } catch (e: Exception) {
+                e.printStackTrace()
+                mutableContext?.baseContext = null
+            }
         }
     }
     /**
@@ -91,6 +105,14 @@ class ActivityManager private constructor() : Application.ActivityLifecycleCallb
     companion object {
         private var activityManager: ActivityManager? = null
 
+        private var mutableContext: MutableContextWrapper? = null
+
+        fun getContext(): Context {
+            if(mutableContext == null) {
+                mutableContext = MutableContextWrapper(instance.currentActivity)
+            }
+            return mutableContext!!
+        }
         /**
          * 单例
          * @return activityManager instance

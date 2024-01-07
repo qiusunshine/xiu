@@ -146,13 +146,19 @@ class WebextensionSession {
                                 val contentScripts: JSONArray? =
                                     json.getJSONArray("content_scripts")
                                 if (contentScripts != null) {
+//                                    val jsContent =
+//                                        FilesInAppUtil.getAssetsString(context, "bookmark-hook.js")
+//                                    FileUtil.stringToFile(
+//                                        jsContent,
+//                                        fileDirPath + File.separator + "bookmarkhook.js"
+//                                    )
                                     for (index in 0 until contentScripts.size) {
                                         val script = contentScripts.getJSONObject(index)
+//                                        script?.getJSONArray("js")?.add(0, "bookmarkhook.js")
                                         if (script?.containsKey("matches") == true) {
                                             if (!permissions.contains("<all_urls>")) {
                                                 permissions.add("<all_urls>")
                                             }
-                                            break
                                         }
                                     }
                                 }
@@ -237,13 +243,11 @@ class WebextensionSession {
                 File(fileDirPath).mkdirs()
                 ZipUtils.unzipFile(uri.replace("file://", ""), fileDirPath)
                 val m = File(fileDirPath + File.separator + "manifest.json")
-                var converted = false
                 if (m.exists()) {
                     val json: JSONObject =
                         JSON.parseObject(FileUtil.fileToString(m.absolutePath))
                     if (!json.containsKey("permissions")) {
                         json["permissions"] = JSONArray()
-                        converted = true
                     }
                     val permissions: JSONArray = json.getJSONArray("permissions")
                     //解决青柠起始页等扩展无权限的问题
@@ -251,21 +255,22 @@ class WebextensionSession {
                         val contentScripts: JSONArray? =
                             json.getJSONArray("content_scripts")
                         if (contentScripts != null) {
+//                            val jsContent =
+//                                FilesInAppUtil.getAssetsString(context, "bookmark-hook.js")
+//                            FileUtil.stringToFile(
+//                                jsContent,
+//                                fileDirPath + File.separator + "bookmarkhook.js"
+//                            )
                             for (index in 0 until contentScripts.size) {
                                 val script = contentScripts.getJSONObject(index)
+//                                script?.getJSONArray("js")?.add(0, "bookmarkhook.js")
                                 if (script?.containsKey("matches") == true) {
                                     if (!permissions.contains("<all_urls>")) {
                                         permissions.add("<all_urls>")
-                                        converted = true
                                     }
-                                    break
                                 }
                             }
                         }
-                    }
-                    if (!converted) {
-                        runOnUI { install0(uri) }
-                        return@Runnable
                     }
                     FileUtil.stringToFile(
                         JSON.toJSONString(json, SerializerFeature.PrettyFormat),
@@ -309,14 +314,24 @@ class WebextensionSession {
                 Toast.makeText(context, it.metaData.name + "安装成功", Toast.LENGTH_LONG).show()
                 EventBus.getDefault().post(WebExtensionsRefreshEvent())
                 WebExtensionRuntimeManager.refresh()
-                if(it.metaData.name?.contains("Bitwarden") == true) {
+                if (it.metaData.name?.contains("Bitwarden") == true) {
                     MaterialAlertDialogBuilder(context)
                         .setTitle(ContextCompat.getString(context, R.string.notify))
                         .setMessage(ContextCompat.getString(context, R.string.bitwarden_ext_msg))
-                        .setPositiveButton(ContextCompat.getString(context, R.string.confirm)) { d, _ ->
+                        .setPositiveButton(
+                            ContextCompat.getString(
+                                context,
+                                R.string.confirm
+                            )
+                        ) { d, _ ->
                             EventBus.getDefault().post(BrowseEvent("about:config"))
                             d.dismiss()
-                        }.setNegativeButton(ContextCompat.getString(context, R.string.cancel)) { d, _ ->
+                        }.setNegativeButton(
+                            ContextCompat.getString(
+                                context,
+                                R.string.cancel
+                            )
+                        ) { d, _ ->
                             d.dismiss()
                         }.show()
                 }
@@ -341,11 +356,19 @@ class WebextensionSession {
                         }.show()
                     return@accept
                 } else if (exception.code == InstallException.ErrorCodes.ERROR_CORRUPT_FILE) {
+                    val isXpiFile = uri.startsWith("file://") && uri.endsWith(".xpi")
                     MaterialAlertDialogBuilder(context)
                         .setTitle("安装失败")
-                        .setMessage("文件无法识别，请确认是xpi或crx扩展程序安装包文件")
+                        .setMessage(
+                            "文件无法识别，请确认是xpi或crx扩展程序安装包文件" +
+                                    if (isXpiFile) "，可以试试点击下方确定按钮打开about:config页面，" +
+                                            "请搜索sign滑动到最后将xpinstall.signatures.required切换为false，然后再重新安装" else ""
+                        )
                         .setPositiveButton("确定") { d, _ ->
                             d.dismiss()
+                            if (isXpiFile) {
+                                EventBus.getDefault().post(BrowseEvent("about:config"))
+                            }
                         }.setNegativeButton("取消") { d, _ ->
                             d.dismiss()
                         }.show()
@@ -481,9 +504,63 @@ fun WebExtension.addDelegate(context: Activity) {
                     EventBus.getDefault().post(FaviconEvent(json))
                 } else if ("input" == json.optString("type")) {
                     EventBus.getDefault().post(InputHeightListenEvent(json.optBoolean("isUp")))
+                } else if ("bookmark-hook" == json.optString("type")) {
+                    val result = GeckoResult<Any>()
+                    val method = json.optString("method")
+                    val event = json.optString("event")
+                    evalBookmarkHook(method, event, result)
+                    return result
                 }
             }
             return super.onMessage(nativeApp, message, sender)
+        }
+
+        private fun evalBookmarkHook(method: String, event: String, result: GeckoResult<Any>) {
+            when (method) {
+                "create" -> {
+
+                }
+
+                "get" -> {
+
+                }
+
+                "getChildren" -> {
+
+                }
+
+                "getRecent" -> {
+
+                }
+
+                "getSubTree" -> {
+
+                }
+
+                "getTree" -> {
+
+                }
+
+                "move" -> {
+
+                }
+
+                "remove" -> {
+
+                }
+
+                "removeTree" -> {
+
+                }
+
+                "search" -> {
+
+                }
+
+                "update" -> {
+
+                }
+            }
         }
     }, "browser")
     val sessionDelegates = DelegateListLiveData.getInstance().value ?: arrayListOf()

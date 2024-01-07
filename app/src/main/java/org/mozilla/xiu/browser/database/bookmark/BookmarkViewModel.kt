@@ -3,6 +3,7 @@ package org.mozilla.xiu.browser.database.bookmark
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import org.mozilla.xiu.browser.fxa.Fxa
 
 class BookmarkViewModel(application: Application) : AndroidViewModel(application) {
     var bookmarkRepository: BookmarkRepository
@@ -57,9 +58,11 @@ class BookmarkViewModel(application: Application) : AndroidViewModel(application
 
     fun deleteBookmarks(vararg bookmarks: Bookmark) {
         bookmarkRepository.deleteBookmark(*bookmarks)
+        Fxa.bookmarkSync?.delete(listOf(*bookmarks))
     }
 
     fun deleteAllBookmarks() {
         bookmarkRepository.deleteAllbookmarks()
+        Fxa.bookmarkSync?.deleteAll()
     }
 }

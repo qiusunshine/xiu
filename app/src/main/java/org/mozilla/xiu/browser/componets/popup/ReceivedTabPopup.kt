@@ -35,30 +35,31 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import org.mozilla.xiu.browser.R
-import org.mozilla.xiu.browser.fxa.AccountManagerCollection
-import org.mozilla.xiu.browser.fxa.TabReceivedViewModel
-import org.mozilla.xiu.browser.session.createSession
 import kotlinx.coroutines.launch
 import mozilla.components.feature.accounts.push.SendTabFeature
 import mozilla.components.service.fxa.manager.FxaAccountManager
 import mozilla.components.service.fxa.sync.SyncReason
+import org.mozilla.xiu.browser.R
+import org.mozilla.xiu.browser.fxa.AccountManagerCollection
+import org.mozilla.xiu.browser.fxa.TabReceivedViewModel
+import org.mozilla.xiu.browser.session.createSession
 
 class ReceivedTabPopup : BottomSheetDialogFragment() {
-    private lateinit var accountManagerCollection : AccountManagerCollection
+    private lateinit var accountManagerCollection: AccountManagerCollection
     private lateinit var fxaAccountManager: FxaAccountManager
     private lateinit var receivedTabPopupObervers: ReceivedTabPopupObervers
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(BottomSheetDialogFragment.STYLE_NORMAL, R.style.BottomSheetDialog)
-        accountManagerCollection = ViewModelProvider(requireActivity())[AccountManagerCollection::class.java]
-        receivedTabPopupObervers = ViewModelProvider(requireActivity())[ReceivedTabPopupObervers::class.java]
+        accountManagerCollection =
+            ViewModelProvider(requireActivity())[AccountManagerCollection::class.java]
+        receivedTabPopupObervers =
+            ViewModelProvider(requireActivity())[ReceivedTabPopupObervers::class.java]
         receivedTabPopupObervers.changeState(true)
         lifecycleScope.launch {
-            accountManagerCollection.data.collect(){
+            accountManagerCollection.data.collect() {
                 fxaAccountManager = it
-
             }
         }
     }
@@ -70,31 +71,24 @@ class ReceivedTabPopup : BottomSheetDialogFragment() {
         savedInstanceState: Bundle?
     ): View = ComposeView(requireContext()).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-
-
-
         lifecycleScope.launch {
             fxaAccountManager.syncNow(SyncReason.User)
             fxaAccountManager
                 .authenticatedAccount()
                 ?.deviceConstellation()
                 ?.pollForCommands()
-
         }
-
-
-
         setContent {
             MaterialTheme() {
-                val tabReceivedViewModel:TabReceivedViewModel = viewModel()
+                val tabReceivedViewModel: TabReceivedViewModel = viewModel()
                 SendTabFeature(fxaAccountManager) { device, tabs ->
                     // handle tab data here.
-                    tabReceivedViewModel.changeTabs(device!!,tabs)
+                    tabReceivedViewModel.changeTabs(device!!, tabs)
                 }
                 val tabs = tabReceivedViewModel.tabs.collectAsState()
                 val device = tabReceivedViewModel.device.collectAsState()
-                ConstraintLayout{
-                    val (lottie,panel) = createRefs()
+                ConstraintLayout {
+                    val (lottie, panel) = createRefs()
                     Loader(modifier = Modifier
                         .height(128.dp)
                         .width(128.dp)
@@ -106,72 +100,68 @@ class ReceivedTabPopup : BottomSheetDialogFragment() {
                     )
 
                     LazyColumn(
-                        modifier = Modifier.constrainAs(panel){
+                        modifier = Modifier.constrainAs(panel) {
                             width = Dimension.fillToConstraints
-                            bottom.linkTo(lottie.top,16.dp)
-                            start.linkTo(parent.start,16.dp)
-                            end.linkTo(parent.end,16.dp)
-
+                            bottom.linkTo(lottie.top, 16.dp)
+                            start.linkTo(parent.start, 16.dp)
+                            end.linkTo(parent.end, 16.dp)
                         },
                         content = {
-                        items(tabs.value.size){
-                            Card(modifier = Modifier.clickable {
-                                createSession(tabs.value[it].url,requireActivity())
-                                dismiss()
-
-                            }) {
-                                ConstraintLayout(modifier = Modifier.fillMaxSize()) {
-                                    val (icon,myDevice,title,url) = createRefs()
-                                    Image(
-                                        modifier = Modifier.height(24.dp).width(24.dp).constrainAs(icon){
-                                            top.linkTo(parent.top,8.dp)
-                                            start.linkTo(parent.start,8.dp)
-                                        },
-                                        painter = painterResource(id = R.drawable.pc_display),
-                                        contentDescription = "")
-                                    Text(text = device.value.displayName,modifier = Modifier
-                                        .basicMarquee()
-                                        .constrainAs(myDevice) {
-                                            width = Dimension.fillToConstraints
-                                            height = Dimension.fillToConstraints
-                                            top.linkTo(icon.top)
-                                            bottom.linkTo(icon.bottom)
-                                            start.linkTo(icon.end,8.dp)
-                                            end.linkTo(parent.end,8.dp)
-
-                                        })
-                                    Text(text = tabs.value[it].title,
-                                        modifier = Modifier
+                            items(tabs.value.size) {
+                                Card(modifier = Modifier.clickable {
+                                    createSession(tabs.value[it].url, requireActivity())
+                                    dismiss()
+                                }) {
+                                    ConstraintLayout(modifier = Modifier.fillMaxSize()) {
+                                        val (icon, myDevice, title, url) = createRefs()
+                                        Image(
+                                            modifier = Modifier
+                                                .height(24.dp)
+                                                .width(24.dp)
+                                                .constrainAs(icon) {
+                                                    top.linkTo(parent.top, 8.dp)
+                                                    start.linkTo(parent.start, 8.dp)
+                                                },
+                                            painter = painterResource(id = R.drawable.pc_display),
+                                            contentDescription = ""
+                                        )
+                                        Text(text = device.value.displayName, modifier = Modifier
                                             .basicMarquee()
-                                            .constrainAs(title) {
+                                            .constrainAs(myDevice) {
                                                 width = Dimension.fillToConstraints
-                                                height = Dimension.wrapContent
-                                                top.linkTo(myDevice.bottom,8.dp)
-                                                start.linkTo(parent.start,8.dp)
-                                                end.linkTo(parent.end,8.dp)
-
-
-                                            }
-                                        ,
-                                        maxLines = 1)
-                                    Text(text = tabs.value[it].url,
-                                        modifier = Modifier
-                                            .basicMarquee()
-                                            .constrainAs(url) {
-                                                width = Dimension.fillToConstraints
-                                                height = Dimension.wrapContent
-                                                top.linkTo(title.bottom,8.dp)
-                                                start.linkTo(parent.start,8.dp)
-                                                end.linkTo(parent.end,8.dp)
-                                                bottom.linkTo(parent.bottom,8.dp)
-                                            }
-                                        ,
-                                        maxLines = 1)
+                                                height = Dimension.fillToConstraints
+                                                top.linkTo(icon.top)
+                                                bottom.linkTo(icon.bottom)
+                                                start.linkTo(icon.end, 8.dp)
+                                                end.linkTo(parent.end, 8.dp)
+                                            })
+                                        Text(text = tabs.value[it].title,
+                                            modifier = Modifier
+                                                .basicMarquee()
+                                                .constrainAs(title) {
+                                                    width = Dimension.fillToConstraints
+                                                    height = Dimension.wrapContent
+                                                    top.linkTo(myDevice.bottom, 8.dp)
+                                                    start.linkTo(parent.start, 8.dp)
+                                                    end.linkTo(parent.end, 8.dp)
+                                                },
+                                            maxLines = 1)
+                                        Text(text = tabs.value[it].url,
+                                            modifier = Modifier
+                                                .basicMarquee()
+                                                .constrainAs(url) {
+                                                    width = Dimension.fillToConstraints
+                                                    height = Dimension.wrapContent
+                                                    top.linkTo(title.bottom, 8.dp)
+                                                    start.linkTo(parent.start, 8.dp)
+                                                    end.linkTo(parent.end, 8.dp)
+                                                    bottom.linkTo(parent.bottom, 8.dp)
+                                                },
+                                            maxLines = 1)
+                                    }
                                 }
-
                             }
-                        }
-                    })
+                        })
 
 
                 }
@@ -180,14 +170,19 @@ class ReceivedTabPopup : BottomSheetDialogFragment() {
         }
 
     }
+
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
         receivedTabPopupObervers.changeState(false)
     }
+
     @Composable
     fun Loader(modifier: Modifier) {
         val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.receive_wait_2))
-        val progress by animateLottieCompositionAsState(composition, iterations = LottieConstants.IterateForever)
+        val progress by animateLottieCompositionAsState(
+            composition,
+            iterations = LottieConstants.IterateForever
+        )
         LottieAnimation(
             composition = composition,
             progress = { progress },

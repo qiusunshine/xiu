@@ -61,6 +61,7 @@ import org.mozilla.xiu.browser.download.downloadBlob
 import org.mozilla.xiu.browser.download.getUri
 import org.mozilla.xiu.browser.download.openUriBeforePop
 import org.mozilla.xiu.browser.download.startDownload
+import org.mozilla.xiu.browser.fxa.Fxa.Companion.historySync
 import org.mozilla.xiu.browser.tab.RemoveTabLiveData
 import org.mozilla.xiu.browser.utils.FilesInAppUtil
 import org.mozilla.xiu.browser.utils.PreferenceMgr
@@ -149,7 +150,6 @@ class SessionDelegate() : BaseObservable() {
     private var sessionState: GeckoSession.SessionState? = null
     private lateinit var fullscreenCall: (full: Boolean) -> Unit
     private lateinit var onCrashCall: () -> Unit
-    //private lateinit var historySync: HistorySync
 
     var statusBarColor: Int = 0xffffff
     var navigationBarColor: Int = 0xffffff
@@ -193,7 +193,6 @@ class SessionDelegate() : BaseObservable() {
         historyViewModel = ViewModelProvider(mContext).get(HistoryViewModel::class.java)
         bitmap = mContext.getDrawable(R.drawable.logo72)?.toBitmap()!!
         intentPopup = IntentPopup(mContext)
-        //historySync = HistorySync(mContext)
         session.contentDelegate = object : GeckoSession.ContentDelegate {
             override fun onContextMenu(
                 session: GeckoSession,
@@ -278,7 +277,7 @@ class SessionDelegate() : BaseObservable() {
                 } catch (e: IOException) {
                     e.printStackTrace()
                 }
-                if (uri.endsWith("xpi")) {
+                if (uri.endsWith("xpi") && (!uri.contains("xiaoshu-") && !uri.contains("floccus"))) {
                     WebextensionSession(mContext).install(uri)
                     if (u == "about:blank" && mTitle == "" && !canBack && !canForward) {
                         RemoveTabLiveData.getInstance().Value(this@SessionDelegate)
@@ -375,6 +374,7 @@ class SessionDelegate() : BaseObservable() {
                 }
                 addHistory()
                 notifyPropertyChanged(BR.mTitle)
+                historySync?.sync(mTitle, u)
             }
 
             override fun onFullScreen(session: GeckoSession, fullScreen: Boolean) {
@@ -450,17 +450,17 @@ class SessionDelegate() : BaseObservable() {
             }
 
             override fun onPageStart(session: GeckoSession, url: String) {
-//                if (url.startsWith("$CONFIG_URL/oauth/success/3c49430b43dfba77")) {
-//                    val uri = Uri.parse(url)
-//                    val code = uri.getQueryParameter("code")
-//                    val state = uri.getQueryParameter("state")
-//                    val action = uri.getQueryParameter("action")
-//                    if (code != null && state != null && action != null) {
-//                        //listener?.onLoginComplete(code, state, mContext)
-//                        //Toast.makeText(mContext,code+"**"+state,Toast.LENGTH_SHORT).show()
-//                        login.onLogin(code, state, action)
-//                    }
-//                }
+                if (url.startsWith("$CONFIG_URL/oauth/success/3c49430b43dfba77")) {
+                    val uri = Uri.parse(url)
+                    val code = uri.getQueryParameter("code")
+                    val state = uri.getQueryParameter("state")
+                    val action = uri.getQueryParameter("action")
+                    if (code != null && state != null && action != null) {
+                        //listener?.onLoginComplete(code, state, mContext)
+                        //Toast.makeText(mContext,code+"**"+state,Toast.LENGTH_SHORT).show()
+                        login.onLogin(code, state, action)
+                    }
+                }
                 mTranslateRestore = false
                 mExpectedTranslate = false
                 notifyPropertyChanged(BR.y)

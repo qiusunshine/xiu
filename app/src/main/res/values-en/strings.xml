@@ -257,5 +257,8 @@
     <string name="translate_manage_operations">Operations</string>
     <string name="translate_display_hint">See Logcat for State</string>
     <string name="translate_manage_action">Update</string>
+    <string name="login_msg">Please log in to your account first</string>
+    <string name="sync_success">Sync success</string>
+    <string name="sync_failed">Sync failed</string>
 
 </resources>

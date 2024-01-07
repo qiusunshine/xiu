@@ -4,11 +4,14 @@ import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import org.mozilla.xiu.browser.MainActivity
 
-class CollectionAdapter(activity: MainActivity, private val fragmentlist:List<Fragment>) : FragmentStateAdapter(activity) {//fragment 也可以换为 activity
-private val fid2 = 222L
+class CollectionAdapter(activity: MainActivity, private val fragmentlist: List<Fragment>) :
+    FragmentStateAdapter(activity) {
+    //fragment 也可以换为 activity
+    private val fid2 = 222L
     private val fid3 = 333L
-    private val ids = arrayListOf(fid2,fid3)
-    private val creatID= hashSetOf<Long>()
+    private val fid4 = 444L
+    private val ids = arrayListOf(fid2, fid3)
+    private val creatID = hashSetOf<Long>()
     override fun getItemCount(): Int {
         return fragmentlist.size
     }

@@ -13,6 +13,7 @@ import org.mozilla.xiu.browser.database.bookmark.BookmarkViewModel
 import org.mozilla.xiu.browser.database.shortcut.Shortcut
 import org.mozilla.xiu.browser.database.shortcut.ShortcutViewModel
 import org.mozilla.xiu.browser.databinding.DiaBookmarkBinding
+import org.mozilla.xiu.browser.fxa.Fxa
 import org.mozilla.xiu.browser.utils.CollectionUtil
 import org.mozilla.xiu.browser.utils.StringUtil
 import org.mozilla.xiu.browser.utils.ThreadTool
@@ -132,6 +133,7 @@ class BookmarkDialog(
                             context1,
                             context1.getString(R.string.update_success)
                         )
+                        Fxa.bookmarkSync?.sync(oldBookmark, group1)
                     } else {
                         ToastMgr.shortBottomCenter(
                             context1,
@@ -177,6 +179,7 @@ class BookmarkDialog(
                             context1,
                             context1.getString(R.string.dia_add_bookmark_success)
                         )
+                        Fxa.bookmarkSync?.sync(bookmark, group1)
                     } else {
                         ToastMgr.shortBottomCenter(
                             context1,
@@ -185,7 +188,6 @@ class BookmarkDialog(
                     }
                 }
             }
-            //BookmarkSync(context1).sync(diaBookmarkBinding.diaBookmarkUrl.getText().toString(),diaBookmarkBinding.diaBookmarkTitle.getText().toString())
         }
         setButton(
             DialogInterface.BUTTON_NEGATIVE, context.getString(R.string.cancel)

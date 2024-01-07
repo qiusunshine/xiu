@@ -9,11 +9,17 @@ plugins {
     id 'kotlin-android'
     id 'kotlin-kapt'
     id 'dagger.hilt.android.plugin'
+    id "com.jetbrains.python.envs" version "0.0.31"
 }
 // Optionally, set any parameters to send to the plugin.
 
-def versionCodeNew = 105
-def versionNameNew = "2.6"
+// -------------------------------------------------------------------------------------------------
+// Generate Kotlin code for the Focus Glean metrics.
+// -------------------------------------------------------------------------------------------------
+apply plugin: "org.mozilla.telemetry.glean-gradle-plugin"
+
+def versionCodeNew = 121
+def versionNameNew = "2.7"
 def appName = "Xiu"
 
 kapt {
@@ -66,6 +72,14 @@ android {
         kotlinCompilerExtensionVersion '1.4.0'
     }
 
+    packagingOptions {
+        resources {
+            pickFirsts += ['META-INF/atomicfu.kotlin_module', 'META-INF/proguard/coroutines.pro']
+        }
+        jniLibs {
+            useLegacyPackaging true
+        }
+    }
 
     splits {
         abi {
@@ -73,6 +87,17 @@ android {
             reset()
             include 'arm64-v8a', 'armeabi-v7a'
         }
+    }
+    androidResources {
+        // All JavaScript code used internally by GeckoView is packaged in a
+        // file called omni.ja. If this file is compressed in the APK,
+        // GeckoView must uncompress it before it can do anything else which
+        // causes a significant delay on startup.
+        noCompress 'ja'
+
+        // manifest.template.json is converted to manifest.json at build time.
+        // No need to package the template in the APK.
+        ignoreAssetsPattern "manifest.template.json"
     }
     buildToolsVersion '30.0.3'
 
@@ -96,10 +121,29 @@ android {
 // Optionally, set any parameters to send to the plugin.
 
 
-
+configurations {
+    // There's an interaction between Gradle's resolution of dependencies with different types
+    // (@jar, @aar) for `implementation` and `testImplementation` and with Android Studio's built-in
+    // JUnit test runner.  The runtime classpath in the built-in JUnit test runner gets the
+    // dependency from the `implementation`, which is type @aar, and therefore the JNA dependency
+    // doesn't provide the JNI dispatch libraries in the correct Java resource directories.  I think
+    // what's happening is that @aar type in `implementation` resolves to the @jar type in
+    // `testImplementation`, and that it wins the dependency resolution battle.
+    //
+    // A workaround is to add a new configuration which depends on the @jar type and to reference
+    // the underlying JAR file directly in `testImplementation`.  This JAR file doesn't resolve to
+    // the @aar type in `implementation`.  This works when invoked via `gradle`, but also sets the
+    // correct runtime classpath when invoked with Android Studio's built-in JUnit test runner.
+    // Success!
+    jnaForTest
+}
 
 
 dependencies {
+    jnaForTest "net.java.dev.jna:jna:5.6.0@jar"
+    testImplementation files(configurations.jnaForTest.copyRecursive().files)
+    testImplementation "org.mozilla.telemetry:glean-forUnitTests:39.1.0"
+
     implementation 'androidx.preference:preference-ktx:1.2.1'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 
@@ -142,9 +186,9 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2'
 
 
-    def gecko_version = "121.0.20231214155439"
-    def mozilla_version = "120.0b8"
-    implementation ("org.mozilla.geckoview:geckoview:$gecko_version")
+    def gecko_version = "121.0"
+    def mozilla_version = "121.0"
+    implementation ("org.mozilla.components:browser-engine-gecko:$mozilla_version")
     implementation ("org.mozilla.components:browser-storage-sync:$mozilla_version")
     implementation ("org.mozilla.components:service-firefox-accounts:$mozilla_version")
     implementation ("org.mozilla.components:service-sync-logins:$mozilla_version")
@@ -155,7 +199,16 @@ dependencies {
     implementation ("org.mozilla.components:concept-toolbar:$mozilla_version")
     implementation ("org.mozilla.components:concept-storage:$mozilla_version")
     implementation ("org.mozilla.components:feature-accounts-push:$mozilla_version")
-
+    implementation ("org.mozilla.components:lib-crash:$mozilla_version")
+    implementation ("org.mozilla.components:lib-crash-sentry:$mozilla_version")
+    implementation ("org.mozilla.components:service-contile:$mozilla_version")
+    implementation ("org.mozilla.components:service-digitalassetlinks:$mozilla_version")
+    implementation ("org.mozilla.components:service-sync-autofill:$mozilla_version")
+    implementation ("org.mozilla.components:service-location:$mozilla_version")
+    implementation ("org.mozilla.components:service-nimbus:$mozilla_version")
+    implementation ("org.mozilla.components:service-pocket:$mozilla_version")
+    implementation ("org.mozilla.components:service-glean:$mozilla_version")
+    implementation ("org.mozilla.appservices:places:115.0")
 
 
     implementation "com.airbnb.android:lottie-compose:$lottieVersion"

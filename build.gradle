@@ -7,6 +7,7 @@ buildscript {
 
     dependencies {
         classpath "com.google.dagger:hilt-android-gradle-plugin:$hilt_version"
+        classpath "org.mozilla.telemetry:glean-gradle-plugin:56.0.0"
     }
 }
 
@@ -22,22 +23,21 @@ plugins {
 subprojects{
     project.configurations.all {
         // Dependencies can't depend on a different major version of Glean than A-C itself.
-        resolutionStrategy.eachDependency { details ->
-            if (details.requested.group == 'org.mozilla.telemetry'
-                    && details.requested.name.contains('glean') ) {
-                    // Enforce that all (transitive) dependencies are using the defined Glean version
-                    details.useVersion '52.7.0'
+//        resolutionStrategy.eachDependency { details ->
+//            if (details.requested.group == 'org.mozilla.telemetry'
+//                    && details.requested.name.contains('glean') ) {
+//                    // Enforce that all (transitive) dependencies are using the defined Glean version
+//                    details.useVersion '56.0.0'
+//            }
+//        }
 
-            }
-        }
-
-        resolutionStrategy.capabilitiesResolution.withCapability("org.mozilla.telemetry:glean-native") {
-            def toBeSelected = candidates.find { it.id instanceof ModuleComponentIdentifier && it.id.module.contains('geckoview') }
-            if (toBeSelected != null) {
-                select(toBeSelected)
-            }
-            because 'use GeckoView Glean instead of standalone Glean'
-        }
+//        resolutionStrategy.capabilitiesResolution.withCapability("org.mozilla.telemetry:glean-native") {
+//            def toBeSelected = candidates.find { it.id instanceof ModuleComponentIdentifier && it.id.module.contains('geckoview') }
+//            if (toBeSelected != null) {
+//                select(toBeSelected)
+//            }
+//            because 'use GeckoView Glean instead of standalone Glean'
+//        }
     }
 }
 

@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "内置服务",
-  "version": "5.8",
+  "version": "5.9",
   "description": "内置请求监听，实现下载增强、开发调试、嗅探等功能",
   "icons": {
     "32": "images/icon.png",

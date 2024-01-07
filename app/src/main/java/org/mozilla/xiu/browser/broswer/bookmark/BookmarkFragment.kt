@@ -33,6 +33,7 @@ import org.mozilla.xiu.browser.database.bookmark.BookmarkViewModel
 import org.mozilla.xiu.browser.database.shortcut.Shortcut
 import org.mozilla.xiu.browser.database.shortcut.ShortcutViewModel
 import org.mozilla.xiu.browser.databinding.FragmentBookmarkBinding
+import org.mozilla.xiu.browser.fxa.Fxa
 import org.mozilla.xiu.browser.session.createSession
 import org.mozilla.xiu.browser.utils.CollectionUtil
 import org.mozilla.xiu.browser.utils.HeavyTaskUtil
@@ -149,7 +150,13 @@ class BookmarkFragment(
                                 oldBookmark = bean
                             ).show()
                         } else {
-                            BookmarkDialog(requireActivity(), bean.title, bean.url, bean.icon, bean).open()
+                            BookmarkDialog(
+                                requireActivity(),
+                                bean.title,
+                                bean.url,
+                                bean.icon,
+                                bean
+                            ).open()
                         }
                     }
 
@@ -231,9 +238,9 @@ class BookmarkFragment(
                         object : UriUtilsPro.LoadListener {
                             override fun success(s: String) {
                                 lifecycleScope.launch(Dispatchers.IO) {
-                                    val bookmarks = ChromeParser.parse(s)
+                                    val bookmarks1 = ChromeParser.parse(s)
                                     File(s).delete()
-                                    if (CollectionUtil.isEmpty(bookmarks)) {
+                                    if (CollectionUtil.isEmpty(bookmarks1)) {
                                         ToastMgr.shortBottomCenter(
                                             context,
                                             requireContext().getString(R.string.import_error)
@@ -242,7 +249,7 @@ class BookmarkFragment(
                                         val count: Int = addByList(
                                             requireContext(),
                                             bookmarkViewModel,
-                                            bookmarks
+                                            bookmarks1
                                         )
                                         ToastMgr.shortBottomCenter(
                                             context,
@@ -251,6 +258,8 @@ class BookmarkFragment(
                                                 count.toString()
                                             )
                                         )
+                                        //同步到FXA
+                                        Fxa.bookmarkSync?.syncList(bookmarks1)
                                     }
                                 }
                             }

@@ -4,7 +4,7 @@ import org.mozilla.xiu.browser.R
 
 data class AccountProfile(
     val uid: String? = "00000",
-    val email: String? = "null@Stage.com",
+    val email: String? = "null@xiu.com",
     val avatar: Any? = R.drawable.person_circle,
-    val displayName: String? = "Stage@null",
+    val displayName: String? = "Xiu@null",
 )

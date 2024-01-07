@@ -126,7 +126,7 @@ chrome.tabs.onRemoved.addListener(function (tabId) {
         delete headerMap[tabId];
     }
 });
-browser.runtime.onMessage.addListener((message) => {
+browser.runtime.onMessage.addListener((message, sender, callback) => {
   // 处理来自 content scripts 的消息
   if(message.type == "input") {
         let msg = {
@@ -143,6 +143,14 @@ browser.runtime.onMessage.addListener((message) => {
             };
             browser.runtime.sendNativeMessage("browser", msg);
         }
+  } else if (message.type == "bookmark-hook") {
+       browser.runtime.sendNativeMessage("browser", message)
+       .then(e => {
+            if(callback) {
+                callback(JSON.parse(e));
+            }
+       });
+       return true;
   }
 });
 let port = browser.runtime.connectNative("browser");

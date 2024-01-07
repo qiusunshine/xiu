@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.util.Patterns
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -12,19 +13,32 @@ import android.view.ViewGroup
 import android.webkit.URLUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import com.bumptech.glide.Glide
+import kotlinx.coroutines.launch
+import mozilla.components.service.fxa.FxaAuthData
+import mozilla.components.service.fxa.manager.FxaAccountManager
+import mozilla.components.service.fxa.toAuthType
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import org.mozilla.xiu.browser.broswer.bookmark.shortcut.ShortcutAdapter
 import org.mozilla.xiu.browser.componets.HomeLivedata
+import org.mozilla.xiu.browser.componets.StageFxAEntryPoint
+import org.mozilla.xiu.browser.componets.TabBottomSheetDialog.Companion.TAG
+import org.mozilla.xiu.browser.componets.popup.AccountPopup
 import org.mozilla.xiu.browser.database.shortcut.Shortcut
 import org.mozilla.xiu.browser.database.shortcut.ShortcutViewModel
 import org.mozilla.xiu.browser.databinding.FragmentFirstBinding
+import org.mozilla.xiu.browser.fxa.AccountManagerCollection
+import org.mozilla.xiu.browser.fxa.AccountProfileViewModel
+import org.mozilla.xiu.browser.fxa.Fxa
+import org.mozilla.xiu.browser.session.DelegateLivedata
 import org.mozilla.xiu.browser.session.GeckoViewModel
+import org.mozilla.xiu.browser.session.SessionDelegate
 import org.mozilla.xiu.browser.session.createSession
 import org.mozilla.xiu.browser.utils.PreferenceMgr
-import org.mozilla.xiu.browser.utils.ToastMgr
 import org.mozilla.xiu.browser.webextension.NewTabUrlChangeEvent
 import org.mozilla.xiu.browser.webextension.WebExtensionRuntimeManager
 import java.util.Calendar
@@ -41,10 +55,10 @@ class HomeFragment : Fragment() {
     private val binding get() = _binding!!
     lateinit var geckoViewModel: GeckoViewModel
 
-    //private lateinit var fxaViewModel :AccountProfileViewModel
-    //private lateinit var accountManagerCollection :AccountManagerCollection
-    //private var fxaAccountManager: FxaAccountManager? = null
-    //private  lateinit var fxa: Fxa
+    private lateinit var fxaViewModel: AccountProfileViewModel
+    private lateinit var accountManagerCollection: AccountManagerCollection
+    private var fxaAccountManager: FxaAccountManager? = null
+    private lateinit var fxa: Fxa
     lateinit var shortcutViewModel: ShortcutViewModel
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -65,7 +79,7 @@ class HomeFragment : Fragment() {
             binding.HomeSearchText?.visibility = View.GONE
             binding.constraintLayout3?.visibility = View.GONE
             binding.shortcutsRecyclerView?.visibility = View.GONE
-            if(HomeLivedata.getInstance().value == true) {
+            if (HomeLivedata.getInstance().value == true) {
                 activity?.let { WebExtensionRuntimeManager.createNewTabUrlSession(newtabUrl0) }
             }
         } else {
@@ -91,51 +105,45 @@ class HomeFragment : Fragment() {
             binding.constraintLayout3?.visibility = View.GONE
             binding.shortcutsRecyclerView?.visibility = View.GONE
         }
-        //fxaViewModel = ViewModelProvider(requireActivity())[AccountProfileViewModel::class.java]
-        //accountManagerCollection = ViewModelProvider(requireActivity())[AccountManagerCollection::class.java]
-//        try {
-//            fxa = Fxa()
-//            try {
-//                RustLog.disable()
-//            } catch (e: Exception) {
-//                e.printStackTrace()
-//            }
-//            fxaAccountManager = fxa.init(requireContext())
-//        } catch (e: Exception) {
-//            e.printStackTrace()
-//        }
-//        lifecycleScope.launch {
-//
-//            fxaViewModel.data.collect(){
-//                binding.signinButton?.let { it1 ->
-//                    Glide.with(requireContext()).load(it.avatar).circleCrop().into(
-//                        it1
-//                    )
-//                }
-//            }
-//        }
-//        lifecycleScope.launch {
-//            accountManagerCollection.data.collect(){
-//                fxaAccountManager = it
-//                Log.d("fxaAccountManager",""+it)
-//
-//            }
-//        }
+        fxaViewModel = ViewModelProvider(requireActivity())[AccountProfileViewModel::class.java]
+        accountManagerCollection =
+            ViewModelProvider(requireActivity())[AccountManagerCollection::class.java]
+        try {
+            fxa = Fxa()
+            fxaAccountManager = fxa.init(requireContext())
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        lifecycleScope.launch {
+
+            fxaViewModel.data.collect() {
+                binding.signinButton?.let { it1 ->
+                    Glide.with(requireContext()).load(it.avatar).circleCrop().into(
+                        it1
+                    )
+                }
+            }
+        }
+        lifecycleScope.launch {
+            accountManagerCollection.data.collect() {
+                fxaAccountManager = it
+                Log.d("fxaAccountManager", "" + it)
+            }
+        }
 
         binding.signinButton?.setOnClickListener {
-            ToastMgr.shortCenter(context, "开发中")
-//            lifecycleScope.launch {
-//                if (!fxa.isLogin){
-//                    fxaAccountManager?.beginAuthentication(entrypoint =StageFxAEntryPoint.DeepLink)?.let {
-//                    createSession(it,requireActivity())
-//                    }
-//                }
-//                else{
-//                    //fxaAccountManager.syncNow(SyncReason.User)
-//                    //fxaAccountManager.authenticatedAccount()?.deviceConstellation()?.pollForCommands()
-//                    AccountPopup().show(parentFragmentManager,TAG)
-//                }
-//            }
+            lifecycleScope.launch {
+                if (!fxa.isLogin) {
+                    fxaAccountManager?.beginAuthentication(entrypoint = StageFxAEntryPoint.DeepLink)
+                        ?.let {
+                            createSession(it, requireActivity())
+                        }
+                } else {
+                    //fxaAccountManager.syncNow(SyncReason.User)
+                    //fxaAccountManager?.authenticatedAccount()?.deviceConstellation()?.pollForCommands()
+                    AccountPopup().show(parentFragmentManager, TAG)
+                }
+            }
         }
         binding.qrButton?.setOnClickListener {
             if (requireActivity().checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
@@ -167,19 +175,17 @@ class HomeFragment : Fragment() {
             false
         })
 
-//        DelegateLivedata.getInstance().observe(viewLifecycleOwner){
-//            it.login=object : SessionDelegate.Login{
-//                override fun onLogin(code: String, state: String, action: String) {
-//                    lifecycleScope.launch {
-//                        fxaAccountManager?.finishAuthentication(
-//                            FxaAuthData(action.toAuthType(), code = code, state = state),
-//                        )
-//
-//                    }
-//
-//                }
-//            }
-//        }
+        DelegateLivedata.getInstance().observe(viewLifecycleOwner) {
+            it.login = object : SessionDelegate.Login {
+                override fun onLogin(code: String, state: String, action: String) {
+                    lifecycleScope.launch {
+                        fxaAccountManager?.finishAuthentication(
+                            FxaAuthData(action.toAuthType(), code = code, state = state),
+                        )
+                    }
+                }
+            }
+        }
 
         val calendar = Calendar.getInstance()
 
@@ -219,13 +225,14 @@ class HomeFragment : Fragment() {
         shortcutAdapter.select = object : ShortcutAdapter.Select {
             override fun onSelect(url: String) {
                 when (url) {
-                    "hiker://bookmark",  "hiker://download", "hiker://history"-> {
+                    "hiker://bookmark", "hiker://download", "hiker://history" -> {
                         try {
                             (requireActivity() as MainActivity).showPage(url)
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }
                     }
+
                     else -> {
                         createSession(url, requireActivity())
                     }

@@ -66,6 +66,20 @@ fun initBookmarkParent(list: List<Bookmark?>) {
     }
 }
 
+fun initBookmarkParent2(list: List<Bookmark?>, all: List<Bookmark?>) {
+    val map: MutableMap<Int, Bookmark> = HashMap()
+    for (bookmark in all) {
+        if (bookmark == null) continue
+        map[bookmark.id] = bookmark
+    }
+    for (bookmark in list) {
+        if (bookmark == null) continue
+        if (bookmark.parentId > 0) {
+            bookmark.parent = map[bookmark.parentId]
+        }
+    }
+}
+
 fun filterList(list: List<Bookmark?>, groupSelected: String, key: String): List<Bookmark> {
     var lKey = if (StringUtil.isEmpty(key)) key else key.lowercase(Locale.getDefault())
     if ("离线页面" == key) {
@@ -250,7 +264,7 @@ fun findDirByPath(list: List<Bookmark?>, path: String): Bookmark? {
 }
 
 
-fun addByList(
+suspend fun addByList(
     context: Context,
     bookmarkViewModel: BookmarkViewModel,
     bookmarks: List<Bookmark>
@@ -260,9 +274,14 @@ fun addByList(
         if (StringUtil.isEmpty(bookmark.url)) {
             continue
         }
+        val exist = bookmarkViewModel.findBookmarkWithUrl(bookmark.url)
+        if(exist != null) {
+            continue
+        }
         if (StringUtil.isNotEmpty(bookmark.group)) {
             val groups: List<String> = bookmark.group!!.split("@@@")
             var parentId: Int = -1
+            var parent: Bookmark? = null
             for (group0 in groups) {
                 var group = group0
                 group = group.replace("/", "-")
@@ -294,10 +313,13 @@ fun addByList(
                         dir.id = ids.first()
                     }
                 }
+                dir.parent = parent
                 parentId = dir.id
+                parent = dir
             }
             if (parentId > 0) {
                 bookmark.parentId = parentId
+                bookmark.parent = parent
             }
         }
         val ids = bookmarkViewModel.insertBookmarksSync(bookmark)

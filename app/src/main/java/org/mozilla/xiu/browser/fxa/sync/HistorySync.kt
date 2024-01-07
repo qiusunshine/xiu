@@ -5,43 +5,34 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import mozilla.components.browser.storage.sync.PlacesHistoryStorage
-import mozilla.components.concept.storage.PageVisit
-import mozilla.components.concept.storage.VisitType
-import mozilla.components.service.fxa.SyncEngine
+import mozilla.components.concept.storage.PageObservation
 import mozilla.components.service.fxa.manager.FxaAccountManager
-import mozilla.components.service.fxa.sync.GlobalSyncableStoreProvider
-import mozilla.components.service.fxa.sync.SyncReason
+import org.mozilla.xiu.browser.ActivityManager
 import org.mozilla.xiu.browser.fxa.AccountManagerCollection
+import org.mozilla.xiu.browser.fxa.Fxa.Companion.historyStorage
 
-//todo 崩溃，报 undefined symbol: ffi_glean_64d5_OnGleanEvents_init_callback
-class HistorySync(val context: Context) {
-    private var historyStorage: Lazy<PlacesHistoryStorage> = lazy {
-        PlacesHistoryStorage(context)
-    }
-    private var accountManagerCollection: AccountManagerCollection =
-        ViewModelProvider(context as ViewModelStoreOwner)[AccountManagerCollection::class.java]
+class HistorySync {
     private lateinit var accountManager: FxaAccountManager
-
-    init {
-        GlobalSyncableStoreProvider.configureStore(SyncEngine.History to historyStorage)
-        (context as LifecycleOwner).lifecycleScope.launch {
-            accountManagerCollection.data.collect() {
+    fun initAccountManager(context: Context) {
+        val accountManagerCollection: AccountManagerCollection =
+            ViewModelProvider(context as ViewModelStoreOwner)[AccountManagerCollection::class.java]
+        lifecycleScope.launch {
+            accountManagerCollection.data.collect {
                 accountManager = it
-
-
             }
-
         }
     }
 
-    fun sync(url: String) {
-        (context as LifecycleOwner).lifecycleScope.launch {
-            historyStorage.value.recordVisit(url, PageVisit(VisitType.LINK))
-            accountManager.syncNow(SyncReason.User)
+    private val lifecycleScope get() = (ActivityManager.instance.currentActivity as LifecycleOwner).lifecycleScope
 
-
+    fun sync(title: String, url: String) {
+        if(!::accountManager.isInitialized) {
+            return
+        }
+        lifecycleScope.launch(Dispatchers.IO) {
+            historyStorage.value.recordObservation(url, PageObservation(title))
         }
     }
 }

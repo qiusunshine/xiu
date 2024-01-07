@@ -261,5 +261,8 @@
     <string name="translate_manage_operations">Operations</string>
     <string name="translate_display_hint">查看日志</string>
     <string name="translate_manage_action">更新</string>
+    <string name="login_msg">请先登录账户</string>
+    <string name="sync_success">同步成功</string>
+    <string name="sync_failed">同步失败</string>
 
 </resources>
