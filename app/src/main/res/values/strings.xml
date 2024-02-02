@@ -13,6 +13,8 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_holder">HolderActivity</string>
+    <string name="customize_text_size">自定义网页字体大小</string>
+    <string name="cannot_set_text_auto">因为自定义了字体大小，无法自适应</string>
     <string name="dia_bookmark_radio">添加到首页</string>
     <string name="dia_bookmark_url">地址：</string>
     <string name="dia_bookmark_title">名称：</string>
@@ -264,5 +266,9 @@
     <string name="login_msg">请先登录账户</string>
     <string name="sync_success">同步成功</string>
     <string name="sync_failed">同步失败</string>
+    <string name="clear_cache">清除缓存和数据</string>
+    <string name="cache">缓存</string>
+    <string name="site_data_and_cookie">网站数据和Cookie</string>
+    <string name="browse_history">网站浏览历史</string>
 
 </resources>

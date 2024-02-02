@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -382,6 +383,14 @@ public class MediaPlayActivity extends AppCompatActivity {
         registerReceiver(TransportStateBroadcastReceiver, filter);
     }
 
+    @Override
+    public Intent registerReceiver(@Nullable BroadcastReceiver receiver, IntentFilter filter) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            return super.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            return super.registerReceiver(receiver, filter);
+        }
+    }
 
     private final class InnerHandler extends Handler {
         @Override
@@ -467,7 +476,7 @@ public class MediaPlayActivity extends AppCompatActivity {
             }
         };
         timer = new Timer();
-        timer.schedule(timerTask, 1, 3000);
+        timer.schedule(timerTask, 1, 1000);
     }
 
     public static int timeToSec(String time) {

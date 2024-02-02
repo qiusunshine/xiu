@@ -53,6 +53,7 @@ import org.mozilla.xiu.browser.R
 import org.mozilla.xiu.browser.base.VarHolder
 import org.mozilla.xiu.browser.base.async
 import org.mozilla.xiu.browser.componets.ContextMenuDialog
+import org.mozilla.xiu.browser.componets.HomeLivedata
 import org.mozilla.xiu.browser.componets.popup.IntentPopup
 import org.mozilla.xiu.browser.database.history.History
 import org.mozilla.xiu.browser.database.history.HistoryViewModel
@@ -612,6 +613,9 @@ class SessionDelegate() : BaseObservable() {
                 val sessionSettings = newSession.settings
                 SeRuSettings(sessionSettings, mContext)
                 geckoViewModel.changeSearch(newSession)
+                if(HomeLivedata.getInstance().value == true) {
+                    HomeLivedata.getInstance().Value(false)
+                }
                 return GeckoResult.fromValue(newSession)
             }
         }

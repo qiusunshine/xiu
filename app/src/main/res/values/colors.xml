@@ -38,4 +38,5 @@
     <color name="grey_black">#DFDFDF</color>
     <color name="gray_rice">#FFF5F5F5</color>
     <color name="black_666">#444444</color>
+    <color name="blackText2">#FF444444</color>
 </resources>

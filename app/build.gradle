@@ -18,8 +18,8 @@ plugins {
 // -------------------------------------------------------------------------------------------------
 apply plugin: "org.mozilla.telemetry.glean-gradle-plugin"
 
-def versionCodeNew = 121
-def versionNameNew = "2.7"
+def versionCodeNew = 126
+def versionNameNew = "2.8"
 def appName = "Xiu"
 
 kapt {
@@ -147,7 +147,7 @@ dependencies {
     implementation 'androidx.preference:preference-ktx:1.2.1'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 
-    implementation 'com.google.mlkit:barcode-scanning:17.2.0'
+    implementation'com.google.mlkit:barcode-scanning:17.2.0'
     implementation 'androidx.camera:camera-camera2:1.3.0'
     implementation 'androidx.camera:camera-lifecycle:1.3.0'
     implementation 'androidx.camera:camera-view:1.4.0-alpha02'
@@ -187,7 +187,7 @@ dependencies {
 
 
     def gecko_version = "121.0"
-    def mozilla_version = "121.0"
+    def mozilla_version = "122.0"
     implementation ("org.mozilla.components:browser-engine-gecko:$mozilla_version")
     implementation ("org.mozilla.components:browser-storage-sync:$mozilla_version")
     implementation ("org.mozilla.components:service-firefox-accounts:$mozilla_version")
@@ -205,7 +205,6 @@ dependencies {
     implementation ("org.mozilla.components:service-digitalassetlinks:$mozilla_version")
     implementation ("org.mozilla.components:service-sync-autofill:$mozilla_version")
     implementation ("org.mozilla.components:service-location:$mozilla_version")
-    implementation ("org.mozilla.components:service-nimbus:$mozilla_version")
     implementation ("org.mozilla.components:service-pocket:$mozilla_version")
     implementation ("org.mozilla.components:service-glean:$mozilla_version")
     implementation ("org.mozilla.appservices:places:115.0")

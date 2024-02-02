@@ -36,14 +36,17 @@ import org.mozilla.geckoview.WebNotification
 import org.mozilla.geckoview.WebNotificationDelegate
 import org.mozilla.geckoview.WebRequest
 import org.mozilla.geckoview.WebResponse
+import org.mozilla.xiu.browser.ActivityManager
 import org.mozilla.xiu.browser.App
 import org.mozilla.xiu.browser.R
+import org.mozilla.xiu.browser.settings.TextSizeActivity
 import org.mozilla.xiu.browser.utils.ScreenUtil
 import org.mozilla.xiu.browser.utils.ThreadTool
 import org.mozilla.xiu.browser.utils.ToastMgr
 import org.mozilla.xiu.browser.utils.getSizeName
 
-const val DESKTOP_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/120.0"
+const val DESKTOP_UA =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/120.0"
 
 class SeRuSettings {
     private var geckoSessionSettings: GeckoSessionSettings
@@ -71,8 +74,16 @@ class SeRuSettings {
             PreferenceManager.getDefaultSharedPreferences(activity /* Activity context */)
         geckoRuntimeSettings.forceUserScalableEnabled =
             sharedPreferences.getBoolean("switch_userscalable", false)
-        geckoRuntimeSettings.automaticFontSizeAdjustment =
-            sharedPreferences.getBoolean("switch_automatic_fontsize", false)
+        val zoom = TextSizeActivity.getTextZoom(activity)
+        if (zoom == 100) {
+            geckoRuntimeSettings.automaticFontSizeAdjustment =
+                sharedPreferences.getBoolean("switch_automatic_fontsize", false)
+        } else {
+            geckoRuntimeSettings.automaticFontSizeAdjustment = false
+            geckoRuntimeSettings.setFontSizeFactor(
+                zoom / 100f
+            )
+        }
         init(activity)
         val sGeckoRuntime = GeckoRuntime.getDefault(activity)
         sGeckoRuntime.orientationController.delegate =
@@ -247,8 +258,17 @@ class SeRuSettings {
                 "switch_userscalable" -> geckoRuntimeSettings.forceUserScalableEnabled =
                     sharedPreferences.getBoolean("switch_userscalable", false)
 
-                "switch_automatic_fontsize" -> geckoRuntimeSettings.automaticFontSizeAdjustment =
-                    sharedPreferences.getBoolean("switch_automatic_fontsize", false)
+                "switch_automatic_fontsize" -> {
+                    if (TextSizeActivity.getTextZoom(ActivityManager.instance.currentActivity) == 100) {
+                        geckoRuntimeSettings.automaticFontSizeAdjustment =
+                            sharedPreferences.getBoolean("switch_automatic_fontsize", false)
+                    } else {
+                        geckoRuntimeSettings.automaticFontSizeAdjustment = false
+                        if(sharedPreferences.getBoolean("switch_automatic_fontsize", false)) {
+                            ToastMgr.shortBottomCenter(ActivityManager.instance.currentActivity, ContextCompat.getString(activity, R.string.cannot_set_text_auto))
+                        }
+                    }
+                }
             }
         }
     }

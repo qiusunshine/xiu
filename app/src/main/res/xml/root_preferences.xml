@@ -40,6 +40,9 @@
             android:defaultValue="true"
             android:key="switch_automatic_fontsize"
             android:title="@string/AutomaticFontSize" />
+        <Preference
+            android:key="custom_fontsize"
+            android:title="@string/customize_text_size" />
         <SwitchPreference
             android:defaultValue="false"
             android:key="switch_extension_process"
@@ -63,6 +66,9 @@
             android:defaultValue="false"
             android:key="switch_https_only"
             android:title="@string/https_only" />
+        <Preference
+            app:key="clearCache"
+            app:title="@string/clear_cache" />
     </PreferenceCategory>
     <PreferenceCategory
         android:title="@string/about"

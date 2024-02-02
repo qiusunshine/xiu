@@ -87,6 +87,8 @@ class TabPopup {
         session.open(GeckoRuntime.getDefault(context))
         session.loadUri(uri)
         geckoViewModel.changeSearch(session)
-
+        if(HomeLivedata.getInstance().value == true) {
+            HomeLivedata.getInstance().Value(false)
+        }
     }
 }

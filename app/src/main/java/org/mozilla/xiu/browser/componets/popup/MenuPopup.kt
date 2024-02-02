@@ -31,6 +31,7 @@ import org.mozilla.xiu.browser.session.SessionDelegate
 import org.mozilla.xiu.browser.utils.PreferenceMgr
 import org.mozilla.xiu.browser.utils.ShareUtil
 import org.mozilla.xiu.browser.utils.ToastMgr
+import org.mozilla.xiu.browser.webextension.WebExtensionRuntimeManager
 
 
 class MenuPopup {
@@ -60,7 +61,12 @@ class MenuPopup {
         bottomSheetDialog.setContentView(binding.root)
         homeObserver = Observer {
             isHome = it
-            if (it) {
+            val newTabUrl = WebExtensionRuntimeManager.findHomePageUrl()
+            if (!newTabUrl.isNullOrEmpty()) {
+                //用了主页标签扩展程序，始终显示扩展程序和标题
+                isHome = false
+            }
+            if (isHome) {
                 binding.constraintLayout5.visibility = View.GONE
             } else {
                 binding.constraintLayout5.visibility = View.VISIBLE

@@ -1,8 +1,10 @@
 package org.mozilla.xiu.browser
 
 
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -67,7 +69,15 @@ import org.mozilla.xiu.browser.database.history.HistoryViewModel
 import org.mozilla.xiu.browser.databinding.ActivityMainBinding
 import org.mozilla.xiu.browser.databinding.PrivacyAgreementLayoutBinding
 import org.mozilla.xiu.browser.download.UrlDetector
-import org.mozilla.xiu.browser.session.*
+import org.mozilla.xiu.browser.session.DelegateLivedata
+import org.mozilla.xiu.browser.session.ExamplePermissionDelegate
+import org.mozilla.xiu.browser.session.GeckoViewModel
+import org.mozilla.xiu.browser.session.OpenAppIntentEvent
+import org.mozilla.xiu.browser.session.ProgressEvent
+import org.mozilla.xiu.browser.session.SeRuSettings
+import org.mozilla.xiu.browser.session.SessionDelegate
+import org.mozilla.xiu.browser.session.TranslateEvent
+import org.mozilla.xiu.browser.session.createSession
 import org.mozilla.xiu.browser.tab.AddTabLiveData
 import org.mozilla.xiu.browser.tab.DelegateListLiveData
 import org.mozilla.xiu.browser.tab.RemoveTabLiveData
@@ -141,6 +151,18 @@ class MainActivity : AppCompatActivity(), DetectorListener {
         } else {
             StatusUtils.setStatusBarVisibility(this, true, binding.content.viewPager)
             window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+    }
+
+    override fun registerReceiver(receiver: BroadcastReceiver?, filter: IntentFilter?): Intent? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            super.registerReceiver(
+                receiver,
+                filter,
+                Context.RECEIVER_NOT_EXPORTED
+            )
+        } else {
+            super.registerReceiver(receiver, filter)
         }
     }
 

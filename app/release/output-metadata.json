@@ -16,9 +16,9 @@
         }
       ],
       "attributes": [],
-      "versionCode": 121,
-      "versionName": "2.7",
-      "outputFile": "Xiu_V2.7_C121-32位.apk"
+      "versionCode": 126,
+      "versionName": "2.8",
+      "outputFile": "Xiu_V2.8_C126-32位.apk"
     },
     {
       "type": "ONE_OF_MANY",
@@ -29,9 +29,9 @@
         }
       ],
       "attributes": [],
-      "versionCode": 121,
-      "versionName": "2.7",
-      "outputFile": "Xiu_V2.7_C121-64位.apk"
+      "versionCode": 126,
+      "versionName": "2.8",
+      "outputFile": "Xiu_V2.8_C126-64位.apk"
     }
   ],
   "elementType": "File"
