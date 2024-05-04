@@ -44,7 +44,7 @@ public class VideoPlayerManager {
     private boolean isClick = false;
     public static float PLAY_SPEED = 1f;
     public static boolean tempFastPlay;
-    public static int FAST_PLAY_TIMES = 2;
+    public static int FAST_PLAY_TIMES = 3;
 
     private VideoPlayerManager() {
     }

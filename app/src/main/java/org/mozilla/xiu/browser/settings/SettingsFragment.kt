@@ -15,6 +15,7 @@ import androidx.preference.Preference
 import androidx.preference.Preference.SummaryProvider
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
+import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.greenrobot.eventbus.EventBus
 import org.mozilla.geckoview.GeckoRuntime
@@ -41,8 +42,41 @@ class SettingsFragment : PreferenceFragmentCompat() {
                     EventBus.getDefault().post(NewTabUrlChangeEvent())
                 }
 
+                "switch_dynamic_color" -> {
+                    if (DynamicColors.isDynamicColorAvailable()) {
+                        if (sharedPreferences.getBoolean(key, true)) {
+                            ToastMgr.shortBottomCenter(
+                                context,
+                                ContextCompat.getString(
+                                    requireContext(),
+                                    R.string.dynamicColors_open
+                                )
+                            )
+                        } else {
+                            ToastMgr.shortBottomCenter(
+                                context,
+                                ContextCompat.getString(
+                                    requireContext(),
+                                    R.string.dynamicColors_close
+                                )
+                            )
+                        }
+                    } else {
+                        ToastMgr.shortBottomCenter(
+                            context,
+                            ContextCompat.getString(
+                                requireContext(),
+                                R.string.dynamicColors_not_support
+                            )
+                        )
+                    }
+                }
+
                 "customDownloader" -> {
-                    val url: String? = when (sharedPreferences.getString(key, getString(R.string.downloader_default))) {
+                    val url: String? = when (sharedPreferences.getString(
+                        key,
+                        getString(R.string.downloader_default)
+                    )) {
                         getString(R.string.downloader_idm) -> DownloadChooser.checkAndGetIDMUrl(
                             requireContext()
                         )
@@ -85,6 +119,11 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.root_preferences, rootKey)
+        if (!DynamicColors.isDynamicColorAvailable()) {
+            val preference = findPreference<Preference>("switch_dynamic_color")
+            preference?.isEnabled = false
+            preference?.setSummary(R.string.dynamicColors_not_support)
+        }
         findPreference<Preference>("settingNewVersion")?.setOnPreferenceClickListener {
             val intent = Intent(requireContext(), MainActivity::class.java)
             intent.data = Uri.parse(getString(R.string.new_version_url))
@@ -195,21 +234,25 @@ class SettingsFragment : PreferenceFragmentCompat() {
             if (checked[i]) {
                 when (i) {
                     0 -> {//缓存
-                        GeckoRuntime.getDefault(requireContext()).storageController.clearData(ClearFlags.ALL_CACHES)
+                        GeckoRuntime.getDefault(requireContext()).storageController.clearData(
+                            ClearFlags.ALL_CACHES
+                        )
                         msg =
-                                if (msg.isEmpty()) "已清除缓存" else "$msg、缓存"
+                            if (msg.isEmpty()) "已清除缓存" else "$msg、缓存"
                     }
 
-                    1 -> {//网页浏览历史
+                    1 -> {//Cookie登录状态
+                        GeckoRuntime.getDefault(requireContext()).storageController.clearData(
+                            ClearFlags.SITE_DATA
+                        )
+                        msg =
+                            if (msg.isEmpty()) "已清除网站数据和Cookie" else "$msg、网站数据和Cookie"
+                    }
+
+                    2 -> {//网页浏览历史
                         ViewModelProvider(this)[HistoryViewModel::class.java].deleteAllHistories()
                         msg =
                             if (msg.isEmpty()) "已清除网页浏览历史" else "$msg、网页浏览历史"
-                    }
-
-                    2 -> {//Cookie登录状态
-                        GeckoRuntime.getDefault(requireContext()).storageController.clearData(ClearFlags.SITE_DATA)
-                        msg =
-                            if (msg.isEmpty()) "已清除网站数据和Cookie" else "$msg、网站数据和Cookie"
                     }
                 }
             }

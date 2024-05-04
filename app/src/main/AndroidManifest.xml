@@ -177,6 +177,18 @@
         </activity>
 
         <activity
+            android:name=".broswer.SearchIntentActivity"
+            android:launchMode="singleTask"
+            android:exported="true"
+            android:label="@string/search_in"
+            android:theme="@style/TranslucentFullScreenTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".download.FileBrowserActivity"
             android:theme="@style/TranslucentFullScreenTheme" />
         <activity

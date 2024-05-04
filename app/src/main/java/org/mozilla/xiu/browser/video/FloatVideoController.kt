@@ -253,7 +253,6 @@ class FloatVideoController(
             )
         pv.isNetworkNotify = networkNotify
         initActionAdapter()
-        ScreenUtil.setDisplayInNotch(context)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             exo_pip?.visibility = View.VISIBLE
         }

@@ -14,6 +14,7 @@ import android.webkit.URLUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
@@ -166,9 +167,13 @@ class HomeFragment : Fragment() {
                 var value = binding.HomeSearchText!!.text.toString()
                 if (Patterns.WEB_URL.matcher(value).matches() || URLUtil.isValidUrl(value)) {
                     createSession(value, requireActivity())
-
                 } else {
-                    createSession("https://cn.bing.com/search?q=$value", requireActivity())
+                    val prefs = PreferenceManager.getDefaultSharedPreferences(requireActivity())
+                    val u = prefs.getString(
+                        "searchEngine",
+                        requireContext().getString(R.string.bing)
+                    )
+                    createSession("$u$value", requireActivity())
                 }
 
             }

@@ -84,6 +84,7 @@ import org.mozilla.xiu.browser.tab.RemoveTabLiveData
 import org.mozilla.xiu.browser.tab.TabListAdapter
 import org.mozilla.xiu.browser.utils.FileUtil
 import org.mozilla.xiu.browser.utils.PreferenceMgr
+import org.mozilla.xiu.browser.utils.ScreenUtil
 import org.mozilla.xiu.browser.utils.SoftKeyBoardListener.OnSoftKeyBoardChangeListener
 import org.mozilla.xiu.browser.utils.StatusUtils
 import org.mozilla.xiu.browser.utils.StrUtil
@@ -169,6 +170,7 @@ class MainActivity : AppCompatActivity(), DetectorListener {
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        ScreenUtil.setDisplayInNotch(this)
         App.setHomeActivity(this)
         fragments =
             listOf(
@@ -246,6 +248,18 @@ class MainActivity : AppCompatActivity(), DetectorListener {
 
                     getString(org.mozilla.xiu.browser.R.string.shenma) -> binding.materialButton13?.text =
                         getString(R.string.EngineTips, getString(R.string.Shenma))
+
+                    getString(org.mozilla.xiu.browser.R.string.ai360) -> binding.materialButton13?.text =
+                        getString(R.string.EngineTips, getString(R.string.AI360))
+
+                    getString(org.mozilla.xiu.browser.R.string.metaai) -> binding.materialButton13?.text =
+                        getString(R.string.EngineTips, getString(R.string.MetaAI))
+
+                    getString(org.mozilla.xiu.browser.R.string.phindai) -> binding.materialButton13?.text =
+                        getString(R.string.EngineTips, getString(R.string.PhindAI))
+
+                    getString(org.mozilla.xiu.browser.R.string.aisearch) -> binding.materialButton13?.text =
+                        getString(R.string.EngineTips, getString(R.string.AISearch))
                 }
                 if (prefs.getBoolean("switch_diy", false))
                     binding.materialButton13?.text =
@@ -286,6 +300,18 @@ class MainActivity : AppCompatActivity(), DetectorListener {
 
                     getString(org.mozilla.xiu.browser.R.string.shenma) -> binding.materialButton13?.text =
                         getString(R.string.EngineTips, getString(R.string.Shenma))
+
+                    getString(org.mozilla.xiu.browser.R.string.ai360) -> binding.materialButton13?.text =
+                        getString(R.string.EngineTips, getString(R.string.AI360))
+
+                    getString(org.mozilla.xiu.browser.R.string.metaai) -> binding.materialButton13?.text =
+                        getString(R.string.EngineTips, getString(R.string.MetaAI))
+
+                    getString(org.mozilla.xiu.browser.R.string.phindai) -> binding.materialButton13?.text =
+                        getString(R.string.EngineTips, getString(R.string.PhindAI))
+
+                    getString(org.mozilla.xiu.browser.R.string.aisearch) -> binding.materialButton13?.text =
+                        getString(R.string.EngineTips, getString(R.string.AISearch))
                 }
                 if (prefs.getBoolean("switch_diy", false))
                     binding.materialButton13?.text =
@@ -343,9 +369,12 @@ class MainActivity : AppCompatActivity(), DetectorListener {
 
         binding.SearchText?.setOnKeyListener(View.OnKeyListener { _, i, keyEvent ->
             if (KeyEvent.KEYCODE_ENTER == i && keyEvent.action == KeyEvent.ACTION_DOWN) {
-                var value = binding.SearchText!!.text.toString()
+                val value = binding.SearchText!!.text.toString()
                 searching(value)
                 searching = value
+                binding?.SearchText?.postDelayed({
+                    binding.SearchText?.clearFocus()
+                }, 200)
             }
 
             false
@@ -476,7 +505,7 @@ class MainActivity : AppCompatActivity(), DetectorListener {
 
         val uri: Uri? = intent?.data
         if (uri != null) {
-            createSession(uri.toString(), this)
+            searching(uri.toString())
         }
         //初始化一下
         WebExtensionRuntimeManager
@@ -898,29 +927,33 @@ class MainActivity : AppCompatActivity(), DetectorListener {
 
     private val onBackPress = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
-            if (bottomSheetBehavior?.state == BottomSheetBehavior.STATE_EXPANDED) {
-                bottomSheetBehavior?.state = BottomSheetBehavior.STATE_COLLAPSED
-                return
-            }
-            if (binding.content.viewPager.currentItem == 1 && getWebFragment()?.isErrorShown() == true && binding.user?.session != null) {
-                binding.user?.session?.reload()
-                return
-            }
-            if (floatVideoController != null && floatVideoController!!.onBackPressed()) {
-                return
-            }
-            if (binding.content.viewPager.currentItem == 0 && sessionDelegates.isNotEmpty()) {
-                HomeLivedata.getInstance().Value(false)
-            } else if (binding.user?.isFull == true) {
-                binding.user?.session?.exitFullScreen()
-            } else if (binding.user?.canBack == true) {
-                binding.user?.session?.goBack()
-            } else {
-                if (sessionDelegates.indexOf(binding.user) != -1)
-                    RemoveTabLiveData.getInstance().Value(binding.user)
-                else {
-                    finish()
+            try {
+                if (bottomSheetBehavior?.state == BottomSheetBehavior.STATE_EXPANDED) {
+                    bottomSheetBehavior?.state = BottomSheetBehavior.STATE_COLLAPSED
+                    return
                 }
+                if (binding.content.viewPager.currentItem == 1 && getWebFragment()?.isErrorShown() == true && binding.user?.session != null) {
+                    binding.user?.session?.reload()
+                    return
+                }
+                if (floatVideoController != null && floatVideoController!!.onBackPressed()) {
+                    return
+                }
+                if (binding.content.viewPager.currentItem == 0 && sessionDelegates.isNotEmpty()) {
+                    HomeLivedata.getInstance().Value(false)
+                } else if (binding.user?.isFull == true) {
+                    binding.user?.session?.exitFullScreen()
+                } else if (binding.user?.canBack == true) {
+                    binding.user?.session?.goBack()
+                } else {
+                    if (sessionDelegates.indexOf(binding.user) != -1)
+                        RemoveTabLiveData.getInstance().Value(binding.user)
+                    else {
+                        finish()
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
@@ -1041,7 +1074,7 @@ class MainActivity : AppCompatActivity(), DetectorListener {
         }
         val uri: Uri? = intent?.data
         if (uri != null) {
-            createSession(uri.toString(), this)
+            searching(uri.toString())
         }
         GeckoRuntime.getDefault(this).activityDelegate = GeckoRuntime.ActivityDelegate {
             Log.d("test", uri.toString())
@@ -1087,7 +1120,12 @@ class MainActivity : AppCompatActivity(), DetectorListener {
         DelegateLivedata.getInstance().value?.resume()
     }
 
-    fun searching(value: String) {
+    fun searching(v: String) {
+        val value = if (v.startsWith("hiker://search?s=")) {
+            v.replace("hiker://search?s=", "")
+        } else {
+            v
+        }
         if (StrUtil.isGeckoUrl(value)) {
             if (binding.content.viewPager.currentItem == 1)
                 binding.user?.session?.loadUri(value)

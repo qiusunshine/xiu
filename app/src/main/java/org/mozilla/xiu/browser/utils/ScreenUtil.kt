@@ -14,6 +14,7 @@ import android.view.WindowManager
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.smarx.notchlib.NotchScreenManager
 import java.lang.reflect.Method
 
 
@@ -199,13 +200,6 @@ object ScreenUtil {
     }
 
     fun setDisplayInNotch(activity: Activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val window = activity.window
-            // 延伸显示区域到耳朵区
-            val lp = window.attributes
-            lp.layoutInDisplayCutoutMode =
-                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-            window.attributes = lp
-        }
+        NotchScreenManager.getInstance().setDisplayInNotch(activity)
     }
 }

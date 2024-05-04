@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.widget.Toast
+import androidx.preference.PreferenceManager
 import com.google.android.material.color.DynamicColors
 import com.kongzue.dialogx.DialogX
 import java.lang.ref.WeakReference
@@ -16,7 +17,11 @@ open class App : Application() {
         super.onCreate()
         registerActivityLifecycleCallbacks(ActivityManager.instance)
         // apply dynamic color
-        DynamicColors.applyToActivitiesIfAvailable(this)
+        if (PreferenceManager.getDefaultSharedPreferences(this)
+                .getBoolean("switch_dynamic_color", true)
+        ) {
+            DynamicColors.applyToActivitiesIfAvailable(this)
+        }
         DialogX.init(this)
         //syncLooper()
         ref = WeakReference(this)

@@ -18,8 +18,8 @@ plugins {
 // -------------------------------------------------------------------------------------------------
 apply plugin: "org.mozilla.telemetry.glean-gradle-plugin"
 
-def versionCodeNew = 126
-def versionNameNew = "2.8"
+def versionCodeNew = 132
+def versionNameNew = "2.10"
 def appName = "Xiu"
 
 kapt {
@@ -140,6 +140,7 @@ configurations {
 
 
 dependencies {
+    implementation fileTree(include: ['*.jar', '*.aar'], dir: 'libs')
     jnaForTest "net.java.dev.jna:jna:5.6.0@jar"
     testImplementation files(configurations.jnaForTest.copyRecursive().files)
     testImplementation "org.mozilla.telemetry:glean-forUnitTests:39.1.0"
@@ -186,8 +187,7 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2'
 
 
-    def gecko_version = "121.0"
-    def mozilla_version = "122.0"
+    def mozilla_version = "125.0"
     implementation ("org.mozilla.components:browser-engine-gecko:$mozilla_version")
     implementation ("org.mozilla.components:browser-storage-sync:$mozilla_version")
     implementation ("org.mozilla.components:service-firefox-accounts:$mozilla_version")
@@ -286,5 +286,8 @@ dependencies {
     implementation("jp.wasabeef:glide-transformations:4.3.0") { exclude group: 'com.github.bumptech.glide' }
     // If you want to use the GPU Filters
     implementation 'jp.co.cyberagent.android:gpuimage:2.1.0'
+
+    //全面屏、刘海屏适配
+    implementation 'com.github.smarxpan:NotchScreenTool:0.0.1'
 }
 

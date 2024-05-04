@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.graphics.Rect;
 import android.media.AudioManager;
 import android.provider.Settings;
 import android.text.SpannableString;
@@ -55,6 +56,7 @@ public class GestureVideoPlayer extends ExoUserPlayer {
     private int screeHeightPixels;
     /*** 屏幕最大宽度 ****/
     private int screeWidthPixels;
+    private boolean checkScreenWidth = false;
     /***格式字符 ****/
     private StringBuilder formatBuilder;
     /***格式化类 ***/
@@ -68,7 +70,6 @@ public class GestureVideoPlayer extends ExoUserPlayer {
     private OnGestureVolumeListener onGestureVolumeListener;
 
     private OnDoubleTapListener onDoubleTapListener;
-    private float x = 0, y = 0;
     private VerticalMoveGestureListener verticalMoveGestureListener;
 
     public VerticalMoveGestureListener getVerticalMoveGestureListener() {
@@ -154,8 +155,8 @@ public class GestureVideoPlayer extends ExoUserPlayer {
         assert audioManager != null;
         mMaxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         DisplayMetrics displayMetrics = activity.getResources().getDisplayMetrics();
-        screeHeightPixels = displayMetrics.heightPixels;
-        screeWidthPixels = displayMetrics.widthPixels;
+        screeHeightPixels = Math.max(displayMetrics.widthPixels, displayMetrics.heightPixels);
+        screeWidthPixels = Math.min(displayMetrics.widthPixels, displayMetrics.heightPixels);
         brightness = getScreenBrightness(activity) / 255.0f;
     }
 
@@ -198,6 +199,7 @@ public class GestureVideoPlayer extends ExoUserPlayer {
         VideoPlayerManager.tempFastPlay = false;
         if (player != null && player.getPlaybackParameters() != null && player.getPlaybackParameters().speed != VideoPlayerManager.PLAY_SPEED) {
             player.setPlaybackParameters(new PlaybackParameters(VideoPlayerManager.PLAY_SPEED, 1f));
+            getPlayerViewListener().changeSpeed(VideoPlayerManager.PLAY_SPEED);
         }
         getPlayerViewListener().showGestureView(View.GONE);
     }
@@ -232,6 +234,7 @@ public class GestureVideoPlayer extends ExoUserPlayer {
         long min = sec / 60;
         return min + "m" + sec % 60 + "s";
     }
+
     /**
      * 滑动改变声音大小
      *
@@ -303,6 +306,7 @@ public class GestureVideoPlayer extends ExoUserPlayer {
         VideoPlayerManager.tempFastPlay = true;
         float speed = VideoPlayerManager.FAST_PLAY_TIMES > 0 ? VideoPlayerManager.FAST_PLAY_TIMES * speedNow : -VideoPlayerManager.FAST_PLAY_TIMES;
         player.setPlaybackParameters(new PlaybackParameters(speed, 1f));
+        getPlayerViewListener().changeSpeed(speed);
     }
 
     @Override
@@ -357,19 +361,6 @@ public class GestureVideoPlayer extends ExoUserPlayer {
         @SuppressLint("ClickableViewAccessibility")
         @Override
         public boolean onTouch(View v, MotionEvent event) {
-            switch (event.getAction() & MotionEvent.ACTION_MASK) {
-                case MotionEvent.ACTION_DOWN:
-                    x = event.getX();
-                    y = event.getY();
-                    break;
-                case MotionEvent.ACTION_MOVE:
-                    if (activity == null || (!VideoPlayUtils.isLand(activity) && !getVideoPlayerView().isNowVerticalFullScreen())) {
-                        if (verticalMoveGestureListener != null) {
-                            verticalMoveGestureListener.move(event.getX() - x, event.getY() - y);
-                        }
-                    }
-                    break;
-            }
             if (!controllerHideOnTouch) {
                 if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
                     return true;
@@ -383,11 +374,11 @@ public class GestureVideoPlayer extends ExoUserPlayer {
                 return false;
             } else if (activity == null || (!VideoPlayUtils.isLand(activity) && !getVideoPlayerView().isNowVerticalFullScreen())) {
                 //竖屏（非竖屏全屏）不执行手势
-                if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
-                    videoPlayerView.getPlayerView().reverseController();
-                    return true;
-                }
-                return false;
+//                if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+//                    videoPlayerView.getPlayerView().reverseController();
+//                    return true;
+//                }
+//                return false;
             }
             // 处理手势结束
             if (event.getAction() == MotionEvent.ACTION_UP) {
@@ -399,6 +390,39 @@ public class GestureVideoPlayer extends ExoUserPlayer {
             return false;
         }
     };
+
+    private boolean isVerticalNotFull() {
+        return activity == null || !VideoPlayUtils.isLand(activity) && getVideoPlayerView() != null && !getVideoPlayerView().isNowVerticalFullScreen();
+    }
+
+
+    private int getViewWidth(boolean verticalFullScreen, boolean verticalNotFullScreen) {
+        if (verticalFullScreen || verticalNotFullScreen) {
+            //竖屏
+            return screeWidthPixels;
+        }
+        //横屏
+        return screeHeightPixels;
+    }
+
+    private int getViewHeight(boolean verticalFullScreen, boolean verticalNotFullScreen) {
+        if (verticalFullScreen) {
+            //竖屏全屏
+            return screeHeightPixels;
+        }
+        if (!verticalNotFullScreen) {
+            //横屏
+            return screeWidthPixels;
+        }
+        //竖屏未全屏
+        if (getVideoPlayerView() != null) {
+            int height = getPlayerViewListener().getHeight();
+            if (height > 0) {
+                return height;
+            }
+        }
+        return screeWidthPixels * 6 / 19;
+    }
 
     public OnDoubleTapListener getOnDoubleTapListener() {
         return onDoubleTapListener;
@@ -416,6 +440,8 @@ public class GestureVideoPlayer extends ExoUserPlayer {
         private boolean volumeControl;
         private boolean toSeek;
         private boolean isNowVerticalFullScreen = false;
+        private boolean isVerticalNotFullScreen = false;
+        private float x = 0, y = 0;
         private WeakReference<GestureVideoPlayer> weakReference;
 
         private boolean canTouchAfterTowFinger() {
@@ -424,7 +450,7 @@ public class GestureVideoPlayer extends ExoUserPlayer {
 
         @Override
         public boolean onSingleTapConfirmed(MotionEvent e) {
-            if(e.getPointerCount() != 1) {
+            if (e.getPointerCount() != 1) {
                 return super.onSingleTapUp(e);
             }
             videoPlayerView.getPlayerView().reverseController();
@@ -434,7 +460,7 @@ public class GestureVideoPlayer extends ExoUserPlayer {
         @Override
         public void onLongPress(MotionEvent e) {
 //            boolean left = e.getX() < screeWidthPixels * 0.5f;
-            if(e.getPointerCount() == 1 && canTouchAfterTowFinger()) {
+            if (e.getPointerCount() == 1 && canTouchAfterTowFinger()) {
                 showTempFastDialog(VideoPlayerManager.PLAY_SPEED);
             }
             super.onLongPress(e);
@@ -446,7 +472,7 @@ public class GestureVideoPlayer extends ExoUserPlayer {
 
         @Override
         public boolean onDoubleTap(MotionEvent e) {
-            if(e.getPointerCount() != 1) {
+            if (e.getPointerCount() != 1) {
                 return true;
             }
             if (onDoubleTapListener != null) {
@@ -473,6 +499,9 @@ public class GestureVideoPlayer extends ExoUserPlayer {
         public boolean onDown(MotionEvent e) {
             firstTouch = true;
             isNowVerticalFullScreen = getVideoPlayerView().isNowVerticalFullScreen();
+            isVerticalNotFullScreen = isVerticalNotFull();
+            x = e.getX();
+            y = e.getY();
             return super.onDown(e);
         }
 
@@ -488,16 +517,31 @@ public class GestureVideoPlayer extends ExoUserPlayer {
             float mOldX = e1.getX(), mOldY = e1.getY();
             float deltaY = mOldY - e2.getY();
             float deltaX = mOldX - e2.getX();
+            if(!checkScreenWidth) {
+                checkScreenWidth = true;
+                //必须此时再去检查，不然在initView时检查没用
+                checkScreenWidthNow();
+            }
+            int viewWidth = getViewWidth(isNowVerticalFullScreen, isVerticalNotFullScreen);
+            int viewHeight = getViewHeight(isNowVerticalFullScreen, isVerticalNotFullScreen);
             if (firstTouch) {
                 boolean isAllowScroll;
                 toSeek = Math.abs(distanceX) >= Math.abs(distanceY);
-                if (isNowVerticalFullScreen) {
-                    volumeControl = mOldX > screeWidthPixels * 0.5f;
-                    isAllowScroll = mOldY > screeHeightPixels * 0.1f;
-                } else {
-                    volumeControl = mOldX > screeHeightPixels * 0.5f;
-                    isAllowScroll = mOldY > screeWidthPixels * 0.1f;
+                volumeControl = mOldX > viewWidth * 0.5f;
+                float gap = screeWidthPixels * 0.1f;
+                try {
+                    if (videoPlayerView != null) {
+                        //30dp
+                        float scale = videoPlayerView.getResources().getDisplayMetrics().density;
+                        float a = 30 * scale + 0.5f;
+                        if (a > 0 && a < gap) {
+                            gap = a;
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
+                isAllowScroll = mOldY > gap && mOldY < (viewHeight - gap) && mOldX > gap && mOldX < (viewWidth - gap);
                 if (!isAllowScroll) {
                     return false;
                 }
@@ -536,15 +580,35 @@ public class GestureVideoPlayer extends ExoUserPlayer {
                     }
                     showProgressDialog(Util.getStringForTime(formatBuilder, formatter, position), newPosition, duration, Util.getStringForTime(formatBuilder, formatter, newPosition), Util.getStringForTime(formatBuilder, formatter, duration));
                 } else {
-                    float percent = deltaY / getPlayerViewListener().getHeight();
-                    if (volumeControl) {
-                        showVolumeDialog(percent);
+                    if (isVerticalNotFullScreen && verticalMoveGestureListener != null) {
+                        //悬浮嗅探，不允许调整音量和亮度
+                        verticalMoveGestureListener.move(e2.getX() - x, e2.getY() - y);
                     } else {
-                        showBrightnessDialog(percent);
+                        float percent = deltaY / getPlayerViewListener().getHeight();
+                        if (volumeControl) {
+                            showVolumeDialog(percent);
+                        } else {
+                            showBrightnessDialog(percent);
+                        }
                     }
                 }
             }
             return super.onScroll(e1, e2, distanceX, distanceY);
+        }
+
+        private void checkScreenWidthNow() {
+            try {
+                //挖孔屏、刘海屏
+                Rect visibleRect = new Rect();
+                View decorView = activity.getWindow().getDecorView();
+                decorView.getWindowVisibleDisplayFrame(visibleRect);
+                int height1 = Math.max(visibleRect.height(), visibleRect.width());
+                int width1 = Math.min(visibleRect.height(), visibleRect.width());
+                screeHeightPixels = Math.max(screeHeightPixels, height1);
+                screeWidthPixels = Math.max(screeWidthPixels, width1);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

@@ -95,6 +95,42 @@ class SearchDialog(context: Context) : MyDialog(context) {
                         ?.commit()
                     prefs?.edit()?.putBoolean("switch_diy", false)?.commit()
                 }
+
+                binding.radioButton10 -> {
+                    prefs?.edit()?.putString(
+                        "searchEngine",
+                        getContext().getString(org.mozilla.xiu.browser.R.string.ai360)
+                    )
+                        ?.commit()
+                    prefs?.edit()?.putBoolean("switch_diy", false)?.commit()
+                }
+
+                binding.radioButton11 -> {
+                    prefs?.edit()?.putString(
+                        "searchEngine",
+                        getContext().getString(org.mozilla.xiu.browser.R.string.metaai)
+                    )
+                        ?.commit()
+                    prefs?.edit()?.putBoolean("switch_diy", false)?.commit()
+                }
+
+                binding.radioButton12 -> {
+                    prefs?.edit()?.putString(
+                        "searchEngine",
+                        getContext().getString(org.mozilla.xiu.browser.R.string.phindai)
+                    )
+                        ?.commit()
+                    prefs?.edit()?.putBoolean("switch_diy", false)?.commit()
+                }
+
+                binding.radioButton13 -> {
+                    prefs?.edit()?.putString(
+                        "searchEngine",
+                        getContext().getString(org.mozilla.xiu.browser.R.string.aisearch)
+                    )
+                        ?.commit()
+                    prefs?.edit()?.putBoolean("switch_diy", false)?.commit()
+                }
             }
             dismiss()
         }
@@ -126,6 +162,18 @@ class SearchDialog(context: Context) : MyDialog(context) {
                     true
 
                 getContext().getString(org.mozilla.xiu.browser.R.string.shenma) -> binding.radioButton9.isChecked =
+                    true
+
+                getContext().getString(org.mozilla.xiu.browser.R.string.ai360) -> binding.radioButton10.isChecked =
+                    true
+
+                getContext().getString(org.mozilla.xiu.browser.R.string.metaai) -> binding.radioButton11.isChecked =
+                    true
+
+                getContext().getString(org.mozilla.xiu.browser.R.string.phindai) -> binding.radioButton12.isChecked =
+                    true
+
+                getContext().getString(org.mozilla.xiu.browser.R.string.aisearch) -> binding.radioButton13.isChecked =
                     true
             }
         }

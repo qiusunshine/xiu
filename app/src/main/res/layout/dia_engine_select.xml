@@ -67,6 +67,30 @@
             android:text="@string/Shenma" />
 
         <RadioButton
+            android:id="@+id/radio_button_10"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="@string/AI360" />
+
+        <RadioButton
+            android:id="@+id/radio_button_11"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="@string/MetaAI" />
+
+        <RadioButton
+            android:id="@+id/radio_button_12"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="@string/PhindAI" />
+
+        <RadioButton
+            android:id="@+id/radio_button_13"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="@string/AISearch" />
+
+        <RadioButton
             android:id="@+id/radio_button_5"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

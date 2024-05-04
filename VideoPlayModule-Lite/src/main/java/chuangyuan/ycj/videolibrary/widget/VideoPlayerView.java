@@ -704,6 +704,11 @@ public final class VideoPlayerView extends BaseView {
             mGestureControlView.showTempFast(speedNow);
         }
 
+        @Override
+        public void changeSpeed(float speed) {
+            setSpeed(speed);
+        }
+
     };
 
 

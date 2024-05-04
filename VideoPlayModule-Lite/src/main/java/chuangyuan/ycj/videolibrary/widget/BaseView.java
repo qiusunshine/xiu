@@ -1559,4 +1559,10 @@ public abstract class BaseView extends FrameLayout {
     public interface SeekListener {
         void seek(long pos);
     }
+
+    public void setSpeed(float speed) {
+        if (danmakuView != null && danmakuContext != null) {
+            danmakuContext.setSpeed(speed);
+        }
+    }
 }

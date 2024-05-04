@@ -28,6 +28,10 @@
             android:title="@string/homePageUrl"
             app:key="home_page_url"
             app:selectable="true"/>
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="switch_dynamic_color"
+            android:title="@string/DynamicColors" />
     </PreferenceCategory>
     <PreferenceCategory
         android:title="@string/advanced"

@@ -12,7 +12,8 @@
     <string name="add_tab">打开新标签页</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="title_activity_holder">HolderActivity</string>
+    <string name="title_activity_holder">设置</string>
+    <string name="search_in">搜索·Xiu</string>
     <string name="customize_text_size">自定义网页字体大小</string>
     <string name="cannot_set_text_auto">因为自定义了字体大小，无法自适应</string>
     <string name="dia_bookmark_radio">添加到首页</string>
@@ -46,6 +47,10 @@
     <string name="Wuzhui">无追搜索</string>
     <string name="Yandex">Yandex</string>
     <string name="Shenma">神马</string>
+    <string name="AI360">360 AI</string>
+    <string name="MetaAI">秘塔 AI</string>
+    <string name="PhindAI">Phind AI</string>
+    <string name="AISearch">AI Search</string>
     <string name="EngineTips">在%s上搜索</string>
     <string name="connection_secure">连接安全</string>
     <string name="connection_not_secure">连接不安全</string>
@@ -87,6 +92,10 @@
     <string name="extensions">扩展程序</string>
     <string name="advanced">高级</string>
     <string name="AutomaticFontSize">自适应字体大小</string>
+    <string name="DynamicColors">主题颜色自适应</string>
+    <string name="dynamicColors_open">已开启主题颜色跟随壁纸自适应，重启软件生效</string>
+    <string name="dynamicColors_close">已关闭主题颜色跟随壁纸自适应，重启软件生效</string>
+    <string name="dynamicColors_not_support">当前设备不支持主题颜色跟随壁纸自适应</string>
     <string name="ForceUserScalable">强制手势缩放</string>
     <string name="private_safety">隐私&amp;安全</string>
     <string name="https_only">Https-Only</string>
@@ -147,6 +156,10 @@
     <string name="wuzhui">https://www.wuzhuiso.com/s?ie=utf-8&amp;fr=none&amp;q=</string>
     <string name="yandex">https://yandex.com/search/?text=</string>
     <string name="shenma">https://m.sm.cn/s?q=</string>
+    <string name="ai360">https://www.sou.com/?q=</string>
+    <string name="metaai">https://metaso.cn/?q=</string>
+    <string name="phindai">https://phind-ai.com/zh/search?q=</string>
+    <string name="aisearch">https://isou.chat/search?q=</string>
     <string name="diySearching">自定义搜索引擎</string>
     <string name="diyAddress">自定义搜索地址</string>
     <string name="homePageUrl">自定义主页地址</string>

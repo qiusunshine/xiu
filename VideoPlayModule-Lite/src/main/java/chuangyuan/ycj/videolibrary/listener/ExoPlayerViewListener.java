@@ -226,4 +226,6 @@ public interface ExoPlayerViewListener {
      */
     void showLongPress(float speedNow, boolean stopped);
 
+    void changeSpeed(float speed);
+
 }

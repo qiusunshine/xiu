@@ -18,6 +18,10 @@
         <item>@string/wuzhui</item>
         <item>@string/yandex</item>
         <item>@string/shenma</item>
+        <item>@string/ai360</item>
+        <item>@string/metaai</item>
+        <item>@string/phindai</item>
+        <item>@string/aisearch</item>
     </string-array>
 
     <string-array name="searchEngine_values">
@@ -29,6 +33,10 @@
         <item>@string/Wuzhui</item>
         <item>@string/Yandex</item>
         <item>@string/Shenma</item>
+        <item>@string/AI360</item>
+        <item>@string/MetaAI</item>
+        <item>@string/PhindAI</item>
+        <item>@string/AISearch</item>
 
     </string-array>
 

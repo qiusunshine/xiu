@@ -14,6 +14,7 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_holder">HolderActivity</string>
+    <string name="search_in">Search·Xiu</string>
     <string name="customize_text_size">Customize text size</string>
     <string name="cannot_set_text_auto">Cannot take effect because the webpage font size has been customized</string>
     <string name="dia_bookmark_radio">Add to Home page</string>
@@ -48,6 +49,10 @@
     <string name="Wuzhui">Wu Zhui</string>
     <string name="Yandex">Yandex</string>
     <string name="Shenma">神马</string>
+    <string name="AI360">360 AI</string>
+    <string name="MetaAI">秘塔 AI</string>
+    <string name="AISearch">AI Search</string>
+    <string name="PhindAI">Phind AI</string>
     <string name="EngineTips">Search on %s</string>
     <string name="connection_secure">Connection is secure</string>
     <string name="connection_not_secure">Connection is not secure</string>
@@ -83,6 +88,10 @@
     <string name="extensions">Add-ons</string>
     <string name="advanced">Advanced</string>
     <string name="AutomaticFontSize">Adaptive font size</string>
+    <string name="DynamicColors">Dynamic Colors</string>
+    <string name="dynamicColors_open">Dynamic Colors Opened</string>
+    <string name="dynamicColors_close">Dynamic Colors Closed</string>
+    <string name="dynamicColors_not_support">Your device does not support Dynamic Colors</string>
     <string name="ForceUserScalable">Force gesture scaling</string>
     <string name="private_safety">Privacy &amp; Security</string>
     <string name="https_only">Https-Only</string>
@@ -143,6 +152,10 @@
     <string name="wuzhui">https://www.wuzhuiso.com/s?ie=utf-8&amp;fr=none&amp;q=</string>
     <string name="yandex">https://yandex.com/search/?text=</string>
     <string name="shenma">https://m.sm.cn/s?q=</string>
+    <string name="ai360">https://www.sou.com/?q=</string>
+    <string name="metaai">https://metaso.cn/?q=</string>
+    <string name="phindai">https://phind-ai.com/zh/search?q=</string>
+    <string name="aisearch">https://isou.chat/search?q=</string>
     <string name="diySearching">Custom search engines</string>
     <string name="diyAddress">Customize the search address</string>
     <string name="homePageUrl">Customize home page url</string>

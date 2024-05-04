@@ -4,12 +4,15 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.text.TextUtils
 import android.util.Log
+import android.view.MenuItem
 import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.CursorAnchorInfo
@@ -49,9 +52,11 @@ import org.mozilla.geckoview.GeckoSession.PromptDelegate.*
 import org.mozilla.geckoview.GeckoSession.TextInputDelegate
 import org.mozilla.xiu.browser.App
 import org.mozilla.xiu.browser.BR
+import org.mozilla.xiu.browser.MainActivity
 import org.mozilla.xiu.browser.R
 import org.mozilla.xiu.browser.base.VarHolder
 import org.mozilla.xiu.browser.base.async
+import org.mozilla.xiu.browser.broswer.SearchEngine
 import org.mozilla.xiu.browser.componets.ContextMenuDialog
 import org.mozilla.xiu.browser.componets.HomeLivedata
 import org.mozilla.xiu.browser.componets.popup.IntentPopup
@@ -66,6 +71,7 @@ import org.mozilla.xiu.browser.fxa.Fxa.Companion.historySync
 import org.mozilla.xiu.browser.tab.RemoveTabLiveData
 import org.mozilla.xiu.browser.utils.FilesInAppUtil
 import org.mozilla.xiu.browser.utils.PreferenceMgr
+import org.mozilla.xiu.browser.utils.StrUtil
 import org.mozilla.xiu.browser.utils.StringUtil
 import org.mozilla.xiu.browser.utils.ThreadTool
 import org.mozilla.xiu.browser.utils.ToastMgr
@@ -613,7 +619,7 @@ class SessionDelegate() : BaseObservable() {
                 val sessionSettings = newSession.settings
                 SeRuSettings(sessionSettings, mContext)
                 geckoViewModel.changeSearch(newSession)
-                if(HomeLivedata.getInstance().value == true) {
+                if (HomeLivedata.getInstance().value == true) {
                     HomeLivedata.getInstance().Value(false)
                 }
                 return GeckoResult.fromValue(newSession)
@@ -946,6 +952,48 @@ class SessionDelegate() : BaseObservable() {
             }
         })
         session.translationsSessionDelegate = ExampleTranslationsSessionDelegate()
+        session.selectionActionDelegate = object : BasicSelectionActionDelegate(mContext) {
+            private fun getSelectedTextMax(): String {
+                if (mSelection == null) {
+                    return ""
+                }
+                return if (TextUtils.isEmpty(mSelection!!.text) || mSelection!!.text.length < 100000) {
+                    mSelection!!.text
+                } else mSelection!!.text.substring(0, 100000)
+            }
+
+            override fun performAction(id: String, item: MenuItem): Boolean {
+                try {
+                    if (ACTION_PROCESS_TEXT == id && item.title.toString() == ContextCompat.getString(
+                            mContext,
+                            R.string.searching
+                        )
+                    ) {
+                        val intent = Intent(mContext, MainActivity::class.java)
+                        val text = getSelectedTextMax()
+                        if ((mContext.getResources().getConfiguration().screenLayout and
+                                    Configuration.SCREENLAYOUT_SIZE_MASK) ===
+                            Configuration.SCREENLAYOUT_SIZE_LARGE
+                        ) {
+                            val uu = if (StrUtil.isGeckoUrl(text)) {
+                                text
+                            } else {
+                                "${SearchEngine(mContext)}$text"
+                            }
+                            createSession(uu, mContext)
+                        } else {
+                            intent.data = Uri.parse(text)
+                            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+                            mContext.startActivity(intent)
+                        }
+                        return true
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                return super.performAction(id, item)
+            }
+        }
     }
 
     fun getDefaultThemeColor(context: Context?): Int {
@@ -1130,7 +1178,8 @@ class SessionDelegate() : BaseObservable() {
         addHistory()
     }
 
-    private inner class ExampleTranslationsSessionDelegate : TranslationsController.SessionTranslation.Delegate {
+    private inner class ExampleTranslationsSessionDelegate :
+        TranslationsController.SessionTranslation.Delegate {
         override fun onOfferTranslate(session: GeckoSession) {
             Log.i("test", "onOfferTranslate")
         }
